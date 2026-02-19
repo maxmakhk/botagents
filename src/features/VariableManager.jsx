@@ -17,6 +17,7 @@ import useLogs from './variableManager/hooks/useLogs';
 import useAIPrompts from './variableManager/hooks/useAIPrompts';
 import useWorkflowGraph from './variableManager/hooks/useWorkflowGraph';
 import useRunDemo from './variableManager/hooks/useRunDemo';
+import { AI_CHAT_ENDPOINT } from './variableManager/services/ai/aichatService';
 import promptToFunctionUtil from './variableManager/utils/promptToFunction';
 import normalizeFnUtil from './variableManager/utils/normalizeFn';
 import fnToWorkflowUtil from './variableManager/utils/fnToWorkflow';
@@ -509,7 +510,7 @@ Respond with the rewritten numbered steps only.
 
     let normalizedPrompt = promptText;
     try {
-      const respNorm = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+      const respNorm = await fetch(AI_CHAT_ENDPOINT || import.meta.env.VITE_AI_CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'user', prompt: promptText, system: normalizationSystemPrompt })

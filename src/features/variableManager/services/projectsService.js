@@ -75,7 +75,7 @@ LAYOUT RULES:
   `
   };
 
-  const response = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+  const response = await fetch((import.meta.env.VITE_AI_CHAT_ENDPOINT), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(prompt)
@@ -250,7 +250,7 @@ EXAMPLE OUTPUT:
     system: systemPrompt
   };
 
-  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+  const resp = await fetch((import.meta.env.VITE_AI_CHAT_ENDPOINT), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(prompt)

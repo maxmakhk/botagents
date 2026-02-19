@@ -91,7 +91,7 @@ const fn = () => {
       role: 'user', prompt: normalizedPrompt, system: sys
     }
 
-    const r = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+    const r = await fetch((import.meta.env.VITE_AI_CHAT_ENDPOINT), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

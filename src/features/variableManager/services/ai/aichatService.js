@@ -3,7 +3,7 @@
  * Handles communication with the AI chat API
  */
 
-const AI_CHAT_ENDPOINT = 'https://aichat.maxsolo.co.uk/api/chat';
+export const AI_CHAT_ENDPOINT = import.meta.env.VITE_AI_CHAT_ENDPOINT;
 
 /**
  * Generate a rule from a natural language prompt

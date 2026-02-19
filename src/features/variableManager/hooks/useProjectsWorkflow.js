@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { buildWorkflowPayload, generateFunctionFromWorkflow, generateWorkflowVisualization } from '../services/projectsService';
+import { AI_CHAT_ENDPOINT } from '../services/ai/aichatService';
 import { extractKeywords, findRelatedVariables } from '../utils/variableUtils';
 
 export default function useProjectsWorkflow({
@@ -195,7 +196,7 @@ export default function useProjectsWorkflow({
     };
 
     try {
-      const response = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+      const response = await fetch(AI_CHAT_ENDPOINT || import.meta.env.VITE_AI_CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(detectPrompt)
@@ -265,7 +266,7 @@ export default function useProjectsWorkflow({
     }
 
     try {
-      const response = await fetch('https://aichat.maxsolo.co.uk/api/chat', {
+      const response = await fetch(AI_CHAT_ENDPOINT || import.meta.env.VITE_AI_CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(actionPrompt)

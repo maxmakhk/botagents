@@ -1,5 +1,6 @@
 {
-  "name": "maxsolo-admin",
+  "name": "botagents",
+  "description": "Agentic AI task UI built with React + Vite",
   "private": true,
   "version": "0.0.0",
   "type": "module",

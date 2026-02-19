@@ -88,7 +88,7 @@ const myNode: WorkflowNode = {
 Adds fnString and config fields to all existing nodes:
 
 ```bash
-cd /path/to/maxsolo-admin
+cd /path/to/botagents
 
 # Ensure credentials are set up
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json
