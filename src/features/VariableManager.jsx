@@ -38,7 +38,7 @@ import './variableManager.css';
 
 const VariableManager = ({ onBack }) => {
   const db = window.db;
-  
+
   // Variables hook
   const {
     variables,
@@ -50,7 +50,7 @@ const VariableManager = ({ onBack }) => {
     runFilter,
     listStructure,
   } = useVariables(db);
-  
+
   // Rule sources hook
   const {
     ruleSource,
@@ -199,7 +199,7 @@ const VariableManager = ({ onBack }) => {
         } catch (e) { /* ignore */ }
       };
     } catch (e) { }
-    return () => { try { delete window.vm_toggleApiNodes; } catch(e){} };
+    return () => { try { delete window.vm_toggleApiNodes; } catch (e) { } };
   }, []);
 
   // Auto-layout handler using dagre helper
@@ -221,10 +221,7 @@ const VariableManager = ({ onBack }) => {
       if (Array.isArray(layoutedEdges)) setRfEdges(layoutedEdges);
       // fit the viewport to the new layout when possible
       try {
-        if (rfInstance && typeof rfInstance.fitView === 'function') {
-          // give a bit more time for state to propagate before fitting view
-          setTimeout(() => { try { rfInstance.fitView({ padding: 0.12 }); } catch(e){} }, 150);
-        }
+        fitViewportToNodes();
       } catch (err) {
         // ignore
       }
@@ -233,26 +230,26 @@ const VariableManager = ({ onBack }) => {
     }
   }, [rfNodes, rfEdges, setRfNodes, setRfEdges]);
 
-// Helper: generate a light pastel HSL color
-const getRandLightColor = () => {
-  const h = Math.floor(Math.random() * 360);
-  const s = 60 + Math.floor(Math.random() * 20);
-  const l = 85 + Math.floor(Math.random() * 8);
-  return `hsl(${h}, ${s}%, ${l}%)`;
-};
+  // Helper: generate a light pastel HSL color
+  const getRandLightColor = () => {
+    const h = Math.floor(Math.random() * 360);
+    const s = 60 + Math.floor(Math.random() * 20);
+    const l = 85 + Math.floor(Math.random() * 8);
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  };
 
-// Helper: apply a group/background color and default text color to nodes array
-const applyGroupColorToNodes = (nodes, color) => {
-  if (!Array.isArray(nodes)) return nodes;
-  return nodes.map((n) => ({
-    ...n,
-    data: {
-      ...n.data,
-      backgroundColor: color,
-      textColor: '#0f172a',
-    },
-  }));
-};
+  // Helper: apply a group/background color and default text color to nodes array
+  const applyGroupColorToNodes = (nodes, color) => {
+    if (!Array.isArray(nodes)) return nodes;
+    return nodes.map((n) => ({
+      ...n,
+      data: {
+        ...n.data,
+        backgroundColor: color,
+        textColor: '#0f172a',
+      },
+    }));
+  };
 
   // Prepared stub for node prompt submit
   // Convert a normalized prompt into a JS arrow function using the AI endpoint
@@ -267,7 +264,7 @@ const applyGroupColorToNodes = (nodes, color) => {
     // Pattern to match variable declarations with storeVars
     // Matches: const varName = storeVars.storeName or let varName = storeVars.storeName
     const varPattern = /(\n\s*)(const|let)\s+(\w+)\s*=\s*storeVars\.(\w+)/g;
-    
+
     let result = fnString;
     const replacements = [];
     let match;
@@ -287,56 +284,56 @@ const applyGroupColorToNodes = (nodes, color) => {
     // Process matches in reverse to keep indices correct when replacing
     for (let i = replacements.length - 1; i >= 0; i--) {
       const { index, fullMatch, indent, storeVarName } = replacements[i];
-      
+
       // Try to find a matching API by name or tag
       let matchedApi = null;
       const searchName = storeVarName.toLowerCase();
-      
+
       if (Array.isArray(apis) && apis.length > 0) {
         matchedApi = apis.find((api) => {
           if (!api) return false;
-          
+
           // Check if API name matches storeVarName
           const apiName = (api.name || '').toLowerCase();
           console.log('Checking API match:', { apiName, searchName, apiTags: api.tag });
           if (apiName === searchName) return true;
-          
+
           // Check if storeVarName is in API tags
           if (Array.isArray(api.tag)) {
             return api.tag.some((tag) => (tag || '').toLowerCase() === searchName);
           }
-          
+
           return false;
         });
       }
-      
+
       // If API found, insert console.log before the variable declaration
       if (matchedApi) {
         const apiName = matchedApi.name || '';
         const apiUrl = matchedApi.url || '';
         const storeLocation = `storeVars["${apiName}"]`;
-        
+
         // Create the console.log statement with proper indentation
         const apiLog = `${indent}console.log("requestAPI", "${apiName}", "${apiUrl}", {}, "${storeLocation}");`;
         const replacement = `${apiLog}${fullMatch}`;
-        
+
         // Replace in result
         result = result.substring(0, index) + replacement + result.substring(index + fullMatch.length);
       }
     }
-    
+
     return result;
   }, [apis]);
 
-  const applyPrefixToIds = (parsedFlow) => {  
-    const nodePrefix = Math.random().toString(36).slice(2, 8) +'_';
+  const applyPrefixToIds = (parsedFlow) => {
+    const nodePrefix = Math.random().toString(36).slice(2, 8) + '_';
 
-    for(let i in parsedFlow.edges) {
+    for (let i in parsedFlow.edges) {
       parsedFlow.edges[i].id = nodePrefix + parsedFlow.edges[i].id;
       parsedFlow.edges[i].source = nodePrefix + parsedFlow.edges[i].source;
       parsedFlow.edges[i].target = nodePrefix + parsedFlow.edges[i].target;
     }
-    for(let i in parsedFlow.nodes) {
+    for (let i in parsedFlow.nodes) {
       parsedFlow.nodes[i].id = nodePrefix + parsedFlow.nodes[i].id;
     }
 
@@ -551,9 +548,9 @@ Respond with the rewritten numbered steps only.
       console.log('Generated workflow from function:', fnToWorkflowResult);
 
       //apply randLightColor to all nodes in parsedFlow (use shared helper)
-          const groupColor = getRandLightColor();
-          fnToWorkflowResult.nodes = applyGroupColorToNodes(fnToWorkflowResult.nodes, groupColor);
-          applyRemodelResponse(nodeId, fnToWorkflowResult, related, workflowData);//<-- apply here
+      const groupColor = getRandLightColor();
+      fnToWorkflowResult.nodes = applyGroupColorToNodes(fnToWorkflowResult.nodes, groupColor);
+      applyRemodelResponse(nodeId, fnToWorkflowResult, related, workflowData);//<-- apply here
 
       try { if (typeof setTaskFunctionText === 'function') setTaskFunctionText(generatedFn); } catch (e) { /* ignore */ }
 
@@ -562,269 +559,263 @@ Respond with the rewritten numbered steps only.
     }
   }, [rfNodes, rfEdges]);
 
-    // v3
-    const applyRemodelResponse = (centerNodeId, remodelJson,related, full = null) => {
+  // v3
+  const applyRemodelResponse = (centerNodeId, remodelJson, related, full = null) => {
 
-      if (!remodelJson || !Array.isArray(remodelJson.nodes) || !Array.isArray(remodelJson.edges)) {
-        console.warn('Invalid remodelJson, expected { nodes: [], edges: [] }');
-        return;
+    if (!remodelJson || !Array.isArray(remodelJson.nodes) || !Array.isArray(remodelJson.edges)) {
+      console.warn('Invalid remodelJson, expected { nodes: [], edges: [] }');
+      return;
+    }
+
+    // --- 1. 選 base graph ---
+    const fullFlow =
+      full || (workflowData && Array.isArray(workflowData.nodes) ? workflowData : null);
+
+    let baseNodes = fullFlow && Array.isArray(fullFlow.nodes)
+      ? JSON.parse(JSON.stringify(fullFlow.nodes))
+      : JSON.parse(JSON.stringify(rfNodes || []));
+    let baseEdges = fullFlow && Array.isArray(fullFlow.edges)
+      ? JSON.parse(JSON.stringify(fullFlow.edges))
+      : JSON.parse(JSON.stringify(rfEdges || []));
+
+    // Normalize baseEdges to use {source, target} format (React Flow standard)
+    // Handle edges that may come in {from, to} format from stored workflows
+    baseEdges = baseEdges.map((e) => ({
+      ...e,
+      source: e.source !== undefined && e.source !== null ? String(e.source) : String(e.from || ''),
+      target: e.target !== undefined && e.target !== null ? String(e.target) : String(e.to || '')
+    }));
+
+    console.log('Base nodes for remodel:', baseNodes);
+    console.log('Base edges for remodel (normalized):', baseEdges);
+    console.log('Remodel nodes (raw):', remodelJson.nodes);
+    console.log('Remodel edges (raw):', remodelJson.edges);
+
+    console.log('applyRemodelResponseV3 (extend_node)', centerNodeId, remodelJson, related, 'full baseNodes baseEdges', baseNodes, baseEdges);
+
+    // --- 2. clone remodel nodes 先，不直接 mutate remodelJson.nodes ---
+    const remodelNodes = JSON.parse(JSON.stringify(remodelJson.nodes || []));
+    const remodelEdges = JSON.parse(JSON.stringify(remodelJson.edges || []));
+
+    // 2-1. 自動補 start / end（只在沒提供 entry/exit 時會用到）
+    let startNodes = remodelNodes.filter(n => n.type === 'start');
+    let endNodes = remodelNodes.filter(n => n.type === 'end');
+
+    if (startNodes.length === 0 && remodelNodes.length > 0) {
+      remodelNodes[0].type = 'start';
+      startNodes = [remodelNodes[0]];
+    }
+
+    if (endNodes.length === 0 && remodelNodes.length > 1) {
+      const lastIdx = remodelNodes.length - 1;
+      if (remodelNodes[lastIdx].type !== 'start') {
+        remodelNodes[lastIdx].type = 'end';
+        endNodes = [remodelNodes[lastIdx]];
+      } else if (remodelNodes.length > 2) {
+        remodelNodes[lastIdx - 1].type = 'end';
+        endNodes = [remodelNodes[lastIdx - 1]];
       }
+    }
 
-      // --- 1. 選 base graph ---
-      const fullFlow =
-        full || (workflowData && Array.isArray(workflowData.nodes) ? workflowData : null);
+    // --- 3. merge 新 nodes/edges 進 base ---
+    baseNodes.push(
+      ...remodelNodes.map(n => ({
+        id: String(n.id),
+        type: n.type || 'action',
+        data: n.data || {},
+        position: n.position || { x: 0, y: 0 },
+        width: n.width || (n.data && n.data.width),
+        height: n.height || (n.data && n.data.height),
+        metadata: n.metadata || (n.data && n.data.metadata) || {},
+      })),
+    );
 
-      let baseNodes = fullFlow && Array.isArray(fullFlow.nodes)
-        ? JSON.parse(JSON.stringify(fullFlow.nodes))
-        : JSON.parse(JSON.stringify(rfNodes || []));
-      let baseEdges = fullFlow && Array.isArray(fullFlow.edges)
-        ? JSON.parse(JSON.stringify(fullFlow.edges))
-        : JSON.parse(JSON.stringify(rfEdges || []));
-
-      // Normalize baseEdges to use {source, target} format (React Flow standard)
-      // Handle edges that may come in {from, to} format from stored workflows
-      baseEdges = baseEdges.map((e) => ({
-        ...e,
-        source: e.source !== undefined && e.source !== null ? String(e.source) : String(e.from || ''),
-        target: e.target !== undefined && e.target !== null ? String(e.target) : String(e.to || '')
-      }));
-
-      console.log('Base nodes for remodel:', baseNodes);
-      console.log('Base edges for remodel (normalized):', baseEdges);
-      console.log('Remodel nodes (raw):', remodelJson.nodes);
-      console.log('Remodel edges (raw):', remodelJson.edges);
-
-      console.log('applyRemodelResponseV3 (extend_node)', centerNodeId, remodelJson, related, 'full baseNodes baseEdges', baseNodes, baseEdges);
-
-      // --- 2. clone remodel nodes 先，不直接 mutate remodelJson.nodes ---
-      const remodelNodes = JSON.parse(JSON.stringify(remodelJson.nodes || []));
-      const remodelEdges = JSON.parse(JSON.stringify(remodelJson.edges || []));
-
-      // 2-1. 自動補 start / end（只在沒提供 entry/exit 時會用到）
-      let startNodes = remodelNodes.filter(n => n.type === 'start');
-      let endNodes   = remodelNodes.filter(n => n.type === 'end');
-
-      if (startNodes.length === 0 && remodelNodes.length > 0) {
-        remodelNodes[0].type = 'start';
-        startNodes = [remodelNodes[0]];
-      }
-
-      if (endNodes.length === 0 && remodelNodes.length > 1) {
-        const lastIdx = remodelNodes.length - 1;
-        if (remodelNodes[lastIdx].type !== 'start') {
-          remodelNodes[lastIdx].type = 'end';
-          endNodes = [remodelNodes[lastIdx]];
-        } else if (remodelNodes.length > 2) {
-          remodelNodes[lastIdx - 1].type = 'end';
-          endNodes = [remodelNodes[lastIdx - 1]];
-        }
-      }
-
-      // --- 3. merge 新 nodes/edges 進 base ---
-      baseNodes.push(
-        ...remodelNodes.map(n => ({
-          id: String(n.id),
-          type: n.type || 'action',
-          data: n.data || {},
-          position: n.position || { x: 0, y: 0 },
-          width: n.width || (n.data && n.data.width),
-          height: n.height || (n.data && n.data.height),
-          metadata: n.metadata || (n.data && n.data.metadata) || {},
-        })),
-      );
-
-      baseEdges.push(
-        ...remodelEdges.map((e, idx) => ({
-          id: String(e.id || `edgeB_${idx}`),
-          source: String(e.source || e.from || ''),
-          target: String(e.target || e.to || ''),
-          label: e.label || '',
-          sourceHandle:
-            e.sourceHandle !== undefined &&
+    baseEdges.push(
+      ...remodelEdges.map((e, idx) => ({
+        id: String(e.id || `edgeB_${idx}`),
+        source: String(e.source || e.from || ''),
+        target: String(e.target || e.to || ''),
+        label: e.label || '',
+        sourceHandle:
+          e.sourceHandle !== undefined &&
             e.sourceHandle !== null &&
             String(e.sourceHandle) !== 'undefined' &&
             String(e.sourceHandle) !== ''
-              ? String(e.sourceHandle)
-              : undefined,
-          targetHandle:
-            e.targetHandle !== undefined &&
+            ? String(e.sourceHandle)
+            : undefined,
+        targetHandle:
+          e.targetHandle !== undefined &&
             e.targetHandle !== null &&
             String(e.targetHandle) !== 'undefined' &&
             String(e.targetHandle) !== ''
-              ? String(e.targetHandle)
-              : undefined,
-        })),
-      );
+            ? String(e.targetHandle)
+            : undefined,
+      })),
+    );
 
-      // --- 4. 決定 entry/exit 陣列（統一一次就好，不要內外層重覆宣告） ---
-      let entryArr = [];
-      let exitArr = [];
+    // --- 4. 決定 entry/exit 陣列（統一一次就好，不要內外層重覆宣告） ---
+    let entryArr = [];
+    let exitArr = [];
 
-      try {
-        // 4-1. 優先用 remodelJson.entryNodeIds / exitNodeIds
-        if (Array.isArray(remodelJson.entryNodeIds) && remodelJson.entryNodeIds.length) {
-          entryArr = remodelJson.entryNodeIds.map(String);
-        }
-        if (Array.isArray(remodelJson.exitNodeIds) && remodelJson.exitNodeIds.length) {
-          exitArr = remodelJson.exitNodeIds.map(String);
-        }
-
-        // 4-2. 如果沒給，就 fallback 用 start/end node
-        if (entryArr.length === 0 && startNodes.length > 0) {
-          entryArr = [String(startNodes[0].id)];
-        }
-        if (exitArr.length === 0 && endNodes.length > 0) {
-          exitArr = [String(endNodes[0].id)];
-        }
-
-        console.log('Final entry/exit arrays:', {
-          entryArr,
-          exitArr,
-          rawEntryNodeIds: remodelJson.entryNodeIds,
-          rawExitNodeIds: remodelJson.exitNodeIds,
-        });
-      } catch (err) {
-        console.warn('Failed to detect entry/exit from remodelJson:', err);
+    try {
+      // 4-1. 優先用 remodelJson.entryNodeIds / exitNodeIds
+      if (Array.isArray(remodelJson.entryNodeIds) && remodelJson.entryNodeIds.length) {
+        entryArr = remodelJson.entryNodeIds.map(String);
+      }
+      if (Array.isArray(remodelJson.exitNodeIds) && remodelJson.exitNodeIds.length) {
+        exitArr = remodelJson.exitNodeIds.map(String);
       }
 
-      // --- 5. 重接 in/out edges ---
-      try {
-        const incomingIds = related?.connectedNodesIDs?.incoming || [];
-        const outgoingIds = related?.connectedNodesIDs?.outgoing || [];
-
-        console.log('Rewiring info:', {
-          incomingIds,
-          outgoingIds,
-          centerNodeId: String(centerNodeId),
-          entryArr,
-          exitArr,
-        });
-
-        // 5-1. 處理「指向 centerNodeId」的 incoming edges
-        try {
-          const incomingEdges = baseEdges.filter(
-            e =>
-              incomingIds.includes(String(e.source)) &&
-              String(e.target) === String(centerNodeId),
-          );
-
-          if (entryArr.length > 1 && incomingEdges.length) {
-            // 多個 entry: 刪舊邊，for 每個 entry clone 一份
-            baseEdges = baseEdges.filter(
-              e =>
-                !(
-                  incomingIds.includes(String(e.source)) &&
-                  String(e.target) === String(centerNodeId)
-                ),
-            );
-
-            const clones = [];
-            incomingEdges.forEach((origEdge, ei) => {
-              entryArr.forEach((mappedEntry, ei2) => {
-                const newId = `${String(origEdge.id)}__entry_clone_${ei}_${ei2}_${Date.now()}`;
-                clones.push({
-                  ...origEdge,
-                  id: newId,
-                  target: String(mappedEntry),
-                });
-              });
-            });
-
-            console.log('Cloning incoming edges for multiple entry nodes:', clones);
-            baseEdges = baseEdges.concat(clones);
-          } else if (entryArr.length === 1 && incomingEdges.length) {
-            // 單一 entry: 直接把 target 改成 entryArr[0]
-            baseEdges = baseEdges.map(e => {
-              if (
-                incomingIds.includes(String(e.source)) &&
-                String(e.target) === String(centerNodeId)
-              ) {
-                return { ...e, target: entryArr[0] };
-              }
-              return e;
-            });
-          }
-        } catch (err) {
-          console.warn('Failed to clone/rewire incoming edges:', err);
-        }
-
-        // 5-2. 處理「由 centerNodeId 出」的 outgoing edges
-        try {
-          const outgoingEdges = baseEdges.filter(
-            e =>
-              String(e.source) === String(centerNodeId) &&
-              outgoingIds.includes(String(e.target)),
-          );
-
-          if (exitArr.length > 1 && outgoingEdges.length) {
-            // 多個 exit: 刪舊邊，for 每個 exit clone 一份
-            baseEdges = baseEdges.filter(
-              e =>
-                !(
-                  String(e.source) === String(centerNodeId) &&
-                  outgoingIds.includes(String(e.target))
-                ),
-            );
-
-            const clones = [];
-            outgoingEdges.forEach((origEdge, oi) => {
-              exitArr.forEach((mappedExit, oi2) => {
-                const newId = `${String(origEdge.id)}__exit_clone_${oi}_${oi2}_${Date.now()}`;
-                clones.push({
-                  ...origEdge,
-                  id: newId,
-                  source: String(mappedExit),
-                });
-              });
-            });
-
-            console.log('Cloning outgoing edges for multiple exit nodes:', clones);
-            baseEdges = baseEdges.concat(clones);
-          } else if (exitArr.length === 1 && outgoingEdges.length) {
-            // 單一 exit: 直接把 source 改成 exitArr[0]
-            baseEdges = baseEdges.map(e => {
-              if (
-                String(e.source) === String(centerNodeId) &&
-                outgoingIds.includes(String(e.target))
-              ) {
-                return { ...e, source: exitArr[0] };
-              }
-              return e;
-            });
-          }
-        } catch (err) {
-          console.warn('Failed to clone/rewire outgoing edges:', err);
-        }
-      } catch (err) {
-        console.warn('Failed to hard-wire incoming/outgoing edges:', err);
+      // 4-2. 如果沒給，就 fallback 用 start/end node
+      if (entryArr.length === 0 && startNodes.length > 0) {
+        entryArr = [String(startNodes[0].id)];
+      }
+      if (exitArr.length === 0 && endNodes.length > 0) {
+        exitArr = [String(endNodes[0].id)];
       }
 
-      // --- 6. 刪掉原本 center node ---
-      baseNodes = baseNodes.filter(n => String(n.id) !== String(centerNodeId));
+      console.log('Final entry/exit arrays:', {
+        entryArr,
+        exitArr,
+        rawEntryNodeIds: remodelJson.entryNodeIds,
+        rawExitNodeIds: remodelJson.exitNodeIds,
+      });
+    } catch (err) {
+      console.warn('Failed to detect entry/exit from remodelJson:', err);
+    }
 
-      // --- 7. 更新 React Flow 狀態 ---
-      setRfNodes(baseNodes);
-      setRfEdges(baseEdges);
+    // --- 5. 重接 in/out edges ---
+    try {
+      const incomingIds = related?.connectedNodesIDs?.incoming || [];
+      const outgoingIds = related?.connectedNodesIDs?.outgoing || [];
 
-      console.log('applyRemodelResponse result:', {
-        nodes: baseNodes,
-        edges: baseEdges,
+      console.log('Rewiring info:', {
+        incomingIds,
+        outgoingIds,
+        centerNodeId: String(centerNodeId),
+        entryArr,
+        exitArr,
       });
 
-      // --- 8. Auto layout ---
+      // 5-1. 處理「指向 centerNodeId」的 incoming edges
       try {
-        handleAutoLayout(baseNodes, baseEdges);
-      } catch (err) {
-        console.error('Auto-layout failed after remodel:', err);
-        setTimeout(() => {
-          try {
-            if (rfInstance && typeof rfInstance.fitView === 'function') {
-              rfInstance.fitView({ padding: 0.12 });
+        const incomingEdges = baseEdges.filter(
+          e =>
+            incomingIds.includes(String(e.source)) &&
+            String(e.target) === String(centerNodeId),
+        );
+
+        if (entryArr.length > 1 && incomingEdges.length) {
+          // 多個 entry: 刪舊邊，for 每個 entry clone 一份
+          baseEdges = baseEdges.filter(
+            e =>
+              !(
+                incomingIds.includes(String(e.source)) &&
+                String(e.target) === String(centerNodeId)
+              ),
+          );
+
+          const clones = [];
+          incomingEdges.forEach((origEdge, ei) => {
+            entryArr.forEach((mappedEntry, ei2) => {
+              const newId = `${String(origEdge.id)}__entry_clone_${ei}_${ei2}_${Date.now()}`;
+              clones.push({
+                ...origEdge,
+                id: newId,
+                target: String(mappedEntry),
+              });
+            });
+          });
+
+          console.log('Cloning incoming edges for multiple entry nodes:', clones);
+          baseEdges = baseEdges.concat(clones);
+        } else if (entryArr.length === 1 && incomingEdges.length) {
+          // 單一 entry: 直接把 target 改成 entryArr[0]
+          baseEdges = baseEdges.map(e => {
+            if (
+              incomingIds.includes(String(e.source)) &&
+              String(e.target) === String(centerNodeId)
+            ) {
+              return { ...e, target: entryArr[0] };
             }
-          } catch (e) {}
-        }, 100);
+            return e;
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to clone/rewire incoming edges:', err);
       }
-    }; // v3
+
+      // 5-2. 處理「由 centerNodeId 出」的 outgoing edges
+      try {
+        const outgoingEdges = baseEdges.filter(
+          e =>
+            String(e.source) === String(centerNodeId) &&
+            outgoingIds.includes(String(e.target)),
+        );
+
+        if (exitArr.length > 1 && outgoingEdges.length) {
+          // 多個 exit: 刪舊邊，for 每個 exit clone 一份
+          baseEdges = baseEdges.filter(
+            e =>
+              !(
+                String(e.source) === String(centerNodeId) &&
+                outgoingIds.includes(String(e.target))
+              ),
+          );
+
+          const clones = [];
+          outgoingEdges.forEach((origEdge, oi) => {
+            exitArr.forEach((mappedExit, oi2) => {
+              const newId = `${String(origEdge.id)}__exit_clone_${oi}_${oi2}_${Date.now()}`;
+              clones.push({
+                ...origEdge,
+                id: newId,
+                source: String(mappedExit),
+              });
+            });
+          });
+
+          console.log('Cloning outgoing edges for multiple exit nodes:', clones);
+          baseEdges = baseEdges.concat(clones);
+        } else if (exitArr.length === 1 && outgoingEdges.length) {
+          // 單一 exit: 直接把 source 改成 exitArr[0]
+          baseEdges = baseEdges.map(e => {
+            if (
+              String(e.source) === String(centerNodeId) &&
+              outgoingIds.includes(String(e.target))
+            ) {
+              return { ...e, source: exitArr[0] };
+            }
+            return e;
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to clone/rewire outgoing edges:', err);
+      }
+    } catch (err) {
+      console.warn('Failed to hard-wire incoming/outgoing edges:', err);
+    }
+
+    // --- 6. 刪掉原本 center node ---
+    baseNodes = baseNodes.filter(n => String(n.id) !== String(centerNodeId));
+
+    // --- 7. 更新 React Flow 狀態 ---
+    setRfNodes(baseNodes);
+    setRfEdges(baseEdges);
+
+    console.log('applyRemodelResponse result:', {
+      nodes: baseNodes,
+      edges: baseEdges,
+    });
+
+    // --- 8. Auto layout ---
+    try {
+      handleAutoLayout(baseNodes, baseEdges);
+    } catch (err) {
+      console.error('Auto-layout failed after remodel:', err);
+      setTimeout(() => fitViewportToNodes(), 100);
+    }
+  }; // v3
 
 
 
@@ -835,7 +826,7 @@ Respond with the rewritten numbered steps only.
   const [newTags, setNewTags] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [manualSelectedId, setManualSelectedId] = useState('');
-  
+
   const [tableFieldKey, setTableFieldKey] = useState('');
   const [selectedSignalVar, setSelectedSignalVar] = useState(null);
   const [selectedSignalDetail, setSelectedSignalDetail] = useState(null);
@@ -1074,8 +1065,8 @@ Respond with the rewritten numbered steps only.
   // floating API result content
   const [apiResultsContent, setApiResultsContent] = useState(null);
   useEffect(() => {
-    try { window.setApiResultsContent = setApiResultsContent; } catch (e) {}
-    return () => { try { delete window.setApiResultsContent; } catch (e) {} };
+    try { window.setApiResultsContent = setApiResultsContent; } catch (e) { }
+    return () => { try { delete window.setApiResultsContent; } catch (e) { } };
   }, [setApiResultsContent]);
 
   useEffect(() => {
@@ -1113,7 +1104,7 @@ Respond with the rewritten numbered steps only.
         setRuleRelatedFields(result.ruleRelatedFields || []);
         setRuleCategoryIds(result.ruleCategoryIds || []);
         setFunctionsList(result.functionsList || []);
-        
+
         console.log(`Loaded ${result.count} rule(s) from Firebase for category:`, categoryId);
       }
     } catch (err) {
@@ -1158,7 +1149,7 @@ Respond with the rewritten numbered steps only.
     setNewTags('');
     setEditingId(null);
     setManualSelectedId('');
-    
+
   };
 
   const handleAddOrUpdate = async () => {
@@ -1185,8 +1176,8 @@ Respond with the rewritten numbered steps only.
     handleCancel();
   };
 
-  
-const saveSynthFunctionToRule = async () => {
+
+  const saveSynthFunctionToRule = async () => {
     if (selectedRuleIndex === undefined || selectedRuleIndex === null) return;
     const idx = Number(selectedRuleIndex);
     const nextRuleSource = [...(ruleSource || [])];
@@ -1203,7 +1194,7 @@ const saveSynthFunctionToRule = async () => {
 
     setRuleSystemPrompts(nextRuleSystemPrompts);
     setRuleSource(nextRuleSource);
-    console.log("now my select rule idx=", idx, "ruleSource=", nextRuleSource[idx], "ruleSystemPrompts=", nextRuleSystemPrompts[idx]);  
+    console.log("now my select rule idx=", idx, "ruleSource=", nextRuleSource[idx], "ruleSystemPrompts=", nextRuleSystemPrompts[idx]);
     console.log('Saving rule at index', idx, functionsList && functionsList[idx] ? (functionsList[idx].id || functionsList[idx].ruleId) : undefined, functionsList && functionsList[idx]);
     // Update functionsList to keep in sync (include visual workflow object)
     const rebuilt = buildFunctionsListFromLegacy();
@@ -1276,7 +1267,7 @@ const saveSynthFunctionToRule = async () => {
         setTimeout(() => setAiWarning(''), 2000);
       } else {
         // Pass an override with empty ruleSource so the service uses the provided functionsList only
-        
+
         const payLoad = {
           categoryId: functionsList[idx].categoryId,
           expr: functionsList[idx].expr,
@@ -1432,8 +1423,8 @@ const saveSynthFunctionToRule = async () => {
     const newNode = {
       id,
       position: { x: 200 + (rfNodes.length * 20), y: 200 },
-      data: { 
-        labelText: `New node ${rfNodes.length + 1}`, 
+      data: {
+        labelText: `New node ${rfNodes.length + 1}`,
         description: 'Describe this step',
         backgroundColor: getRandLightColor(),
         textColor: '#0f172a'
@@ -1512,12 +1503,12 @@ const saveSynthFunctionToRule = async () => {
   // Rule sources and prompts state (editable)
   const openActionRule = useCallback((action) => {
     try {
-      
+
       const linkedId = action && (action.linkedRuleId || action.ruleId) ? String(action.linkedRuleId || action.ruleId) : null;
       const linkedName = action && (action.linkedRuleName || action.linkedFunctionName || action.name || action.action) ? String(action.linkedRuleName || action.linkedFunctionName || action.name || action.action) : null;
       let found = -1;
-      console.log('openActionRule called for action:', action, linkedId, linkedName );
-      
+      console.log('openActionRule called for action:', action, linkedId, linkedName);
+
       if (Array.isArray(functionsList) && functionsList.length) {
         // Try matching by several possible identifier fields on functionsList entries
         if (linkedId) {
@@ -1525,7 +1516,7 @@ const saveSynthFunctionToRule = async () => {
             const fid = String(f && (f.id || f.ruleId || '') || '');
             return fid && fid === String(linkedId);
           });
-        }else{
+        } else {
           console.log('openActionRule: No linkedId found on action, skipping id match');
         }
         // If not found by id, try matching by name/title fields
@@ -1534,17 +1525,17 @@ const saveSynthFunctionToRule = async () => {
             const fname = String(f && (f.name || f.title || f.prompt || '') || '');
             return fname && fname.toLowerCase() === String(linkedName).toLowerCase();
           });
-        }else{  
+        } else {
           console.log('openActionRule: No match found in functionsList for linkedId or linkedName', { linkedId, linkedName }, 'functionsList:', functionsList);
         }
-      }else {
+      } else {
         console.log('openActionRule: functionsList is empty or not an array', functionsList);
       }
       // Fallback: try matching against ruleNames array if still not found
       console.log('openActionRule: Attempting fallback match against ruleNames for linkedName:', linkedName, ruleNames);
       if (found === -1 && linkedName && Array.isArray(ruleNames) && ruleNames.length) {
         found = ruleNames.findIndex((n) => (n || '').toLowerCase() === String(linkedName).toLowerCase());
-      }else{
+      } else {
         console.log('openActionRule: No match found in ruleNames for linkedName', linkedName, 'ruleNames:', ruleNames);
       }
       if (found >= 0) {
@@ -1552,20 +1543,21 @@ const saveSynthFunctionToRule = async () => {
         console.log('openActionRule -> navigating to ruleChecker idx=', found);
         setSelectedNodeDetails(null);
         setSelectedRuleIndex(found);
-          // lock other tab-switchers briefly to avoid race conditions
-          try { tabSwitchLockRef.current = true; } catch (e) { /* ignore */ };
-          try { loadSelectedRuleIntoPrompt(found); } catch (e) { /* ignore */ }
-          // release lock after short delay
-          setTimeout(() => { try { tabSwitchLockRef.current = false; } catch (e) { } }, 600);
+        // lock other tab-switchers briefly to avoid race conditions
+        try { tabSwitchLockRef.current = true; } catch (e) { /* ignore */ };
+        try { loadSelectedRuleIntoPrompt(found); } catch (e) { /* ignore */ }
+        // release lock after short delay
+        setTimeout(() => { try { tabSwitchLockRef.current = false; } catch (e) { } }, 600);
         // repeat shortly to guard against race conditions that set activeTab back
         setTimeout(() => {
-          try {;
+          try {
+            ;
 
-                    
-              //reset viewport to top-left when opening a rule from an action, to ensure consistent starting point for users (especially if they navigated away from Rule Checker)
-              fitViewportToNodes();
-              updateZoomViewport(0.6);
-              
+
+            //reset viewport to top-left when opening a rule from an action, to ensure consistent starting point for users (especially if they navigated away from Rule Checker)
+            fitViewportToNodes();
+            updateZoomViewport(0.6);
+
 
             try { loadSelectedRuleIntoPrompt(found); } catch (e) { /* ignore */ }
           } catch (e) {
@@ -1593,7 +1585,7 @@ const saveSynthFunctionToRule = async () => {
 
   const fitViewportToNodes = () => {
     if (rfInstance && typeof rfInstance.fitView === 'function') {
-      try { rfInstance.fitView({ padding: 0.2, includeHiddenNodes: true }); }
+      try { rfInstance.fitView({ padding: 0.12, includeHiddenNodes: true }); }
       catch (e) { /* ignore */ }
     }
   }
@@ -1733,416 +1725,416 @@ const saveSynthFunctionToRule = async () => {
   }, [functionsList, ruleSource, rulePrompts, ruleNames, ruleTypes, ruleSystemPrompts, ruleDetectPrompts, ruleRelatedFields, ruleCategoryIds, ruleExpressions, selectedRuleCategoryId, selectedNodeDetails, createRuleId, rfNodes, rfEdges, selectedRuleIndex]);
 
 
-function fnToWorkflow(fnString) {
-  const trimBody = (code) =>
-    code.replace(/^.*?\{/, "").replace(/\}[^}]*$/, "").trim();
+  function fnToWorkflow(fnString) {
+    const trimBody = (code) =>
+      code.replace(/^.*?\{/, "").replace(/\}[^}]*$/, "").trim();
 
-  const normalizeLines = (body) => {
-    // 先保護 return { next: "..." } 不被拆分
-    let processed = body.replace(
-      /return\s*\{\s*next\s*:\s*(["'`][^"'`]+["'`])\s*\}/g,
-      (match) => match.replace(/\{/g, '⟨').replace(/\}/g, '⟩')
-    );
-    
-    // 正常處理其他大括號
-    processed = processed
-      .replace(/\{/g, "\n{\n")
-      .replace(/\}/g, "\n}\n");
-    
-    // 還原 return next
-    processed = processed
-      .replace(/⟨/g, '{')
-      .replace(/⟩/g, '}');
-    
-    return processed
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l && !l.startsWith("//"));
-  };
+    const normalizeLines = (body) => {
+      // 先保護 return { next: "..." } 不被拆分
+      let processed = body.replace(
+        /return\s*\{\s*next\s*:\s*(["'`][^"'`]+["'`])\s*\}/g,
+        (match) => match.replace(/\{/g, '⟨').replace(/\}/g, '⟩')
+      );
 
-  const logRegex = /^console\.log\((["'`])((?:(?!\1).)*)\1\)\s*;?$/;
-  const assignRegex = /^(const|let)\s+(\w+)\s*=\s*([^;]+);?/;
-  const ifRegex = /^if\s*\((.*?)\)\s*$/;
-  const elseIfRegex = /^else\s+if\s*\((.*?)\)\s*$/;
-  const elseRegex = /^else\s*$/;
-  const returnNextRegex = /^return\s+\{\s*next\s*:\s*["'`]([^"'`]+)["'`]\s*\}\s*;?$/;
-  const returnRegex = /^return\s+(.*);?$/;
+      // 正常處理其他大括號
+      processed = processed
+        .replace(/\{/g, "\n{\n")
+        .replace(/\}/g, "\n}\n");
 
-  function readBlock(lines, index) {
-    let depth = 0;
-    const block = [];
-    let i = index;
+      // 還原 return next
+      processed = processed
+        .replace(/⟨/g, '{')
+        .replace(/⟩/g, '}');
 
-    if (lines[i] === "{") {
-      depth = 1;
-      i++;
-    }
-
-    while (i < lines.length && depth > 0) {
-      const line = lines[i];
-      if (line === "{") {
-        depth++;
-      } else if (line === "}") {
-        depth--;
-        if (depth === 0) {
-          i++;
-          break;
-        }
-      } else {
-        block.push(line);
-      }
-      i++;
-    }
-
-    return { block, nextIndex: i };
-  }
-
-  function parseBlock(lines, startIndex = 0) {
-    const stmts = [];
-    let i = startIndex;
-
-    while (i < lines.length) {
-      const line = lines[i];
-
-      if (assignRegex.test(line)) {
-        const m = line.match(assignRegex);
-        const varName = m[2];
-        const value = m[3].trim();
-        stmts.push({ kind: "assign", text: line, varName, value });
-        i++;
-        continue;
-      }
-
-      if (returnNextRegex.test(line)) {
-        const m = line.match(returnNextRegex);
-        const next = m[1].trim();
-        stmts.push({ kind: "returnNext", text: line, next });
-        i++;
-        continue;
-      }
-
-      if (logRegex.test(line)) {
-        const m = line.match(logRegex);
-        const message = m[2];
-        stmts.push({ kind: "log", text: line, message });
-        i++;
-        continue;
-      }
-
-      if (returnRegex.test(line)) {
-        const m = line.match(returnRegex);
-        const value = m[1].trim();
-        stmts.push({ kind: "return", text: line, value });
-        i++;
-        continue;
-      }
-
-      if (ifRegex.test(line)) {
-        const chain = { kind: "ifChain", branches: [], text: line };
-
-        const ifMatch = line.match(ifRegex);
-        chain.branches.push({
-          kind: "if",
-          condition: ifMatch[1].trim(),
-          body: [],
-        });
-        let blk = readBlock(lines, i + 1);
-        chain.branches[0].body = parseBlock(blk.block, 0);
-        i = blk.nextIndex;
-
-        while (i < lines.length) {
-          const l = lines[i];
-
-          if (elseIfRegex.test(l)) {
-            const m = l.match(elseIfRegex);
-            const cond = m[1].trim();
-            const branch = {
-              kind: "elseIf",
-              condition: cond,
-              body: [],
-              text: l,
-            };
-            blk = readBlock(lines, i + 1);
-            branch.body = parseBlock(blk.block, 0);
-            chain.branches.push(branch);
-            i = blk.nextIndex;
-            continue;
-          }
-
-          if (elseRegex.test(l)) {
-            const branch = { kind: "else", body: [], text: l };
-            blk = readBlock(lines, i + 1);
-            branch.body = parseBlock(blk.block, 0);
-            chain.branches.push(branch);
-            i = blk.nextIndex;
-            continue;
-          }
-
-          break;
-        }
-
-        stmts.push(chain);
-        continue;
-      }
-
-      i++;
-    }
-
-    return stmts;
-  }
-
-  function inferConditionVar(ifChain) {
-    const firstCondBranch = ifChain.branches.find((b) => b.condition);
-    if (!firstCondBranch) return "condition";
-    const m = firstCondBranch.condition.match(/^\s*([\w\.]+)/);
-    return m ? m[1] : "condition";
-  }
-
-  function toLevelBlocks(topStmts) {
-    const levels = [];
-    let currentLinear = [];
-
-    const flushLinear = () => {
-      if (currentLinear.length > 0) {
-        levels.push({
-          type: "linear",
-          stmts: currentLinear,
-        });
-        currentLinear = [];
-      }
+      return processed
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l && !l.startsWith("//"));
     };
 
-    for (const stmt of topStmts) {
-      if (stmt.kind === "ifChain") {
-        flushLinear();
-        levels.push({
-          type: "ifChain",
-          conditionVar: inferConditionVar(stmt),
-          branches: stmt.branches.map((b, idx) => ({
-            branchKind: b.kind,
-            condition: b.condition || null,
-            bodyStmts: b.body,
-            branchIndex: idx,
-          })),
-        });
-      } else {
-        currentLinear.push(stmt);
+    const logRegex = /^console\.log\((["'`])((?:(?!\1).)*)\1\)\s*;?$/;
+    const assignRegex = /^(const|let)\s+(\w+)\s*=\s*([^;]+);?/;
+    const ifRegex = /^if\s*\((.*?)\)\s*$/;
+    const elseIfRegex = /^else\s+if\s*\((.*?)\)\s*$/;
+    const elseRegex = /^else\s*$/;
+    const returnNextRegex = /^return\s+\{\s*next\s*:\s*["'`]([^"'`]+)["'`]\s*\}\s*;?$/;
+    const returnRegex = /^return\s+(.*);?$/;
+
+    function readBlock(lines, index) {
+      let depth = 0;
+      const block = [];
+      let i = index;
+
+      if (lines[i] === "{") {
+        depth = 1;
+        i++;
       }
-    }
 
-    flushLinear();
-
-    return levels;
-  }
-
-  function levelBlocksToFlow(levelBlocks) {
-    let nextTempId = 1;
-    const tempNodes = [];
-    const tempEdges = [];
-
-    const newTempNode = (type, label) => {
-      const id = `T${nextTempId++}`;
-      tempNodes.push({ id, type, label });
-      return id;
-    };
-
-    const newTempEdge = (source, target, label) => {
-      tempEdges.push({ source, target, label: label || "" });
-    };
-
-    const startId = newTempNode("start", "start");
-    let currentTails = [{ tailId: startId, nextLabel: null }];
-
-    for (const block of levelBlocks) {
-      let blockTails = [];
-
-      if (block.type === "linear") {
-        let prevId = null;
-
-        for (const stmt of block.stmts) {
-          let label;
-
-          if (stmt.kind === "assign") {
-            label = `${stmt.varName} = ${stmt.value.replace(/["']/g, "")}`;
-          } else if (stmt.kind === "log") {
-            label = stmt.message;
-          } else if (stmt.kind === "returnNext") {
-            label = `return next:${stmt.next}`;
-          } else if (stmt.kind === "return") {
-            label = `return ${stmt.value}`;
-          } else {
-            continue;
+      while (i < lines.length && depth > 0) {
+        const line = lines[i];
+        if (line === "{") {
+          depth++;
+        } else if (line === "}") {
+          depth--;
+          if (depth === 0) {
+            i++;
+            break;
           }
-
-          const id = newTempNode("action", label);
-
-          if (prevId) {
-            newTempEdge(prevId, id);
-          } else {
-            for (const tail of currentTails) {
-              newTempEdge(tail.tailId, id);
-            }
-          }
-
-          prevId = id;
-        }
-
-        if (prevId) {
-          blockTails = [{ tailId: prevId, nextLabel: null }];
         } else {
-          blockTails = currentTails.map((t) => ({ ...t }));
+          block.push(line);
         }
-      } else {
-        const decisionId = newTempNode(
-          "condition",
-          `check ${block.conditionVar}`
-        );
+        i++;
+      }
 
-        for (const tail of currentTails) {
-          newTempEdge(tail.tailId, decisionId);
+      return { block, nextIndex: i };
+    }
+
+    function parseBlock(lines, startIndex = 0) {
+      const stmts = [];
+      let i = startIndex;
+
+      while (i < lines.length) {
+        const line = lines[i];
+
+        if (assignRegex.test(line)) {
+          const m = line.match(assignRegex);
+          const varName = m[2];
+          const value = m[3].trim();
+          stmts.push({ kind: "assign", text: line, varName, value });
+          i++;
+          continue;
         }
 
-        for (const branch of block.branches) {
-          const label = branch.condition || branch.branchKind;
-          let prevId = null;
-          let pendingNext = null;
+        if (returnNextRegex.test(line)) {
+          const m = line.match(returnNextRegex);
+          const next = m[1].trim();
+          stmts.push({ kind: "returnNext", text: line, next });
+          i++;
+          continue;
+        }
 
-          for (const stmt of branch.bodyStmts) {
-            if (stmt.kind === "returnNext") {
-              pendingNext = stmt.next;
+        if (logRegex.test(line)) {
+          const m = line.match(logRegex);
+          const message = m[2];
+          stmts.push({ kind: "log", text: line, message });
+          i++;
+          continue;
+        }
+
+        if (returnRegex.test(line)) {
+          const m = line.match(returnRegex);
+          const value = m[1].trim();
+          stmts.push({ kind: "return", text: line, value });
+          i++;
+          continue;
+        }
+
+        if (ifRegex.test(line)) {
+          const chain = { kind: "ifChain", branches: [], text: line };
+
+          const ifMatch = line.match(ifRegex);
+          chain.branches.push({
+            kind: "if",
+            condition: ifMatch[1].trim(),
+            body: [],
+          });
+          let blk = readBlock(lines, i + 1);
+          chain.branches[0].body = parseBlock(blk.block, 0);
+          i = blk.nextIndex;
+
+          while (i < lines.length) {
+            const l = lines[i];
+
+            if (elseIfRegex.test(l)) {
+              const m = l.match(elseIfRegex);
+              const cond = m[1].trim();
+              const branch = {
+                kind: "elseIf",
+                condition: cond,
+                body: [],
+                text: l,
+              };
+              blk = readBlock(lines, i + 1);
+              branch.body = parseBlock(blk.block, 0);
+              chain.branches.push(branch);
+              i = blk.nextIndex;
               continue;
             }
 
-            let nodeLabel;
+            if (elseRegex.test(l)) {
+              const branch = { kind: "else", body: [], text: l };
+              blk = readBlock(lines, i + 1);
+              branch.body = parseBlock(blk.block, 0);
+              chain.branches.push(branch);
+              i = blk.nextIndex;
+              continue;
+            }
+
+            break;
+          }
+
+          stmts.push(chain);
+          continue;
+        }
+
+        i++;
+      }
+
+      return stmts;
+    }
+
+    function inferConditionVar(ifChain) {
+      const firstCondBranch = ifChain.branches.find((b) => b.condition);
+      if (!firstCondBranch) return "condition";
+      const m = firstCondBranch.condition.match(/^\s*([\w\.]+)/);
+      return m ? m[1] : "condition";
+    }
+
+    function toLevelBlocks(topStmts) {
+      const levels = [];
+      let currentLinear = [];
+
+      const flushLinear = () => {
+        if (currentLinear.length > 0) {
+          levels.push({
+            type: "linear",
+            stmts: currentLinear,
+          });
+          currentLinear = [];
+        }
+      };
+
+      for (const stmt of topStmts) {
+        if (stmt.kind === "ifChain") {
+          flushLinear();
+          levels.push({
+            type: "ifChain",
+            conditionVar: inferConditionVar(stmt),
+            branches: stmt.branches.map((b, idx) => ({
+              branchKind: b.kind,
+              condition: b.condition || null,
+              bodyStmts: b.body,
+              branchIndex: idx,
+            })),
+          });
+        } else {
+          currentLinear.push(stmt);
+        }
+      }
+
+      flushLinear();
+
+      return levels;
+    }
+
+    function levelBlocksToFlow(levelBlocks) {
+      let nextTempId = 1;
+      const tempNodes = [];
+      const tempEdges = [];
+
+      const newTempNode = (type, label) => {
+        const id = `T${nextTempId++}`;
+        tempNodes.push({ id, type, label });
+        return id;
+      };
+
+      const newTempEdge = (source, target, label) => {
+        tempEdges.push({ source, target, label: label || "" });
+      };
+
+      const startId = newTempNode("start", "start");
+      let currentTails = [{ tailId: startId, nextLabel: null }];
+
+      for (const block of levelBlocks) {
+        let blockTails = [];
+
+        if (block.type === "linear") {
+          let prevId = null;
+
+          for (const stmt of block.stmts) {
+            let label;
+
             if (stmt.kind === "assign") {
-              nodeLabel = `${stmt.varName} = ${stmt.value.replace(
-                /["']/g,
-                ""
-              )}`;
+              label = `${stmt.varName} = ${stmt.value.replace(/["']/g, "")}`;
             } else if (stmt.kind === "log") {
-              nodeLabel = stmt.message;
+              label = stmt.message;
+            } else if (stmt.kind === "returnNext") {
+              label = `return next:${stmt.next}`;
             } else if (stmt.kind === "return") {
-              nodeLabel = `return ${stmt.value}`;
+              label = `return ${stmt.value}`;
             } else {
               continue;
             }
 
-            const id = newTempNode("action", nodeLabel);
+            const id = newTempNode("action", label);
+
             if (prevId) {
               newTempEdge(prevId, id);
             } else {
-              newTempEdge(decisionId, id, label);
+              for (const tail of currentTails) {
+                newTempEdge(tail.tailId, id);
+              }
             }
+
             prevId = id;
           }
 
-          blockTails.push({
-            tailId: prevId || decisionId,
-            nextLabel: pendingNext,
-          });
+          if (prevId) {
+            blockTails = [{ tailId: prevId, nextLabel: null }];
+          } else {
+            blockTails = currentTails.map((t) => ({ ...t }));
+          }
+        } else {
+          const decisionId = newTempNode(
+            "condition",
+            `check ${block.conditionVar}`
+          );
+
+          for (const tail of currentTails) {
+            newTempEdge(tail.tailId, decisionId);
+          }
+
+          for (const branch of block.branches) {
+            const label = branch.condition || branch.branchKind;
+            let prevId = null;
+            let pendingNext = null;
+
+            for (const stmt of branch.bodyStmts) {
+              if (stmt.kind === "returnNext") {
+                pendingNext = stmt.next;
+                continue;
+              }
+
+              let nodeLabel;
+              if (stmt.kind === "assign") {
+                nodeLabel = `${stmt.varName} = ${stmt.value.replace(
+                  /["']/g,
+                  ""
+                )}`;
+              } else if (stmt.kind === "log") {
+                nodeLabel = stmt.message;
+              } else if (stmt.kind === "return") {
+                nodeLabel = `return ${stmt.value}`;
+              } else {
+                continue;
+              }
+
+              const id = newTempNode("action", nodeLabel);
+              if (prevId) {
+                newTempEdge(prevId, id);
+              } else {
+                newTempEdge(decisionId, id, label);
+              }
+              prevId = id;
+            }
+
+            blockTails.push({
+              tailId: prevId || decisionId,
+              nextLabel: pendingNext,
+            });
+          }
         }
+
+        currentTails = blockTails;
       }
 
-      currentTails = blockTails;
-    }
+      const endId = newTempNode("end", "end");
 
-    const endId = newTempNode("end", "end");
+      const labelToNodeId = {};
 
-    const labelToNodeId = {};
-    
-    for (const n of tempNodes) {
-      if (n.label) {
-        labelToNodeId[n.label] = n.id;
-        
-        if (n.type === "condition") {
-          const match = n.label.match(/^check\s+(.+)$/);
-          if (match) {
-            const varName = match[1];
-            labelToNodeId[varName] = n.id;
+      for (const n of tempNodes) {
+        if (n.label) {
+          labelToNodeId[n.label] = n.id;
+
+          if (n.type === "condition") {
+            const match = n.label.match(/^check\s+(.+)$/);
+            if (match) {
+              const varName = match[1];
+              labelToNodeId[varName] = n.id;
+            }
           }
         }
       }
-    }
 
-    for (const t of currentTails) {
-      const { tailId, nextLabel } = t;
-      if (!tailId) continue;
+      for (const t of currentTails) {
+        const { tailId, nextLabel } = t;
+        if (!tailId) continue;
 
-      if (nextLabel) {
-        let targetId = labelToNodeId[nextLabel] || 
-                       labelToNodeId[`check ${nextLabel}`];
-        
-        if (targetId) {
-          newTempEdge(tailId, targetId, "next");
-        } else if (nextLabel === "end") {
-          newTempEdge(tailId, endId, "next");
+        if (nextLabel) {
+          let targetId = labelToNodeId[nextLabel] ||
+            labelToNodeId[`check ${nextLabel}`];
+
+          if (targetId) {
+            newTempEdge(tailId, targetId, "next");
+          } else if (nextLabel === "end") {
+            newTempEdge(tailId, endId, "next");
+          } else {
+            newTempEdge(tailId, endId);
+          }
         } else {
           newTempEdge(tailId, endId);
         }
-      } else {
-        newTempEdge(tailId, endId);
       }
+
+      return { tempNodes, tempEdges };
     }
 
-    return { tempNodes, tempEdges };
+    function materializeFlow(tempNodes, tempEdges) {
+      const nodes = [];
+      const edges = [];
+      let idx = 1;
+
+      const idMap = {};
+      for (const t of tempNodes) {
+        const id = String(idx++);
+        idMap[t.id] = id;
+
+        const type =
+          t.type === "start"
+            ? "start"
+            : t.type === "end"
+              ? "end"
+              : t.type === "condition"
+                ? "condition"
+                : "action";
+
+        nodes.push({
+          id,
+          type,
+          data: { label: t.label },
+          position: { x: 250, y: idx * 80 },
+          className: t.type === "condition" ? "decision-node" : "",
+        });
+      }
+
+      let eIdx = 1;
+      for (const e of tempEdges) {
+        const source = idMap[e.source];
+        const target = idMap[e.target];
+        if (!source || !target) continue;
+        const edge = {
+          id: `e${eIdx++}`,
+          source,
+          target,
+          type: "smoothstep",
+        };
+        if (e.label) edge.label = e.label;
+        edges.push(edge);
+      }
+
+      return { nodes, edges };
+    }
+
+    const body = trimBody(fnString);
+    const lines = normalizeLines(body);
+    const topStmts = parseBlock(lines);
+    const levelBlocks = toLevelBlocks(topStmts);
+
+    const { tempNodes, tempEdges } = levelBlocksToFlow(levelBlocks);
+    const { nodes, edges } = materializeFlow(tempNodes, tempEdges);
+
+    return { levelBlocks, nodes, edges, fnString };
   }
-
-  function materializeFlow(tempNodes, tempEdges) {
-    const nodes = [];
-    const edges = [];
-    let idx = 1;
-
-    const idMap = {};
-    for (const t of tempNodes) {
-      const id = String(idx++);
-      idMap[t.id] = id;
-
-      const type =
-        t.type === "start"
-          ? "start"
-          : t.type === "end"
-          ? "end"
-          : t.type === "condition"
-          ? "condition"
-          : "action";
-
-      nodes.push({
-        id,
-        type,
-        data: { label: t.label },
-        position: { x: 250, y: idx * 80 },
-        className: t.type === "condition" ? "decision-node" : "",
-      });
-    }
-
-    let eIdx = 1;
-    for (const e of tempEdges) {
-      const source = idMap[e.source];
-      const target = idMap[e.target];
-      if (!source || !target) continue;
-      const edge = {
-        id: `e${eIdx++}`,
-        source,
-        target,
-        type: "smoothstep",
-      };
-      if (e.label) edge.label = e.label;
-      edges.push(edge);
-    }
-
-    return { nodes, edges };
-  }
-
-  const body = trimBody(fnString);
-  const lines = normalizeLines(body);
-  const topStmts = parseBlock(lines);
-  const levelBlocks = toLevelBlocks(topStmts);
-
-  const { tempNodes, tempEdges } = levelBlocksToFlow(levelBlocks);
-  const { nodes, edges } = materializeFlow(tempNodes, tempEdges);
-
-  return { levelBlocks, nodes, edges, fnString };
-}
 
 
 
@@ -2226,7 +2218,45 @@ function fnToWorkflow(fnString) {
     }
   }, [ruleNames, rulePrompts, functionsList, selectedNodeDetails, rfNodes, rfEdges, selectedRuleIndex, ruleSource, ruleSystemPrompts, ruleTypes, ruleDetectPrompts, ruleRelatedFields, ruleCategoryIds, createRuleId]);
 
-  
+
+
+  // Helper: Persist updated nodes and current edges to the selected rule
+  const persistWorkflowToRule = useCallback((updatedNodes) => {
+    try {
+      const exportNodes = (updatedNodes || []).map((n) => ({
+        id: String(n.id),
+        type: n.type || 'action',
+        label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id),
+        description: (n.data && n.data.description) ? String(n.data.description) : '',
+        position: n.position || { x: 0, y: 0 },
+        metadata: n.metadata || n.data?.metadata || {},
+        actions: Array.isArray(n.data?.actions) ? n.data.actions : []
+      }));
+      const exportEdges = (rfEdges || []).map((e) => ({
+        id: String(e.id || ''),
+        source: String(e.source || e.from || ''),
+        target: String(e.target || e.to || ''),
+        label: e.label || ''
+      }));
+
+      const nextFunctions = [...(functionsList || [])];
+      const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
+
+      while (nextFunctions.length <= saveIdx) {
+        nextFunctions.push({ type: 'Rule Checker', name: `Rule ${saveIdx + 1}`, expr: '', systemPrompt: '', workflowObject: '' });
+      }
+
+      nextFunctions[saveIdx] = {
+        ...(nextFunctions[saveIdx] || {}),
+        workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges })
+      };
+
+      setFunctionsList(nextFunctions);
+      // await saveRulesToFirebase({ override: { functionsList: [nextFunctions[saveIdx]] } });
+    } catch (err) {
+      console.error('persistWorkflowToRule error:', err);
+    }
+  }, [rfEdges, functionsList, selectedRuleIndex, setFunctionsList]);
 
   // Add a new action to a node and persist the workflow
   async function addActionToNode(nodeId) {
@@ -2247,14 +2277,8 @@ function fnToWorkflow(fnString) {
       }
 
       // Persist workflow into selected rule entry
-      const exportNodes = (updatedNodes || []).map((n) => ({ id: String(n.id), type: n.type || 'action', label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id), description: (n.data && n.data.description) ? String(n.data.description) : '', position: n.position || { x: 0, y: 0 }, metadata: n.metadata || n.data?.metadata || {}, actions: Array.isArray(n.data?.actions) ? n.data.actions : [] }));
-      const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
-      const nextFunctions = [...(functionsList || [])];
-      const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
-      while (nextFunctions.length <= saveIdx) nextFunctions.push({ type: 'Rule Checker', name: `Rule ${saveIdx + 1}`, expr: '', systemPrompt: '', workflowObject: '' });
-      nextFunctions[saveIdx] = { ...(nextFunctions[saveIdx] || {}), workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges }) };
-      setFunctionsList(nextFunctions);
-      // await saveRulesToFirebase({ override: { functionsList: [nextFunctions[saveIdx]] } });
+      persistWorkflowToRule(updatedNodes);
+
       setAiWarning('Added action and saved workflow.');
       setTimeout(() => setAiWarning(''), 1800);
     } catch (err) {
@@ -2283,14 +2307,8 @@ function fnToWorkflow(fnString) {
       }
 
       // Persist workflow
-      const exportNodes = (updatedNodes || []).map((n) => ({ id: String(n.id), type: n.type || 'action', label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id), description: (n.data && n.data.description) ? String(n.data.description) : '', position: n.position || { x: 0, y: 0 }, metadata: n.metadata || n.data?.metadata || {}, actions: Array.isArray(n.data?.actions) ? n.data.actions : [] }));
-      const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
-      const nextFunctions = [...(functionsList || [])];
-      const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
-      while (nextFunctions.length <= saveIdx) nextFunctions.push({ type: 'Rule Checker', name: `Rule ${saveIdx + 1}`, expr: '', systemPrompt: '', workflowObject: '' });
-      nextFunctions[saveIdx] = { ...(nextFunctions[saveIdx] || {}), workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges }) };
-      setFunctionsList(nextFunctions);
-      // await saveRulesToFirebase({ override: { functionsList: [nextFunctions[saveIdx]] } });
+      persistWorkflowToRule(updatedNodes);
+
       setAiWarning('Deleted action and saved workflow.');
       setTimeout(() => setAiWarning(''), 1800);
     } catch (err) {
@@ -2324,14 +2342,8 @@ function fnToWorkflow(fnString) {
       }
 
       // Persist workflow
-      const exportNodes = (updatedNodes || []).map((n) => ({ id: String(n.id), type: n.type || 'action', label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id), description: (n.data && n.data.description) ? String(n.data.description) : '', position: n.position || { x: 0, y: 0 }, metadata: n.metadata || n.data?.metadata || {}, actions: Array.isArray(n.data?.actions) ? n.data.actions : [] }));
-      const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
-      const nextFunctions = [...(functionsList || [])];
-      const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
-      while (nextFunctions.length <= saveIdx) nextFunctions.push({ type: 'Rule Checker', name: `Rule ${saveIdx + 1}`, expr: '', systemPrompt: '', workflowObject: '' });
-      nextFunctions[saveIdx] = { ...(nextFunctions[saveIdx] || {}), workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges }) };
-      setFunctionsList(nextFunctions);
-      // await saveRulesToFirebase({ override: { functionsList: [nextFunctions[saveIdx]] } });
+      persistWorkflowToRule(updatedNodes);
+
       setAiWarning('Action updated and saved.');
       setTimeout(() => setAiWarning(''), 1400);
     } catch (err) {
@@ -2358,14 +2370,8 @@ function fnToWorkflow(fnString) {
       }
 
       // Persist workflow
-      const exportNodes = (updatedNodes || []).map((n) => ({ id: String(n.id), type: n.type || 'action', label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id), description: (n.data && n.data.description) ? String(n.data.description) : '', position: n.position || { x: 0, y: 0 }, metadata: n.metadata || n.data?.metadata || {}, actions: Array.isArray(n.data?.actions) ? n.data.actions : [] }));
-      const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
-      const nextFunctions = [...(functionsList || [])];
-      const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
-      while (nextFunctions.length <= saveIdx) nextFunctions.push({ type: 'Rule Checker', name: `Rule ${saveIdx + 1}`, expr: '', systemPrompt: '', workflowObject: '' });
-      nextFunctions[saveIdx] = { ...(nextFunctions[saveIdx] || {}), workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges }) };
-      setFunctionsList(nextFunctions);
-      // await saveRulesToFirebase({ override: { functionsList: [nextFunctions[saveIdx]] } });
+      persistWorkflowToRule(updatedNodes);
+
       setAiWarning('Node updated and saved.');
       setTimeout(() => setAiWarning(''), 1400);
     } catch (err) {
@@ -2421,7 +2427,7 @@ function fnToWorkflow(fnString) {
     // take a stable snapshot of rule functions at start time to avoid mid-run edits shifting indices
     const snapshot = (functionsList && functionsList.length)
       ? JSON.parse(JSON.stringify(functionsList.filter(f => f.type === 'Rule Checker')))
-      : (ruleSource || []).map((r, idx) => ({ type: 'Rule Checker', name: rulePrompts[idx] || `Rule ${idx+1}`, expr: r }));
+      : (ruleSource || []).map((r, idx) => ({ type: 'Rule Checker', name: rulePrompts[idx] || `Rule ${idx + 1}`, expr: r }));
     setRuleCheckerSnapshot(snapshot);
 
     const timer = setInterval(() => {
@@ -2510,7 +2516,7 @@ function fnToWorkflow(fnString) {
   } = useRunDemo({ rfNodes, rfEdges, apis });
 
   function printRules() {
-    console.log('Current rules:',{
+    console.log('Current rules:', {
       ruleSource,
       rulePrompts,
       ruleNames,
@@ -2532,13 +2538,13 @@ function fnToWorkflow(fnString) {
       return {
         id: baseId,
         ruleId: (existing && existing.ruleId) ? existing.ruleId : baseId,
-      type: (ruleTypes && ruleTypes[idx]) ? ruleTypes[idx] : 'Rule Checker',
-      name: (ruleNames && ruleNames[idx]) ? ruleNames[idx] : ((rulePrompts && rulePrompts[idx]) ? rulePrompts[idx] : `Rule ${idx + 1}`),
-      expr: expr || '',
-      detectPrompt: (ruleDetectPrompts && ruleDetectPrompts[idx]) ? ruleDetectPrompts[idx] : '',
-      systemPrompt: (ruleSystemPrompts && ruleSystemPrompts[idx]) ? ruleSystemPrompts[idx] : '',
-      relatedFields: (ruleRelatedFields && ruleRelatedFields[idx]) ? ruleRelatedFields[idx] : '',
-      categoryId: (ruleCategoryIds && ruleCategoryIds[idx]) ? ruleCategoryIds[idx] : ''
+        type: (ruleTypes && ruleTypes[idx]) ? ruleTypes[idx] : 'Rule Checker',
+        name: (ruleNames && ruleNames[idx]) ? ruleNames[idx] : ((rulePrompts && rulePrompts[idx]) ? rulePrompts[idx] : `Rule ${idx + 1}`),
+        expr: expr || '',
+        detectPrompt: (ruleDetectPrompts && ruleDetectPrompts[idx]) ? ruleDetectPrompts[idx] : '',
+        systemPrompt: (ruleSystemPrompts && ruleSystemPrompts[idx]) ? ruleSystemPrompts[idx] : '',
+        relatedFields: (ruleRelatedFields && ruleRelatedFields[idx]) ? ruleRelatedFields[idx] : '',
+        categoryId: (ruleCategoryIds && ruleCategoryIds[idx]) ? ruleCategoryIds[idx] : ''
       };
     });
   };
@@ -2587,9 +2593,9 @@ function fnToWorkflow(fnString) {
       if (ok) {
         const extra = fieldKeys.length
           ? fieldKeys.map((key) => {
-              const value = getSingleFieldValue(v, key);
-              return `${key}=${value !== null && value !== undefined ? String(value) : 'N/A'}`;
-            }).join(', ')
+            const value = getSingleFieldValue(v, key);
+            return `${key}=${value !== null && value !== undefined ? String(value) : 'N/A'}`;
+          }).join(', ')
           : '';
         remineBox(`Variable "${v.name}" matched rule. qty=${v.qty}${extra ? ` | ${extra}` : ''}`);
       }
@@ -2614,7 +2620,7 @@ function fnToWorkflow(fnString) {
     el.appendChild(row);
     // keep newest visible
     el.scrollTop = el.scrollHeight;
- };
+  };
 
   // Test a rule group against variables
   const testRuleGroup = async (group) => {
@@ -2670,7 +2676,7 @@ function fnToWorkflow(fnString) {
       setGroupTesting(false);
     }
   };
-    
+
   const visibleRuleIndices = getVisibleRuleIndices();
 
   return (
@@ -2678,17 +2684,17 @@ function fnToWorkflow(fnString) {
       <div className="variable-page-header">
         <div style={{ float: 'left' }}>
 
-                <button className="back-btn" onClick={onBack}>
-                ??Back to menu
-                </button>
+          <button className="back-btn" onClick={onBack}>
+            ??Back to menu
+          </button>
 
-                <h2>Variable Manager</h2>
-                <p className="page-subtitle">
-                Manage variables with name, description, and tags.
-                </p>
+          <h2>Variable Manager</h2>
+          <p className="page-subtitle">
+            Manage variables with name, description, and tags.
+          </p>
         </div>
 
-        
+
 
         <RuntimeRuleCheckerPanel
           ruleCheckerInterval={ruleCheckerInterval}
@@ -2707,7 +2713,7 @@ function fnToWorkflow(fnString) {
       {showApiNodes && (
         <ApiNodesFloating
           apis={apis}
-          onInsert={(api) => { try { addRfApiNode(api); } catch(e){} }}
+          onInsert={(api) => { try { addRfApiNode(api); } catch (e) { } }}
           onClose={() => setShowApiNodes(false)}
         />
       )}
@@ -2720,231 +2726,231 @@ function fnToWorkflow(fnString) {
 
         {/* TAB CONTENT */}
         {activeTab === 'variableTable' && (
-        <VariableTableContainer
-          variables={variables}
-          handleEdit={handleEdit}
-          deleteVariable={deleteVariable}
-        />
+          <VariableTableContainer
+            variables={variables}
+            handleEdit={handleEdit}
+            deleteVariable={deleteVariable}
+          />
         )}
 
         {activeTab === 'ruleChecker' && (
-        <RuleCheckerPanel
-          selectedRuleIndex={selectedRuleIndex}
-          addNewRule={addNewRule}
-          ruleTypes={ruleTypes}
-          setRuleTypes={setRuleTypes}
-          selectedRuleCategoryId={selectedRuleCategoryId}
-          setSelectedRuleCategoryId={setSelectedRuleCategoryId}
-          ruleCategoryIds={ruleCategoryIds}
-          setRuleCategoryIds={setRuleCategoryIds}
-          ruleCategories={ruleCategories}
-          ruleNames={ruleNames}
-          setSelectedRuleIndex={setSelectedRuleIndex}
-          updateRuleName={updateRuleName}
-          rulePrompts={rulePrompts}
-          updateRulePrompt={updateRulePrompt}
-          ruleSource={ruleSource}
-          updateRuleSource={updateRuleSource}
-          ruleDetectPrompts={ruleDetectPrompts}
-          setRuleDetectPrompts={setRuleDetectPrompts}
-          ruleRelatedFields={ruleRelatedFields}
-          setRuleRelatedFields={setRuleRelatedFields}
-          ruleSystemPrompts={ruleSystemPrompts}
-          setRuleSystemPrompts={setRuleSystemPrompts}
-          functionsList={functionsList}
-          generatingRuleIndex={generatingRuleIndex}
-          generateRuleFromPrompt={generateRuleFromPrompt}
-          runCheck={runCheck}
-          variables={variables}
-          saveRuleSources={null}
-          ruleExpressions={ruleExpressions}
-          setExpression={setExpression}
-          deleteRuleIndex={() => {
-            const nextRuleSource = ruleSource.filter((_, i) => i !== selectedRuleIndex);
-            const nextRulePrompts = rulePrompts.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleNames = ruleNames.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleTypes = ruleTypes.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleSystemPrompts = ruleSystemPrompts.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleDetectPrompts = ruleDetectPrompts.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleRelatedFields = ruleRelatedFields.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleCategoryIds = ruleCategoryIds.filter((_, i) => i !== selectedRuleIndex);
-            const nextRuleExpressions = ruleExpressions.filter((_, i) => i !== selectedRuleIndex);
-            const nextFunctionsList = (functionsList && functionsList.length)
-              ? functionsList.filter((_, i) => i !== selectedRuleIndex)
-              : functionsList;
+          <RuleCheckerPanel
+            selectedRuleIndex={selectedRuleIndex}
+            addNewRule={addNewRule}
+            ruleTypes={ruleTypes}
+            setRuleTypes={setRuleTypes}
+            selectedRuleCategoryId={selectedRuleCategoryId}
+            setSelectedRuleCategoryId={setSelectedRuleCategoryId}
+            ruleCategoryIds={ruleCategoryIds}
+            setRuleCategoryIds={setRuleCategoryIds}
+            ruleCategories={ruleCategories}
+            ruleNames={ruleNames}
+            setSelectedRuleIndex={setSelectedRuleIndex}
+            updateRuleName={updateRuleName}
+            rulePrompts={rulePrompts}
+            updateRulePrompt={updateRulePrompt}
+            ruleSource={ruleSource}
+            updateRuleSource={updateRuleSource}
+            ruleDetectPrompts={ruleDetectPrompts}
+            setRuleDetectPrompts={setRuleDetectPrompts}
+            ruleRelatedFields={ruleRelatedFields}
+            setRuleRelatedFields={setRuleRelatedFields}
+            ruleSystemPrompts={ruleSystemPrompts}
+            setRuleSystemPrompts={setRuleSystemPrompts}
+            functionsList={functionsList}
+            generatingRuleIndex={generatingRuleIndex}
+            generateRuleFromPrompt={generateRuleFromPrompt}
+            runCheck={runCheck}
+            variables={variables}
+            saveRuleSources={null}
+            ruleExpressions={ruleExpressions}
+            setExpression={setExpression}
+            deleteRuleIndex={() => {
+              const nextRuleSource = ruleSource.filter((_, i) => i !== selectedRuleIndex);
+              const nextRulePrompts = rulePrompts.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleNames = ruleNames.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleTypes = ruleTypes.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleSystemPrompts = ruleSystemPrompts.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleDetectPrompts = ruleDetectPrompts.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleRelatedFields = ruleRelatedFields.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleCategoryIds = ruleCategoryIds.filter((_, i) => i !== selectedRuleIndex);
+              const nextRuleExpressions = ruleExpressions.filter((_, i) => i !== selectedRuleIndex);
+              const nextFunctionsList = (functionsList && functionsList.length)
+                ? functionsList.filter((_, i) => i !== selectedRuleIndex)
+                : functionsList;
 
-            setRuleSource(nextRuleSource);
-            setRulePrompts(nextRulePrompts);
-            setRuleNames(nextRuleNames);
-            setRuleTypes(nextRuleTypes);
-            setRuleSystemPrompts(nextRuleSystemPrompts);
-            setRuleDetectPrompts(nextRuleDetectPrompts);
-            setRuleRelatedFields(nextRuleRelatedFields);
-            setRuleCategoryIds(nextRuleCategoryIds);
-            setExpression(nextRuleExpressions);
-            if (nextFunctionsList) setFunctionsList(nextFunctionsList);
-            setSelectedRuleIndex(Math.max(0, selectedRuleIndex - 1));
+              setRuleSource(nextRuleSource);
+              setRulePrompts(nextRulePrompts);
+              setRuleNames(nextRuleNames);
+              setRuleTypes(nextRuleTypes);
+              setRuleSystemPrompts(nextRuleSystemPrompts);
+              setRuleDetectPrompts(nextRuleDetectPrompts);
+              setRuleRelatedFields(nextRuleRelatedFields);
+              setRuleCategoryIds(nextRuleCategoryIds);
+              setExpression(nextRuleExpressions);
+              if (nextFunctionsList) setFunctionsList(nextFunctionsList);
+              setSelectedRuleIndex(Math.max(0, selectedRuleIndex - 1));
 
-            /*
-            saveRulesToFirebase({
-              ruleSource: nextRuleSource,
-              rulePrompts: nextRulePrompts,
-              ruleNames: nextRuleNames,
-              ruleTypes: nextRuleTypes,
-              ruleSystemPrompts: nextRuleSystemPrompts,
-              ruleDetectPrompts: nextRuleDetectPrompts,
-              ruleRelatedFields: nextRuleRelatedFields,
-              ruleCategoryIds: nextRuleCategoryIds,
-              functionsList: nextFunctionsList || []
-            });
-            */
-          }}
-          newGroupName={newGroupName}
-          setNewGroupName={setNewGroupName}
-          newGroupContent={newGroupContent}
-          setNewGroupContent={setNewGroupContent}
-          saveRuleGroup={saveRuleGroup}
-          ruleGroups={ruleGroups}
-          groupsLoading={groupsLoading}
-          editingGroupId={editingGroupId}
-          setEditingGroupId={setEditingGroupId}
-          ruleGroupDelete={deleteRuleGroup}
-          testRuleGroup={testRuleGroup}
-          groupTesting={groupTesting}
-          groupTestResults={groupTestResults}
-          visibleRuleIndices={visibleRuleIndices}
-        />
+              /*
+              saveRulesToFirebase({
+                ruleSource: nextRuleSource,
+                rulePrompts: nextRulePrompts,
+                ruleNames: nextRuleNames,
+                ruleTypes: nextRuleTypes,
+                ruleSystemPrompts: nextRuleSystemPrompts,
+                ruleDetectPrompts: nextRuleDetectPrompts,
+                ruleRelatedFields: nextRuleRelatedFields,
+                ruleCategoryIds: nextRuleCategoryIds,
+                functionsList: nextFunctionsList || []
+              });
+              */
+            }}
+            newGroupName={newGroupName}
+            setNewGroupName={setNewGroupName}
+            newGroupContent={newGroupContent}
+            setNewGroupContent={setNewGroupContent}
+            saveRuleGroup={saveRuleGroup}
+            ruleGroups={ruleGroups}
+            groupsLoading={groupsLoading}
+            editingGroupId={editingGroupId}
+            setEditingGroupId={setEditingGroupId}
+            ruleGroupDelete={deleteRuleGroup}
+            testRuleGroup={testRuleGroup}
+            groupTesting={groupTesting}
+            groupTestResults={groupTestResults}
+            visibleRuleIndices={visibleRuleIndices}
+          />
         )}
 
 
 
         {activeTab === 'ruleCategory' && (
-        <RuleCategoryPanel
-          newCategoryName={newCategoryName}
-          setNewCategoryName={setNewCategoryName}
-          saveRuleCategory={saveRuleCategory}
-          editingCategoryId={editingCategoryId}
-          setEditingCategoryId={setEditingCategoryId}
-          ruleCategories={ruleCategories}
-          categoriesLoading={categoriesLoading}
-          deleteRuleCategory={deleteRuleCategory}
-        />
+          <RuleCategoryPanel
+            newCategoryName={newCategoryName}
+            setNewCategoryName={setNewCategoryName}
+            saveRuleCategory={saveRuleCategory}
+            editingCategoryId={editingCategoryId}
+            setEditingCategoryId={setEditingCategoryId}
+            ruleCategories={ruleCategories}
+            categoriesLoading={categoriesLoading}
+            deleteRuleCategory={deleteRuleCategory}
+          />
         )}
 
         {activeTab === 'manualEdit' && (
-        <ManualEditPanel
-          manualSelectedId={manualSelectedId}
-          setManualSelectedId={setManualSelectedId}
-          variables={variables}
-          handleLoadManual={handleLoadManual}
-          handleCancel={handleCancel}
-          newName={newName}
-          setNewName={setNewName}
-          newDescription={newDescription}
-          setNewDescription={setNewDescription}
-          newTags={newTags}
-          setNewTags={setNewTags}
-          editingId={editingId}
-          handleAddOrUpdate={handleAddOrUpdate}
-        />
+          <ManualEditPanel
+            manualSelectedId={manualSelectedId}
+            setManualSelectedId={setManualSelectedId}
+            variables={variables}
+            handleLoadManual={handleLoadManual}
+            handleCancel={handleCancel}
+            newName={newName}
+            setNewName={setNewName}
+            newDescription={newDescription}
+            setNewDescription={setNewDescription}
+            newTags={newTags}
+            setNewTags={setNewTags}
+            editingId={editingId}
+            handleAddOrUpdate={handleAddOrUpdate}
+          />
         )}
 
         {activeTab === 'externalApi' && (
-        <ExternalAPIPanel
-          newApiName={newApiName}
-          setNewApiName={setNewApiName}
-          newApiUrl={newApiUrl}
-          setNewApiUrl={setNewApiUrl}
-          addApi={addApi}
-          apis={apis}
-          setApis={setApis}
-          apisLoading={apisLoading}
-          deleteApi={deleteApi}
-          selectedApiId={selectedApiId}
-          setSelectedApiId={setSelectedApiId}
-          testInput={testInput}
-          setTestInput={setTestInput}
-          testing={testing}
-          testApi={testApi}
-          testResult={testResult}
-          saveApiPrompt={saveApiPrompt}
-          updateApiMetadata={updateApiMetadata}
-          setAiWarning={setAiWarning}
-        />
+          <ExternalAPIPanel
+            newApiName={newApiName}
+            setNewApiName={setNewApiName}
+            newApiUrl={newApiUrl}
+            setNewApiUrl={setNewApiUrl}
+            addApi={addApi}
+            apis={apis}
+            setApis={setApis}
+            apisLoading={apisLoading}
+            deleteApi={deleteApi}
+            selectedApiId={selectedApiId}
+            setSelectedApiId={setSelectedApiId}
+            testInput={testInput}
+            setTestInput={setTestInput}
+            testing={testing}
+            testApi={testApi}
+            testResult={testResult}
+            saveApiPrompt={saveApiPrompt}
+            updateApiMetadata={updateApiMetadata}
+            setAiWarning={setAiWarning}
+          />
         )}
 
         {activeTab === 'variablePrompt' && (
-        <VariablePromptPanel
-          selectedRuleCategoryId={selectedRuleCategoryId}
-          setSelectedRuleCategoryId={setSelectedRuleCategoryId}
-          ruleCategories={ruleCategories}
-          selectedRuleIndex={selectedRuleIndex}
-          setSelectedRuleIndex={setSelectedRuleIndex}
-          ruleNames={ruleNames}
-          rulePrompts={rulePrompts}
-          visibleRuleIndices={visibleRuleIndices}
-          functionsList={functionsList}
-          saveSynthFunctionToRule={saveSynthFunctionToRule}
-          printRules={printRules}
-          confirmPreview={confirmPreview}
-          aiLoading={aiLoading}
-          taskFunctionText={taskFunctionText}
-          workflowLoading={workflowLoading}
-          workflowError={workflowError}
-          rfNodes={rfNodes}
-          rfEdges={rfEdges}
-          onRfNodesChange={onRfNodesChange}
-          onRfEdgesChange={onRfEdgesChange}
-          onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          onEdgeDoubleClick={onEdgeDoubleClick}
-          edgeEdit={edgeEdit}
-          onCommitEdgeLabel={commitEdgeLabel}
-          onCancelEdgeEdit={cancelEdgeEdit}
-          onNodeDoubleClick={onNodeDoubleClick}
-          onNodeClick={onNodeClick}
-          addRfNode={addRfNode}
-          deleteSelected={deleteSelected}
-          generateFunctionFromFlow={generateFunctionFromFlow}
-          setRfInstance={setRfInstance}
-          openActionRule={openActionRule}
-          onAutoLayout={handleAutoLayout}
-          onNodePromptSubmit={handleNodePromptSubmit}
-          selectedIds={selectedIds}
-          handleAiSubmit={handleAiSubmit}
-          aiPrompt={aiPrompt}
-          setAiPrompt={setAiPrompt}
-          handlePromptToWorkflow={handlePromptToWorkflow}
-          aiWarning={aiWarning}
-          aiResponse={aiResponse}
-          setTaskFunctionText={setTaskFunctionText}
-          handleGenerateWorkflow={handleGenerateWorkflow}
-          createFnPromptFromFunction={createFnPromptFromFunction}
-          execProgress={execProgress}
-          execLog={execLog}
-          filteredVariables={filteredVariables}
-          runActive={runActive}
-          runProject={runProject}
-          activeNodeId={runCurrentNodeId}
-          activeEdgeId={runCurrentEdgeId}
-          storeVars={storeVars}
-          setStoreVars={setStoreVars}
-          pendingActions={pendingActions}
-          cancelPreview={cancelPreview}
-        />
+          <VariablePromptPanel
+            selectedRuleCategoryId={selectedRuleCategoryId}
+            setSelectedRuleCategoryId={setSelectedRuleCategoryId}
+            ruleCategories={ruleCategories}
+            selectedRuleIndex={selectedRuleIndex}
+            setSelectedRuleIndex={setSelectedRuleIndex}
+            ruleNames={ruleNames}
+            rulePrompts={rulePrompts}
+            visibleRuleIndices={visibleRuleIndices}
+            functionsList={functionsList}
+            saveSynthFunctionToRule={saveSynthFunctionToRule}
+            printRules={printRules}
+            confirmPreview={confirmPreview}
+            aiLoading={aiLoading}
+            taskFunctionText={taskFunctionText}
+            workflowLoading={workflowLoading}
+            workflowError={workflowError}
+            rfNodes={rfNodes}
+            rfEdges={rfEdges}
+            onRfNodesChange={onRfNodesChange}
+            onRfEdgesChange={onRfEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            onEdgeDoubleClick={onEdgeDoubleClick}
+            edgeEdit={edgeEdit}
+            onCommitEdgeLabel={commitEdgeLabel}
+            onCancelEdgeEdit={cancelEdgeEdit}
+            onNodeDoubleClick={onNodeDoubleClick}
+            onNodeClick={onNodeClick}
+            addRfNode={addRfNode}
+            deleteSelected={deleteSelected}
+            generateFunctionFromFlow={generateFunctionFromFlow}
+            setRfInstance={setRfInstance}
+            openActionRule={openActionRule}
+            onAutoLayout={handleAutoLayout}
+            onNodePromptSubmit={handleNodePromptSubmit}
+            selectedIds={selectedIds}
+            handleAiSubmit={handleAiSubmit}
+            aiPrompt={aiPrompt}
+            setAiPrompt={setAiPrompt}
+            handlePromptToWorkflow={handlePromptToWorkflow}
+            aiWarning={aiWarning}
+            aiResponse={aiResponse}
+            setTaskFunctionText={setTaskFunctionText}
+            handleGenerateWorkflow={handleGenerateWorkflow}
+            createFnPromptFromFunction={createFnPromptFromFunction}
+            execProgress={execProgress}
+            execLog={execLog}
+            filteredVariables={filteredVariables}
+            runActive={runActive}
+            runProject={runProject}
+            activeNodeId={runCurrentNodeId}
+            activeEdgeId={runCurrentEdgeId}
+            storeVars={storeVars}
+            setStoreVars={setStoreVars}
+            pendingActions={pendingActions}
+            cancelPreview={cancelPreview}
+          />
         )}
 
         {activeTab === 'logs' && (
-        <LogsPanel
-          logs={logs}
-          logsLoading={logsLoading}
-          logsAllLoaded={logsAllLoaded}
-          loadLogs={loadLogs}
-        />
+          <LogsPanel
+            logs={logs}
+            logsLoading={logsLoading}
+            logsAllLoaded={logsAllLoaded}
+            loadLogs={loadLogs}
+          />
         )}
       </div>
 
-      
+
 
       {/* NodeEditModal removed — node editing handled via NodeDetailsModal */}
       <NodeDetailsModal
