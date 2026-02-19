@@ -6,6 +6,7 @@ export default function ApiNodesFloating({ apis = [], onInsert = () => {}, onClo
   const [query, setQuery] = useState('');
   const [pos, setPos] = useState({ right: 400, top: 80 });
   const injectedRef = useRef(new Map());
+  const draggingRef = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
@@ -14,6 +15,20 @@ export default function ApiNodesFloating({ apis = [], onInsert = () => {}, onClo
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (draggingRef.current) {
+        try {
+          if (draggingRef.current.onMove) window.removeEventListener('mousemove', draggingRef.current.onMove);
+          if (draggingRef.current.onUp) window.removeEventListener('mouseup', draggingRef.current.onUp);
+          if (draggingRef.current.onMove) window.removeEventListener('touchmove', draggingRef.current.onMove);
+          if (draggingRef.current.onUp) window.removeEventListener('touchend', draggingRef.current.onUp);
+        } catch (e) {}
+      }
+      document.body.style.userSelect = '';
+    };
+  }, []);
 
   // Keep injected styles in sync: remove styles for APIs that disappeared and cleanup on unmount
   useEffect(() => {
@@ -46,9 +61,73 @@ export default function ApiNodesFloating({ apis = [], onInsert = () => {}, onClo
     return String(a.name || a.label || '').toLowerCase().includes(q) || (Array.isArray(a.tags) && a.tags.join(',').toLowerCase().includes(q));
   });
 
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startRight = pos.right;
+    const startTop = pos.top;
+
+    const onMove = (ev) => {
+      const clientX = ev.clientX != null ? ev.clientX : (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+      const clientY = ev.clientY != null ? ev.clientY : (ev.touches && ev.touches[0] && ev.touches[0].clientY);
+      if (clientX == null || clientY == null) return;
+      const dx = clientX - startX;
+      const dy = clientY - startY;
+      const newRight = Math.max(0, Math.round(startRight - dx));
+      const newTop = Math.max(0, Math.round(startTop + dy));
+      setPos({ right: newRight, top: newTop });
+    };
+
+    const onUp = () => {
+      try { window.removeEventListener('mousemove', onMove); } catch (e) {}
+      try { window.removeEventListener('mouseup', onUp); } catch (e) {}
+      draggingRef.current = null;
+      document.body.style.userSelect = '';
+    };
+
+    draggingRef.current = { onMove, onUp };
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const handleTouchStart = (e) => {
+    const t = (e.touches && e.touches[0]);
+    if (!t) return;
+    const startX = t.clientX;
+    const startY = t.clientY;
+    const startRight = pos.right;
+    const startTop = pos.top;
+
+    const onMove = (ev) => {
+      ev.preventDefault();
+      const clientX = ev.clientX != null ? ev.clientX : (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+      const clientY = ev.clientY != null ? ev.clientY : (ev.touches && ev.touches[0] && ev.touches[0].clientY);
+      if (clientX == null || clientY == null) return;
+      const dx = clientX - startX;
+      const dy = clientY - startY;
+      const newRight = Math.max(0, Math.round(startRight - dx));
+      const newTop = Math.max(0, Math.round(startTop + dy));
+      setPos({ right: newRight, top: newTop });
+    };
+
+    const onUp = () => {
+      try { window.removeEventListener('touchmove', onMove); } catch (e) {}
+      try { window.removeEventListener('touchend', onUp); } catch (e) {}
+      draggingRef.current = null;
+      document.body.style.userSelect = '';
+    };
+
+    draggingRef.current = { onMove, onUp };
+    document.body.style.userSelect = 'none';
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+  };
+
   return (
     <div ref={nodeRef} className="ms-apinodes-floating" style={{ right: pos.right + 'px', top: pos.top + 'px' }}>
-      <div className="ms-apinodes-header">
+      <div className="ms-apinodes-header" onMouseDown={handleMouseDown} onTouchStart={handleTouchStart} style={{ cursor: 'grab' }}>
         <div style={{fontWeight:700}}>API Nodes</div>
         <div style={{display:'flex', gap:8}}>
           <button onClick={onClose} className="ms-apinodes-close">✕</button>
