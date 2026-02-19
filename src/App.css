@@ -1,0 +1,56 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.menu {
+  background: #020617;
+  color: #e5e7eb;
+  padding: 28px 32px;
+  border-radius: 12px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6);
+}
+
+.menu h1 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-buttons button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: left;
+  background: #1e293b;
+  color: #e5e7eb;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+
+.menu-buttons button:hover:not(:disabled) {
+  background: #334155;
+  transform: translateY(-1px);
+}
+
+.menu-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

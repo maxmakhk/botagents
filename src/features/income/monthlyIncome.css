@@ -1,0 +1,165 @@
+.income-page {
+  background: #020617;
+  color: #e5e7eb;
+  padding: 24px 28px;
+  border-radius: 12px;
+  max-width: 620px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6);
+}
+
+.back-btn {
+  background: transparent;
+  color: #9ca3af;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.back-btn:hover {
+  color: #e5e7eb;
+}
+
+.income-page h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.income-input-row {
+  margin-bottom: 16px;
+}
+
+.income-input-row label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.input-group input {
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.input-group input:focus {
+  outline: 1px solid #3b82f6;
+}
+
+.input-group button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #3b82f6;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.input-group button:hover {
+  background: #2563eb;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.result-table th,
+.result-table td {
+  border: 1px solid #1f2937;
+  padding: 8px 10px;
+}
+
+.result-table thead {
+  background: #111827;
+}
+
+.result-table tbody tr:last-child td {
+  font-weight: 600;
+  background: #020617;
+}
+
+.note {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.helpers {
+  margin-bottom: 18px;
+  padding: 12px 0 6px;
+  border-bottom: 1px solid #1f2937;
+}
+
+.helpers h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.helper-block {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: #020617;
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+}
+
+.helper-block h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.helper-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.helper-row label {
+  flex: 0 0 130px;
+  font-size: 0.85rem;
+}
+
+.helper-row input {
+  flex: 1 1 auto;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.helper-btn {
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: #4b5563;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.helper-btn:hover {
+  background: #6b7280;
+}
+
