@@ -52,7 +52,20 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const makeCtx = (currentNode) => {
     const setVar = (name, value) => {
       const key = normalizeVarKey(name);
-      setStoreVars(prev => ({ ...prev, [key]: value }));
+      try {
+        const next = { ...(storeVarsRef.current || {}), [key]: value };
+        storeVarsRef.current = next;
+        setStoreVars(next);
+      } catch (e) {
+        try {
+          // fallback to previous behavior
+          setStoreVars(prev => {
+            const next = { ...prev, [key]: value };
+            try { storeVarsRef.current = next; } catch (ee) {}
+            return next;
+          });
+        } catch (ee) {}
+      }
     };
 
     return {
@@ -178,6 +191,38 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
               await wrapper(makeCtx(currentNode));
               console.log(`Node ${currentNode.id}: fnString completed successfully`);
+              // Check for a global wait flag set by API functions lacking node context
+              try {
+                const isWaiting = storeVarsRef.current?.['waiting_wait'] === true;
+                if (isWaiting) {
+                  console.log(`🚫 Global WAIT flag detected, pausing workflow at node ${currentNode.id}`);
+
+                  setStoreVars(prev => ({
+                    ...prev,
+                    ['node_' + String(currentNode.id) + '_status']: 'waiting_user_input',
+                    ['node_' + String(currentNode.id) + '_wait_start']: Date.now()
+                  }));
+
+                  document.dispatchEvent(new CustomEvent('workflowPaused', {
+                    detail: { nodeId: currentNode.id, reason: 'waiting_user_input' }
+                  }));
+
+                  // create a resume promise and await it so we continue from this point
+                  try {
+                    controllerRef.current.waitResolvers = controllerRef.current.waitResolvers || {};
+                    let resumeResolve;
+                    const resumePromise = new Promise((res) => { resumeResolve = res; });
+                    controllerRef.current.waitResolvers[String(currentNode.id)] = resumeResolve;
+                    await resumePromise;
+                    // cleanup
+                    try { delete controllerRef.current.waitResolvers[String(currentNode.id)]; } catch (e) {}
+                  } catch (e) {
+                    // if awaiting fails, just continue
+                  }
+                }
+              } catch (e) {
+                // ignore errors in wait-checking
+              }
             } catch (error) {
               console.error(`Node ${currentNode.id}: fnString execution error:`, error);
               setStoreVars(prev => ({
@@ -438,6 +483,31 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         }
       };
 
+      // Resume handler: listens for UI events to resume a paused node
+      const resumeHandler = (ev) => {
+        try {
+          const nodeId = ev?.detail?.nodeId;
+          if (!nodeId) return;
+          // clear global waiting flag and set node status
+          setStoreVars(prev => ({
+            ...prev,
+            ['waiting_wait']: false,
+            ['node_' + String(nodeId) + '_status']: 'user_continued'
+          }));
+          // resolve any waiter promise for this node instead of re-running it
+          try {
+            const key = String(nodeId);
+            const resolver = controllerRef.current?.waitResolvers?.[key];
+            if (typeof resolver === 'function') {
+              try { resolver(); } catch (e) {}
+            }
+          } catch (e) {}
+        } catch (e) {}
+      };
+
+      document.addEventListener('workflowResume', resumeHandler);
+      controllerRef.current.resumeHandler = resumeHandler;
+
       // start the run
       if (startNode) {
         runNodeById(startNode.id).catch((e) => { console.error('runNodeById top-level error:', e); controllerRef.current.doneResolve?.(); });
@@ -452,6 +522,14 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       // swallow but log
       // console.error('useRunDemo runProject error:', err);
     } finally {
+      // cleanup resume handler if installed
+      try {
+        if (controllerRef.current && controllerRef.current.resumeHandler) {
+          document.removeEventListener('workflowResume', controllerRef.current.resumeHandler);
+          controllerRef.current.resumeHandler = null;
+        }
+      } catch (e) {}
+
       setRunActive(false);
       setActiveNodeId(null);
       setActiveEdgeId(null);

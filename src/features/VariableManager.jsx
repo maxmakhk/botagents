@@ -206,13 +206,24 @@ const VariableManager = ({ onBack }) => {
   const handleAutoLayout = useCallback((nodes, edges) => {
     try {
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedNodesAndEdges(nodes || rfNodes || [], edges || rfEdges || [], 'TB');
-      if (Array.isArray(layoutedNodes)) setRfNodes(layoutedNodes);
+      if (Array.isArray(layoutedNodes)) {
+        // log before/after positions for debugging layout application
+        try {
+          const before = (nodes || rfNodes || []).map((n) => ({ id: n.id, pos: n.position || null }));
+          const after = layoutedNodes.map((n) => ({ id: n.id, pos: n.position || null }));
+          console.debug('Auto-layout positions — before:', before, 'after:', after);
+        } catch (e) { /* ignore logging errors */ }
+
+        // apply rounded positions to avoid very small fractional differences
+        const rounded = layoutedNodes.map((n) => ({ ...n, position: n.position ? { x: Math.round(n.position.x), y: Math.round(n.position.y) } : n.position }));
+        setRfNodes(rounded);
+      }
       if (Array.isArray(layoutedEdges)) setRfEdges(layoutedEdges);
       // fit the viewport to the new layout when possible
       try {
         if (rfInstance && typeof rfInstance.fitView === 'function') {
-          // small timeout to let state update take effect
-          setTimeout(() => { try { rfInstance.fitView({ padding: 0.12 }); } catch(e){} }, 50);
+          // give a bit more time for state to propagate before fitting view
+          setTimeout(() => { try { rfInstance.fitView({ padding: 0.12 }); } catch(e){} }, 150);
         }
       } catch (err) {
         // ignore
@@ -2916,6 +2927,8 @@ function fnToWorkflow(fnString) {
           runProject={runProject}
           activeNodeId={runCurrentNodeId}
           activeEdgeId={runCurrentEdgeId}
+          storeVars={storeVars}
+          setStoreVars={setStoreVars}
           pendingActions={pendingActions}
           cancelPreview={cancelPreview}
         />
