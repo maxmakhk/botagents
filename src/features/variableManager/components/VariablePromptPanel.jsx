@@ -55,6 +55,8 @@ const VariablePromptPanel = ({
   runActive,
   activeNodeId,
   activeEdgeId,
+  storeVars,
+  setStoreVars,
   pendingActions,
   cancelPreview
 }) => {
@@ -161,9 +163,11 @@ const VariablePromptPanel = ({
         selectedCount={selectedIds.length}
         activeNodeId={activeNodeId}
         activeEdgeId={activeEdgeId}
-        aiLoading={aiLoading}
-        onRun={runProject}
-        runActive={runActive}
+          aiLoading={aiLoading}
+          onRun={runProject}
+          runActive={runActive}
+          storeVars={storeVars}
+          setStoreVars={setStoreVars}
       />
 
       <form onSubmit={handleAiSubmit} style={{display:'flex', flexDirection:'column', gap:8}}>

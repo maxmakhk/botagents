@@ -7,21 +7,23 @@ export function getLayoutedNodesAndEdges(nodes = [], edges = [], direction = 'TB
   const rankDir = direction || 'TB';
   let graphConfig = { 
     rankdir: rankDir, 
-    ranksep: direction === 'TB' ? 100 : 60,  // 直向層距大啲
-    nodesep: direction === 'LR' ? 120 : 60,   // 橫向 node 距大啲
-    marginx: 20, marginy: 20 
+    // increase spacing between ranks and nodes to accommodate larger nodes
+    ranksep: direction === 'TB' ? 220 : 120,
+    nodesep: direction === 'LR' ? 240 : 120,
+    marginx: 40, marginy: 40 
     };
     console.log('Running auto-layout with config:', graphConfig);
   dagreGraph.setGraph(graphConfig);
 
-  const defaultNodeWidth = 220;
-  const defaultNodeHeight = 80;
+  // Double default node size to make nodes bigger by default
+  const defaultNodeWidth = 440;
+  const defaultNodeHeight = 160;
 
-  // add nodes to dagre with measured or default sizes
+  // add nodes to dagre with measured or default sizes (scale measured sizes to match larger defaults)
   nodes.forEach((node) => {
-    const w = (node?.data && node.data.width) ? Number(node.data.width) : defaultNodeWidth;
-    const h = (node?.data && node.data.height) ? Number(node.data.height) : defaultNodeHeight;
-    dagreGraph.setNode(node.id, { width: Math.max(80, w), height: Math.max(40, h) });
+    const measuredW = (node?.data && node.data.width) ? Number(node.data.width) * 2 : defaultNodeWidth;
+    const measuredH = (node?.data && node.data.height) ? Number(node.data.height) * 2 : defaultNodeHeight;
+    dagreGraph.setNode(node.id, { width: Math.max(120, measuredW), height: Math.max(80, measuredH) });
   });
 
   // add edges
@@ -40,8 +42,8 @@ export function getLayoutedNodesAndEdges(nodes = [], edges = [], direction = 'TB
   const layoutedNodes = nodes.map((node) => {
     const n = dagreGraph.node(node.id);
     if (!n) return node;
-    const w = (node?.data && node.data.width) ? Number(node.data.width) : defaultNodeWidth;
-    const h = (node?.data && node.data.height) ? Number(node.data.height) : defaultNodeHeight;
+    const w = (node?.data && node.data.width) ? Number(node.data.width) * 2 : defaultNodeWidth;
+    const h = (node?.data && node.data.height) ? Number(node.data.height) * 2 : defaultNodeHeight;
     const position = {
       x: n.x - w / 2,
       y: n.y - h / 2

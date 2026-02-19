@@ -126,14 +126,43 @@ const WorkflowNode = ({ id, data }) => {
   const extraClass = cssText ? 'api-node' : '';
   const apiIdClass = data?.metadata?.apiId ? `api-node-${String(data.metadata.apiId).replace(/[^a-z0-9_-]/gi, '')}` : '';
 
+  // local state to cycle through a single parameter of input/output signals
+  const [inParamIdx, setInParamIdx] = useState(0);
+  const [outParamIdx, setOutParamIdx] = useState(0);
+
+  const getEntries = (sig) => {
+    if (sig == null) return [];
+    if (typeof sig !== 'object') return [['value', sig]];
+    try {
+      const e = Object.entries(sig || {});
+      return e.length ? e : [];
+    } catch (e) { return [] }
+  };
+
+  // attempt to read signals from several possible locations: node.data, node.metadata, runtime storeVars
+  const storeVars = data?.storeVars || {};
+  const keyPrefix = `node_${id}_`;
+  const inputSignal = data?.input || data?.metadata?.input || storeVars[`${keyPrefix}input`] || storeVars[`${keyPrefix}in`];
+  const outputSignal = data?.output || data?.metadata?.output || storeVars[`${keyPrefix}output`] || storeVars[`${keyPrefix}out`];
+  const inEntries = getEntries(inputSignal);
+  const outEntries = getEntries(outputSignal);
+  const shortVal = (v) => {
+    if (v == null) return '-';
+    if (typeof v === 'object') {
+      if (v.status) return String(v.status);
+      try { return JSON.stringify(v).slice(0, 40); } catch (e) { return String(v); }
+    }
+    return String(v).slice(0, 40);
+  };
+
   return (
     <div style={containerStyle} className={`entry-btn ${extraClass} ${apiIdClass}`.trim()}>
       {/* lock button + prompt icon top-right */}
-      <div style={{position:'absolute', right:8, top:8, display:'flex', gap:6}}>
+      <div style={{position:'absolute', right:8, top:8, display:'flex', gap:6, flexDirection: 'column'}}>
         <button
           title={data?.locked || data?.metadata?.locked ? 'Unlock node' : 'Lock node'}
           onClick={(ev) => { ev.stopPropagation(); try { if (typeof onToggleNodeLock === 'function') onToggleNodeLock(id); } catch(e){} }}
-          style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:14}}
+          style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}
         >
           {data?.locked || data?.metadata?.locked ? '🔒' : '🔓'}
         </button>
@@ -166,6 +195,37 @@ const WorkflowNode = ({ id, data }) => {
         <div style={{textAlign: 'left', flex: 1}}>
         <div style={{fontWeight:700, fontSize:'1rem'}}>{String(data?.labelText || data?.label || 'Step').split('\n')[0]}</div>
         <div style={{fontSize: '0.72rem', color: '#6b7280', marginTop: 4}}>ID: {String(id)}</div>
+        {/* Input / Output signal quick view */}
+        <div style={{display:'flex', gap:8, marginTop:8, alignItems:'center'}}>
+          <div style={{display:'flex', gap:6, alignItems:'center'}}>
+            <div style={{fontSize:'0.72rem', color:'#9ca3af'}}>In:</div>
+            {inEntries.length ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); setInParamIdx((s) => (s + 1) % inEntries.length); }}
+                title={inEntries[inParamIdx % inEntries.length][0]}
+                style={{padding:'4px 8px', background:'#0ea5b7', color:'#021827', border:'none', borderRadius:6, cursor:'pointer', fontSize:'0.8rem'}}
+              >
+                {inEntries[inParamIdx % inEntries.length][0]}: {shortVal(inEntries[inParamIdx % inEntries.length][1])}
+              </button>
+            ) : (
+              <div style={{color:'#6b7280', fontSize:'0.85rem'}}>-</div>
+            )}
+          </div>
+          <div style={{display:'flex', gap:6, alignItems:'center'}}>
+            <div style={{fontSize:'0.72rem', color:'#9ca3af'}}>Out:</div>
+            {outEntries.length ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); setOutParamIdx((s) => (s + 1) % outEntries.length); }}
+                title={outEntries[outParamIdx % outEntries.length][0]}
+                style={{padding:'4px 8px', background:'#34d399', color:'#021827', border:'none', borderRadius:6, cursor:'pointer', fontSize:'0.8rem'}}
+              >
+                {outEntries[outParamIdx % outEntries.length][0]}: {shortVal(outEntries[outParamIdx % outEntries.length][1])}
+              </button>
+            ) : (
+              <div style={{color:'#6b7280', fontSize:'0.85rem'}}>-</div>
+            )}
+          </div>
+        </div>
         {((String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId) && (
           <div title={data?.metadata?.ruleId || undefined} style={{fontSize: '0.7rem', color: isEntryNode ? '#92400e' : '#6b7280', marginTop: 6, lineHeight: 1.05, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
             {(String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId)}
@@ -245,7 +305,7 @@ const PromptButton = ({ onNodeId, onSubmit, onGetRelated, rfNodes, rfEdges }) =>
 
   return (
     <div>
-      <button title="Prompt" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:14}}>💬</button>
+      <button title="Prompt" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>💬</button>
       {open && (
         <div style={{position:'absolute', left: '50px', top: '-130px', zIndex: 9999, background:'#021827', border:'1px solid #13353b', padding:8, borderRadius:6, minWidth:220}} onClick={(e) => e.stopPropagation()}>
           <textarea rows={2} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'none', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:6, borderRadius:4}} placeholder="Type prompt..." />
@@ -290,7 +350,9 @@ const WorkflowGraph = ({
   selectedCount,
   activeNodeId,
   activeEdgeId,
-  aiLoading
+  aiLoading,
+  storeVars,
+  setStoreVars
 }) => {
   const hasNodes = rfNodes && rfNodes.length > 0;
 
@@ -324,6 +386,8 @@ const WorkflowGraph = ({
         rfEdges,
         activeNodeId,
         activeEdgeId,
+        storeVars,
+        setStoreVars,
         // provide a helper to collect related nodes and edges for this node
         getRelated: (nodeId) => {
           const nodesArr = Array.isArray(rfNodes) ? rfNodes : [];
