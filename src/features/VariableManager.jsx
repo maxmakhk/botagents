@@ -2890,9 +2890,6 @@ function fnToWorkflow(fnString) {
           edgeEdit={edgeEdit}
           onCommitEdgeLabel={commitEdgeLabel}
           onCancelEdgeEdit={cancelEdgeEdit}
-          edgeEdit={edgeEdit}
-          onCommitEdgeLabel={commitEdgeLabel}
-          onCancelEdgeEdit={cancelEdgeEdit}
           onNodeDoubleClick={onNodeDoubleClick}
           onNodeClick={onNodeClick}
           addRfNode={addRfNode}
