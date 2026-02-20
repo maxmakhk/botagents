@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+// ignore only repo-root docs folder
+/docs/
 
 node_modules
 dist
