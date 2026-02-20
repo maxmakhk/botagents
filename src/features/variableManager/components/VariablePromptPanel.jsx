@@ -38,6 +38,7 @@ const VariablePromptPanel = ({
   openActionRule,
   onAutoLayout,
   onNodePromptSubmit,
+  layoutDirection,
   selectedIds,
   handleAiSubmit,
   aiPrompt,
@@ -160,6 +161,7 @@ const VariablePromptPanel = ({
           }}
         onAutoLayout={onAutoLayout}
         onNodePromptSubmit={onNodePromptSubmit}
+        layoutDirection={layoutDirection}
         selectedCount={selectedIds.length}
         activeNodeId={activeNodeId}
         activeEdgeId={activeEdgeId}

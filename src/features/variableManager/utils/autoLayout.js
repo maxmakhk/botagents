@@ -7,23 +7,23 @@ export function getLayoutedNodesAndEdges(nodes = [], edges = [], direction = 'TB
   const rankDir = direction || 'TB';
   let graphConfig = { 
     rankdir: rankDir, 
-    // increase spacing between ranks and nodes to accommodate larger nodes
-    ranksep: direction === 'TB' ? 220 : 120,
-    nodesep: direction === 'LR' ? 240 : 120,
-    marginx: 40, marginy: 40 
+    // tuned spacing: reduce rank and node separation for tighter layouts
+    ranksep: direction === 'TB' ? 120 : 80,
+    nodesep: direction === 'LR' ? 100 : 60,
+    marginx: 20, marginy: 20 
     };
     console.log('Running auto-layout with config:', graphConfig);
   dagreGraph.setGraph(graphConfig);
 
-  // Double default node size to make nodes bigger by default
-  const defaultNodeWidth = 440;
-  const defaultNodeHeight = 160;
+  // Default node size (smaller for denser layouts)
+  const defaultNodeWidth = 240;
+  const defaultNodeHeight = 100;
 
-  // add nodes to dagre with measured or default sizes (scale measured sizes to match larger defaults)
+  // add nodes to dagre with measured or default sizes
   nodes.forEach((node) => {
-    const measuredW = (node?.data && node.data.width) ? Number(node.data.width) * 2 : defaultNodeWidth;
-    const measuredH = (node?.data && node.data.height) ? Number(node.data.height) * 2 : defaultNodeHeight;
-    dagreGraph.setNode(node.id, { width: Math.max(120, measuredW), height: Math.max(80, measuredH) });
+    const measuredW = (node?.data && node.data.width) ? Number(node.data.width) : defaultNodeWidth;
+    const measuredH = (node?.data && node.data.height) ? Number(node.data.height) : defaultNodeHeight;
+    dagreGraph.setNode(node.id, { width: Math.max(100, measuredW), height: Math.max(60, measuredH) });
   });
 
   // add edges
@@ -42,8 +42,8 @@ export function getLayoutedNodesAndEdges(nodes = [], edges = [], direction = 'TB
   const layoutedNodes = nodes.map((node) => {
     const n = dagreGraph.node(node.id);
     if (!n) return node;
-    const w = (node?.data && node.data.width) ? Number(node.data.width) * 2 : defaultNodeWidth;
-    const h = (node?.data && node.data.height) ? Number(node.data.height) * 2 : defaultNodeHeight;
+    const w = (node?.data && node.data.width) ? Number(node.data.width) : defaultNodeWidth;
+    const h = (node?.data && node.data.height) ? Number(node.data.height) : defaultNodeHeight;
     const position = {
       x: n.x - w / 2,
       y: n.y - h / 2
@@ -57,7 +57,23 @@ export function getLayoutedNodesAndEdges(nodes = [], edges = [], direction = 'TB
     };
   });
 
-  return { nodes: layoutedNodes, edges };
+  // Assign edge handles based on layout direction so edges attach to appropriate sides
+  const layoutedEdges = (edges || []).map((edge) => {
+    try {
+      const out = { ...(edge || {}) };
+      // Only set explicit handles for LR layouts. For TB (default) we leave handles undefined
+      // so React Flow will use the default Top/Bottom positions without requiring handle ids.
+      if (rankDir === 'LR') {
+        if (!out.sourceHandle) out.sourceHandle = 'right';
+        if (!out.targetHandle) out.targetHandle = 'left';
+      }
+      return out;
+    } catch (e) {
+      return edge;
+    }
+  });
+
+  return { nodes: layoutedNodes, edges: layoutedEdges };
 }
 
 export default getLayoutedNodesAndEdges;

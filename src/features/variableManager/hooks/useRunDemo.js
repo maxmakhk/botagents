@@ -1,547 +1,177 @@
-import { useEffect, useRef, useState } from 'react';
-
-/**
- * @typedef {Object} WorkflowNodeData
- * @property {string} [labelText] - Display label for the node
- * @property {string} [label] - Alternative label property
- * @property {string} [type] - Node type (api, action, etc.)
- * @property {string} [url] - API URL or webhook URL
- * @property {string} [apiUrl] - Alternative API URL property
- * @property {string} [varName] - Variable name to store result
- * @property {string} [variable] - Alternative variable name property
- * @property {string} [checkVar] - Variable name for conditional checks
- * @property {string} [checkPath] - Dot-notation path within checkVar for nested access
- * @property {any} [config] - Configuration object for fnString scripts
- * @property {string} [fnString] - Custom async function body to execute for this node
- * @property {Array} [actions] - Array of action definitions
- */
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
 
 export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 1000, apis = [] } = {}) {
   const [runActive, setRunActive] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [storeVars, setStoreVars] = useState({});
-  const controllerRef = useRef({ abort: false });
-  const storeVarsRef = useRef(storeVars);
+  const socketRef = useRef(null);
+  const [promptProcessing, setPromptProcessing] = useState(false);
+  const [promptStatus, setPromptStatus] = useState('');
+  const promptCallbackRef = useRef(null);
 
-  // Keep ref in sync with state for live updates during execution
+  // Initialize socket connection
   useEffect(() => {
-    storeVarsRef.current = storeVars;
-  }, [storeVars]);
+    // Only connect once, assuming the backend runs on port 3001
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    socketRef.current = io(backendUrl);
 
-  useEffect(() => {
-    return () => { try { controllerRef.current.abort = true; } catch (e) {} };
-  }, []);
+    socketRef.current.on('connect', () => {
+      console.log('Socket connected to backend for workflow execution');
+    });
 
-  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+    socketRef.current.on('node_start', (data) => {
+      setActiveNodeId(data.nodeId);
+      setActiveEdgeId(null);
+    });
 
-  /**
-   * Normalizes a variable name to lowercase and replaces dots with underscores
-   * @param {string} name - The variable name
-   * @returns {string} Normalized key for storeVars
-   */
-  const normalizeVarKey = (name) => {
-    return String(name || '').toLowerCase().replace(/\./g, '_');
-  };
+    socketRef.current.on('edge_start', (data) => {
+      setActiveEdgeId(data.edgeId);
+    });
 
-  /**
-   * Creates an execution context for fnString scripts
-   * @param {Object} currentNode - The current workflow node
-   * @returns {Object} Context object with APIs and utilities for scripts
-   */
-  const makeCtx = (currentNode) => {
-    const setVar = (name, value) => {
-      const key = normalizeVarKey(name);
-      try {
-        const next = { ...(storeVarsRef.current || {}), [key]: value };
-        storeVarsRef.current = next;
-        setStoreVars(next);
-      } catch (e) {
-        try {
-          // fallback to previous behavior
-          setStoreVars(prev => {
-            const next = { ...prev, [key]: value };
-            try { storeVarsRef.current = next; } catch (ee) {}
-            return next;
-          });
-        } catch (ee) {}
-      }
-    };
+    socketRef.current.on('store_vars_update', (data) => {
+      setStoreVars(data);
+    });
 
-    return {
-      fetch: window.fetch.bind(window),
-      console,
-      alert: window.alert?.bind(window),
-      node: currentNode,
-      storeVars: storeVarsRef.current,
-      setVar,
-      config: currentNode.data?.config || {},
-      apis, // keep existing apis array available for scripts
-    };
-  };
+    socketRef.current.on('node_wait', (data) => {
+      // Dispatch standard event so frontend knows to show "waiting user input" UI
+      document.dispatchEvent(new CustomEvent('workflowPaused', {
+        detail: { nodeId: data.nodeId, reason: data.reason }
+      }));
+    });
 
-  async function runProject() {
-    try {
-      // toggle off if already running
-      if (runActive) {
-        controllerRef.current.abort = true;
-        setRunActive(false);
-        setActiveNodeId(null);
-        setActiveEdgeId(null);
-        return;
-      }
+    socketRef.current.on('node_error', (data) => {
+      console.error(`[Backend] Node ${data.nodeId} error:`, data.error);
+    });
 
-      controllerRef.current = { abort: false };
-      setRunActive(true);
-
-      const nodesArr = Array.isArray(rfNodes) ? rfNodes : [];
-      const edgesArr = Array.isArray(rfEdges) ? rfEdges : [];
-
-      console.log('Starting runProject with nodes:', nodesArr, 'edges:', edgesArr, 'apis:', apis);
-
-      // compute start nodes (no incoming edges)
-      const incoming = {};
-      edgesArr.forEach((e) => {
-        if (!e) return;
-        const t = String(e.target || e.to || '');
-        if (!t) return;
-        incoming[t] = (incoming[t] || 0) + 1;
-      });
-      const startNodes = nodesArr.filter((n) => !incoming[String(n.id)]);
-      const startNode = startNodes && startNodes.length ? startNodes[0] : (nodesArr && nodesArr[0] ? nodesArr[0] : null);
-
-      // create a deferred so runProject can await overall completion
-      let finishResolve = null;
-      const finishPromise = new Promise((res) => { finishResolve = res; });
-      controllerRef.current.doneResolve = finishResolve;
-
-      // runner that handles a single node and then schedules the next by calling itself
-      const runNodeById = async (nodeId) => {
-        try {
-          if (controllerRef.current.abort) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          const currentNode = nodesArr.find((n) => String(n.id) === String(nodeId));
-          if (!currentNode) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          setActiveNodeId(String(currentNode.id));
-          setActiveEdgeId(null);
-          console.log('Running node:', currentNode);
-
-          // Try to obtain a function body to execute for this node.
-          // Priority: node.data.fnString -> fallback to a matching `apis` entry's function
-          const resolveApiFnFromApis = (node) => {
-            try {
-              if (!apis || !Array.isArray(apis) || apis.length === 0) return null;
-              const rawLabel = String(node?.data?.label || node?.label || node?.data?.labelText || '').trim();
-              const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
-              if (!normalized) return null;
-              for (const a of apis) {
-                const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
-                if (!cand) continue;
-                if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
-                  return a?.function || a?.fnString || a?.functionBody || null;
-                }
-              }
-            } catch (e) {
-              // swallow
-            }
-            return null;
-          };
-
-          let source = currentNode.data?.fnString || null;
-          if (!source) {
-            const apiFn = resolveApiFnFromApis(currentNode);
-            if (apiFn) {
-              source = apiFn;
-              console.log(`Node ${currentNode.id}: resolved fnString from apis collection`);
-            }
-          }
-
-          if (source) {
-            console.log(`Node ${currentNode.id}: executing fnString (source ${currentNode.data?.fnString ? 'node' : 'apis'})`, source);
-            try {
-              const wrapper = new Function(
-                'ctx',
-                `
-                  const nodeFn = async (ctx) => {
-                    ${source}
-
-                    // Determine a sensible argument to pass to user functions:
-                    // prefer ctx.node.data.input -> ctx.node.data.config -> ctx.config -> full ctx
-                    const _arg = (ctx && ctx.node && ctx.node.data && (ctx.node.data.input ?? ctx.node.data.config ?? ctx.node.data.payload)) || ctx.config || ctx;
-
-                    // Auto-invoke common entrypoints if the user only declared a function
-                    if (typeof processRequest === 'function') return await processRequest(_arg);
-                    if (typeof handler === 'function') return await handler(_arg);
-                    if (typeof main === 'function') return await main(_arg);
-                    if (typeof run === 'function') return await run(_arg);
-
-                    // No explicit entrypoint invoked; allow the script to return via top-level return
-                    return undefined;
-                  };
-                  return nodeFn(ctx);
-                `
-              );
-
-              await wrapper(makeCtx(currentNode));
-              console.log(`Node ${currentNode.id}: fnString completed successfully`);
-              // Check for a global wait flag set by API functions lacking node context
-              try {
-                const isWaiting = storeVarsRef.current?.['waiting_wait'] === true;
-                if (isWaiting) {
-                  console.log(`🚫 Global WAIT flag detected, pausing workflow at node ${currentNode.id}`);
-
-                  setStoreVars(prev => ({
-                    ...prev,
-                    ['node_' + String(currentNode.id) + '_status']: 'waiting_user_input',
-                    ['node_' + String(currentNode.id) + '_wait_start']: Date.now()
-                  }));
-
-                  document.dispatchEvent(new CustomEvent('workflowPaused', {
-                    detail: { nodeId: currentNode.id, reason: 'waiting_user_input' }
-                  }));
-
-                  // create a resume promise and await it so we continue from this point
-                  try {
-                    controllerRef.current.waitResolvers = controllerRef.current.waitResolvers || {};
-                    let resumeResolve;
-                    const resumePromise = new Promise((res) => { resumeResolve = res; });
-                    controllerRef.current.waitResolvers[String(currentNode.id)] = resumeResolve;
-                    await resumePromise;
-                    // cleanup
-                    try { delete controllerRef.current.waitResolvers[String(currentNode.id)]; } catch (e) {}
-                  } catch (e) {
-                    // if awaiting fails, just continue
-                  }
-                }
-              } catch (e) {
-                // ignore errors in wait-checking
-              }
-            } catch (error) {
-              console.error(`Node ${currentNode.id}: fnString execution error:`, error);
-              setStoreVars(prev => ({
-                ...prev,
-                [normalizeVarKey(`node_${currentNode.id}_error`)]: (error instanceof Error) ? error.message : String(error),
-              }));
-            }
-          }
-
-          // After handling API (or not), proceed to next node selection
-          if (controllerRef.current.abort) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          // small delay between nodes
-          await sleep(stepDelay);
-
-          const outgoing = edgesArr.filter((e) => String(e.source || e.from || '') === String(currentNode.id));
-          if (!outgoing || outgoing.length === 0) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          console.log('DEBUG storeVars at node', currentNode.id, storeVarsRef.current);
-
-          // Attempt to auto-select branch for condition-like labels
-          let chosenEdge = null;
-          // track inspected variable info for logging when auto-selecting
-          let inspectedVar = null;
-          let inspectedPath = null;
-          let inspectedValue = undefined;
-          if (outgoing.length === 1) {
-            chosenEdge = outgoing[0];
-          } else {
-            const getFromStoreNorm = (name, path) => {
-              const key = String(name || '').toLowerCase().replace(/\./g, '_');
-              const base = storeVarsRef.current?.[key];
-              if (base == null) return undefined;
-              if (!path) return base;
-              const parts = String(path).split('.');
-              let cur = base;
-              for (const p of parts) {
-                if (cur == null) return undefined;
-                cur = cur[p];
-              }
-              return cur;
-            };
-
-            // NEW: Try to evaluate edge labels as JavaScript conditions
-            // This supports the fnToWorkflow refactor where conditions are on edges
-            const evaluateEdgeCondition = (edgeLabel) => {
-              if (!edgeLabel) return null;
-              const label = String(edgeLabel).trim();
-              
-              // Handle "else" explicitly - it should match when no other condition is true
-              if (label.toLowerCase() === 'else') {
-                return 'else';
-              }
-
-              // Try to evaluate as a condition expression like "var_a === false" or "openweathertemp <= 3"
-              // Match patterns: variable === value, variable == value, !==, !=, <=, >=, <, >
-              const conditionMatch = label.match(/^([A-Za-z0-9_.]+)\s*(===|!==|==|!=|<=|>=|<|>)\s*(.+)$/);
-              if (conditionMatch) {
-                const [, varName, operator, expectedValueStr] = conditionMatch;
-                const actualValueRaw = getFromStoreNorm(varName, null);
-                const expectedValue = expectedValueStr.trim();
-
-                // Parse expected value into boolean/null/number/string
-                let parsedExpected;
-                if (expectedValue === 'true') parsedExpected = true;
-                else if (expectedValue === 'false') parsedExpected = false;
-                else if (expectedValue === 'null') parsedExpected = null;
-                else if (expectedValue === 'undefined') parsedExpected = undefined;
-                else if (!isNaN(expectedValue)) parsedExpected = Number(expectedValue);
-                else parsedExpected = expectedValue.replace(/^['\"]|['\"]$/g, ''); // remove surrounding quotes
-
-                // Normalize actual value for numeric comparisons when expected is a number
-                let actualValue = actualValueRaw;
-                if (parsedExpected !== null && typeof parsedExpected === 'number') {
-                  const maybeNum = Number(actualValueRaw);
-                  actualValue = isNaN(maybeNum) ? actualValueRaw : maybeNum;
-                }
-
-                console.log(`Evaluating edge condition: ${varName} ${operator} ${expectedValue}, actualValue:`, actualValueRaw, 'parsedExpected:', parsedExpected);
-
-                // Evaluate the condition including relational operators
-                switch (operator) {
-                  case '===':
-                    if (typeof parsedExpected === 'number') return actualValue === parsedExpected;
-                    return actualValue === parsedExpected;
-                  case '!==':
-                    if (typeof parsedExpected === 'number') return actualValue !== parsedExpected;
-                    return actualValue !== parsedExpected;
-                  case '==':
-                    return actualValue == parsedExpected;
-                  case '!=':
-                    return actualValue != parsedExpected;
-                  case '<=':
-                    return actualValue <= parsedExpected;
-                  case '>=':
-                    return actualValue >= parsedExpected;
-                  case '<':
-                    return actualValue < parsedExpected;
-                  case '>':
-                    return actualValue > parsedExpected;
-                  default:
-                    return null;
-                }
-              }
-              
-              return null;
-            };
-
-            // First pass: try to find an edge whose condition evaluates to true
-            for (const edge of outgoing) {
-              const result = evaluateEdgeCondition(edge.label);
-              if (result === true) {
-                console.log(`Edge condition "${edge.label}" evaluated to TRUE, selecting this edge`);
-                chosenEdge = edge;
-                break;
-              }
-            }
-
-            // Second pass: if no condition was true, take the "else" edge
-            if (!chosenEdge) {
-              const elseEdge = outgoing.find((e) => {
-                const result = evaluateEdgeCondition(e.label);
-                return result === 'else';
-              });
-              if (elseEdge) {
-                console.log('No condition evaluated to true, taking "else" edge');
-                chosenEdge = elseEdge;
-              } else {
-                // If any outgoing edge appears to be a conditional expression
-                // (e.g. "var === value" or starts with "if ...") and none matched,
-                // end the run instead of falling back to a default edge.
-                const condExprRegex = /^([A-Za-z0-9_.]+)\s*(===|!==|==|!=|<=|>=|<|>)\s*(.+)$/;
-                const anyConditionEdges = outgoing.some((e) => {
-                  const lab = String(e.label || '').trim();
-                  return condExprRegex.test(lab) || lab.toLowerCase() === 'else' || /^if\s+/i.test(lab);
-                });
-                if (anyConditionEdges) {
-                  console.log(`No conditional outgoing edges matched for node ${currentNode.id}; ending run.`);
-                  controllerRef.current.doneResolve?.();
-                  return;
-                }
-              }
-            }
-
-            // 1) Prefer explicit metadata on the node
-            const metaVar = currentNode.data?.checkVar;
-            const metaPath = currentNode.data?.checkPath;
-            if (metaVar) {
-              inspectedVar = metaVar;
-              inspectedPath = metaPath;
-              inspectedValue = getFromStoreNorm(metaVar, metaPath);
-              const actualStr = inspectedValue == null ? null : String(inspectedValue).trim().toLowerCase();
-              console.log(`Node ${currentNode.id} has explicit checkVar metadata: variable "${metaVar}" with path "${metaPath}" has value:`, inspectedValue, "actualStr", actualStr);
-              if (actualStr != null) {
-                const found = outgoing.find((e) => String(e.label || e.id || '').toLowerCase().includes(String(actualStr)));
-                if (found) chosenEdge = found;
-              }
-            }
-
-            // 2) Try explicit "if var[:path] is value" pattern
-            if (!chosenEdge) {
-              const condMatch = labelText.match(/^if\s+([A-Za-z0-9_]+)(?::([A-Za-z0-9_.]+))?\s+is\s+(.+)$/i);
-              if (condMatch) {
-                const [, condVar, condPath, condValRaw] = condMatch;
-                const condVal = String(condValRaw || '').trim().toLowerCase();
-                inspectedVar = condVar;
-                inspectedPath = condPath;
-                inspectedValue = getFromStoreNorm(condVar, condPath);
-                const actualStr = inspectedValue == null ? null : String(inspectedValue).trim().toLowerCase();
-                console.log(`Evaluating condition for node ${currentNode.id}: variable "${condVar}" with path "${condPath}" against value "${condVal}"`);
-                if (actualStr != null) {
-                  const found = outgoing.find((e) => {
-                    const lab = String(e.label || e.id || '').toLowerCase();
-                    if (!lab) return false;
-                    if (lab.includes(condVal)) return true;
-                    if ((condVal === 'true' || condVal === 'yes') && (lab.includes('true') || lab.includes('yes') || lab.includes('y'))) return true;
-                    if ((condVal === 'false' || condVal === 'no') && (lab.includes('false') || lab.includes('no') || lab.includes('n'))) return true;
-                    return false;
-                  });
-                  if (found) chosenEdge = found;
-                  else if (outgoing.length === 2) {
-                    const lab0 = String(outgoing[0].label || '').toLowerCase();
-                    const lab1 = String(outgoing[1].label || '').toLowerCase();
-                    const truthy = ['true','yes','y','1'];
-                    const falsey = ['false','no','n','0'];
-                    if (truthy.some(t => lab0.includes(t)) && falsey.some(f => lab1.includes(f))) {
-                      chosenEdge = truthy.includes(actualStr) ? outgoing[0] : outgoing[1];
-                    } else if (truthy.some(t => lab1.includes(t)) && falsey.some(f => lab0.includes(f))) {
-                      chosenEdge = truthy.includes(actualStr) ? outgoing[1] : outgoing[0];
-                    }
-                  }
-                }
-              }
-            }
-
-            // 3) Try "check <var>" simple pattern to select based on existence
-            if (!chosenEdge) {
-              const checkMatch = labelText.match(/^check\s+([A-Za-z0-9_.]+)(?::([A-Za-z0-9_.]+))?$/i);
-              if (checkMatch) {
-                const [, cv, cp] = checkMatch;
-                inspectedVar = cv;
-                inspectedPath = cp;
-                inspectedValue = getFromStoreNorm(cv, cp);
-                console.log('Check-label condition detected:', { nodeId: currentNode.id, checkVar: cv, checkPath: cp, normalizedKey: String(cv || '').toLowerCase().replace(/\./g, '_'), actual: inspectedValue });
-                const exists = inspectedValue != null;
-                if (outgoing.length === 2) {
-                  // try to pick edge with truthy/falsey labels
-                  const truthyLabels = ['true','yes','y','1','exists','present'];
-                  const falseyLabels = ['false','no','n','0','not exists','absent'];
-                  const found = outgoing.find((e) => {
-                    const lab = String(e.label || '').toLowerCase();
-                    if (!lab) return false;
-                    if (exists && truthyLabels.some(t => lab.includes(t))) return true;
-                    if (!exists && falseyLabels.some(f => lab.includes(f))) return true;
-                    return false;
-                  });
-                  if (found) chosenEdge = found;
-                  else chosenEdge = exists ? outgoing[0] : outgoing[1];
-                } else {
-                  chosenEdge = outgoing[0];
-                }
-              }
-            }
-
-            // 4) final fallback: pick first outgoing and log inspected info
-            if (!chosenEdge) {
-              chosenEdge = outgoing[0];
-              console.log(`Auto-selected default outgoing edge for node ${currentNode.id}:`, chosenEdge, 'inspectedVar:', inspectedVar, 'inspectedPath:', inspectedPath, 'inspectedValue:', inspectedValue);
-            }
-          }
-
-          if (!chosenEdge) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          const edgeId = (chosenEdge.id || `edge_${chosenEdge.source}_${chosenEdge.target}`);
-          setActiveEdgeId(String(edgeId));
-          await sleep(Math.max(200, stepDelay - 150));
-          const nextNode = nodesArr.find((n) => String(n.id) === String(chosenEdge.target || chosenEdge.to));
-          if (!nextNode) {
-            controllerRef.current.doneResolve?.();
-            return;
-          }
-
-          // continue to next node
-          await runNodeById(nextNode.id);
-
-        } catch (err) {
-          console.error('runNodeById error:', err);
-          controllerRef.current.doneResolve?.();
-        }
-      };
-
-      // Resume handler: listens for UI events to resume a paused node
-      const resumeHandler = (ev) => {
-        try {
-          const nodeId = ev?.detail?.nodeId;
-          if (!nodeId) return;
-          // clear global waiting flag and set node status
-          setStoreVars(prev => ({
-            ...prev,
-            ['waiting_wait']: false,
-            ['node_' + String(nodeId) + '_status']: 'user_continued'
-          }));
-          // resolve any waiter promise for this node instead of re-running it
-          try {
-            const key = String(nodeId);
-            const resolver = controllerRef.current?.waitResolvers?.[key];
-            if (typeof resolver === 'function') {
-              try { resolver(); } catch (e) {}
-            }
-          } catch (e) {}
-        } catch (e) {}
-      };
-
-      document.addEventListener('workflowResume', resumeHandler);
-      controllerRef.current.resumeHandler = resumeHandler;
-
-      // start the run
-      if (startNode) {
-        runNodeById(startNode.id).catch((e) => { console.error('runNodeById top-level error:', e); controllerRef.current.doneResolve?.(); });
+    socketRef.current.on('node_log', (data) => {
+      if (data.level === 'error') {
+        console.error(`[backend node ${data.nodeId}]`, ...(data.args || []));
+      } else if (data.level === 'warn') {
+        console.warn(`[backend node ${data.nodeId}]`, ...(data.args || []));
       } else {
-        // nothing to run
-        controllerRef.current.doneResolve?.();
+        console.log(`[backend node ${data.nodeId}]`, ...(data.args || []));
       }
+    });
 
-      // wait until run completes or is aborted
-      await finishPromise;
-    } catch (err) {
-      // swallow but log
-      // console.error('useRunDemo runProject error:', err);
-    } finally {
-      // cleanup resume handler if installed
-      try {
-        if (controllerRef.current && controllerRef.current.resumeHandler) {
-          document.removeEventListener('workflowResume', controllerRef.current.resumeHandler);
-          controllerRef.current.resumeHandler = null;
-        }
-      } catch (e) {}
-
+    socketRef.current.on('workflow_complete', () => {
       setRunActive(false);
       setActiveNodeId(null);
       setActiveEdgeId(null);
+      console.log('Workflow execution completed on backend');
+    });
+
+    // Prompt pipeline progress events
+    socketRef.current.on('prompt_processing_start', () => {
+      setPromptProcessing(true);
+      setPromptStatus('Processing prompt…');
+    });
+
+    socketRef.current.on('prompt_normalized', () => {
+      setPromptStatus('Generating function…');
+    });
+
+    socketRef.current.on('function_generated', () => {
+      setPromptStatus('Building workflow…');
+    });
+
+    socketRef.current.on('workflow_ready', (data) => {
+      setPromptProcessing(false);
+      setPromptStatus('');
+      if (typeof promptCallbackRef.current === 'function') {
+        promptCallbackRef.current(data);
+      }
+    });
+
+    socketRef.current.on('prompt_error', (data) => {
+      setPromptProcessing(false);
+      setPromptStatus('');
+      console.error('[Prompt pipeline error]', data?.message || data);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Set up resume listener from frontend UI
+  useEffect(() => {
+    const resumeHandler = (ev) => {
+      const nodeId = ev?.detail?.nodeId;
+      if (!nodeId || !socketRef.current) return;
+
+      // Tell backend to resume
+      socketRef.current.emit('workflow_resume', { nodeId });
+    };
+
+    document.addEventListener('workflowResume', resumeHandler);
+    return () => {
+      document.removeEventListener('workflowResume', resumeHandler);
+    };
+  }, []);
+
+  // Wrapper for manual UI edits to storeVars so they sync with the backend
+  const updateStoreVars = (newVarsOrUpdater) => {
+    setStoreVars((prev) => {
+      const nextVars = typeof newVarsOrUpdater === 'function' ? newVarsOrUpdater(prev) : newVarsOrUpdater;
+      // Sync manual changes to the backend runner if it's currently active
+      if (socketRef.current) {
+        socketRef.current.emit('update_store_vars', nextVars);
+      }
+      return nextVars;
+    });
+  };
+
+  // Trigger backend execution
+  async function runProject() {
+    if (runActive) {
+      // Toggle off
+      socketRef.current?.emit('stop_workflow');
+      setRunActive(false);
+      setActiveNodeId(null);
+      setActiveEdgeId(null);
+      return;
     }
+
+    setRunActive(true);
+    // DO NOT clear storeVars so Node.js can start with existing UI variables
+    setActiveNodeId(null);
+    setActiveEdgeId(null);
+
+    // Filter valid nodes/edges
+    const validNodes = (rfNodes || []).filter(n => n.id);
+    const validEdges = (rfEdges || []).filter(e => e.id);
+
+    // Send payload to backend with our existing variables
+    socketRef.current?.emit('run_workflow', {
+      nodes: validNodes,
+      edges: validEdges,
+      apis: apis,
+      stepDelay: stepDelay,
+      initialStoreVars: storeVars
+    });
   }
 
+  // Submit a prompt to the server-side pipeline.
+  // onReady(result) is called when 'workflow_ready' fires with { nodes, edges, workflowData, metadata }.
+  const submitPrompt = useCallback((nodeId, promptText, apis = [], workflowData = null, onReady) => {
+    promptCallbackRef.current = onReady || null;
+    socketRef.current?.emit('process_prompt', { nodeId, promptText, apis, workflowData });
+  }, []);
+
   return {
+    socketRef,
     runProject,
     runActive,
     activeNodeId,
     activeEdgeId,
     storeVars,
-    setStoreVars
+    setStoreVars: updateStoreVars, // Export wrapped version
+    submitPrompt,
+    promptProcessing,
+    promptStatus,
   };
 }

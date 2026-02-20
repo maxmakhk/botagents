@@ -9,12 +9,12 @@ import {
   removeSignalDoc,
 } from '../services/firebase/variablesService';
 
-const useVariables = (db) => {
+const useVariables = () => {
   const [variables, setVariables] = useState([]);
 
   const loadVariables = async () => {
     try {
-      const items = await fetchVariables(db);
+      const items = await fetchVariables();
       setVariables(items);
     } catch (error) {
       console.error('Error loading variables:', error);
@@ -241,7 +241,7 @@ const useVariables = (db) => {
             tag: variable.tag || existingVar.tag,
             updatedAt: new Date(),
           };
-          await updateVariableDoc(db, existingVar.id, payload);
+          await updateVariableDoc(existingVar.id, payload);
 
           setVariables(
             variables.map((v) =>
@@ -262,7 +262,7 @@ const useVariables = (db) => {
             tag: variable.tag || existingVar.tag,
             updatedAt: new Date(),
           };
-          await updateVariableDoc(db, existingVar.id, payload);
+          await updateVariableDoc(existingVar.id, payload);
 
           setVariables(
             variables.map((v) =>
@@ -276,7 +276,7 @@ const useVariables = (db) => {
         // Variable doesn't exist, create new
         const rawDescNew = (variable.description === undefined || variable.description === null) ? '' : variable.description;
         const descToSaveNew = typeof rawDescNew === 'object' ? JSON.stringify(rawDescNew) : rawDescNew;
-        const docRef = await createVariableDoc(db, {
+        const docRef = await createVariableDoc({
           name: variable.name,
           description: descToSaveNew,
           qty: variable.qty || 0,
@@ -320,7 +320,7 @@ const useVariables = (db) => {
       }
 
       const descToSave = typeof finalDescription === 'object' ? JSON.stringify(finalDescription) : finalDescription;
-      await updateVariableDoc(db, id, {
+      await updateVariableDoc(id, {
         name: newVariable.name,
         description: descToSave,
         tag: newVariable.tag || [],
@@ -337,7 +337,7 @@ const useVariables = (db) => {
 
   const deleteVariable = async (id) => {
     try {
-      await deleteVariableDoc(db, id);
+      await deleteVariableDoc(id);
       setVariables(variables.filter((v) => v.id !== id));
     } catch (error) {
       console.error('Error deleting variable:', error);
@@ -374,9 +374,9 @@ const useVariables = (db) => {
         }
 
         if (existing && existing.id) {
-          await updateVariableDoc(db, existing.id, payload);
+          await updateVariableDoc(existing.id, payload);
         } else {
-          await createVariableDoc(db, {
+          await createVariableDoc({
             ...payload,
             createdAt: new Date(),
           });
@@ -401,7 +401,7 @@ const useVariables = (db) => {
         lastUpdatedAt: template?.lastUpdatedAt || new Date(),
       };
 
-      await updateSignalDoc(db, existing.id, signalName, {
+      await updateSignalDoc(existing.id, signalName, {
         ...normalizedSignal,
         lastUpdatedAt: template?.lastUpdatedAt || new Date(),
       });
@@ -434,7 +434,7 @@ const useVariables = (db) => {
       if (!itemName || !signalName || !fieldName) return;
       const existing = variables.find((v) => v.name === itemName || v.id === itemName);
       if (!existing) return;
-      await updateSignalFieldDoc(db, existing.id, signalName, fieldName, value);
+      await updateSignalFieldDoc(existing.id, signalName, fieldName, value);
 
       setVariables((vars) =>
         vars.map((v) => {
@@ -466,7 +466,7 @@ const useVariables = (db) => {
       if (!itemName || !signalName) return;
       const existing = variables.find((v) => v.name === itemName || v.id === itemName);
       if (!existing) return;
-      await removeSignalDoc(db, existing.id, signalName);
+      await removeSignalDoc(existing.id, signalName);
 
       setVariables((vars) =>
         vars.map((v) => {

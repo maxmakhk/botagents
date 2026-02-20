@@ -1,57 +1,121 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, updateDoc, deleteField } from 'firebase/firestore';
+/**
+ * variablesService.js
+ * Provides CRUD operations for variables via Node.js REST API (SQLite-backed)
+ * Replaces previous Firebase Firestore implementation
+ */
 
-export const fetchVariables = async (db) => {
-  if (!db) return [];
-  const snap = await getDocs(collection(db, 'variables'));
-  const items = [];
-  snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
-  return items;
+const getApiBase = () => {
+  if (typeof window !== 'undefined' && window.__API_BASE__) {
+    return window.__API_BASE__;
+  }
+  // Fallback to localhost API server
+  return 'http://localhost:3001';
 };
 
-export const createVariableDoc = async (db, payload) => {
-  if (!db) return null;
-  const docRef = await addDoc(collection(db, 'variables'), {
-    ...payload,
-    createdAt: payload.createdAt || new Date(),
-  });
-  return docRef;
+export const fetchVariables = async () => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error('Error fetching variables:', err);
+    return [];
+  }
 };
 
-export const updateVariableDoc = async (db, id, payload) => {
-  if (!db || !id) return;
-  const variableRef = doc(db, 'variables', id);
-  await updateDoc(variableRef, payload);
+export const createVariableDoc = async (payload) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return { id: data.id, ...payload };
+  } catch (err) {
+    console.error('Error creating variable:', err);
+    throw err;
+  }
 };
 
-export const deleteVariableDoc = async (db, id) => {
-  if (!db || !id) return;
-  await deleteDoc(doc(db, 'variables', id));
+export const updateVariableDoc = async (id, payload) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.error('Error updating variable:', err);
+    throw err;
+  }
 };
 
-export const updateSignalDoc = async (db, id, signalName, payload) => {
-  if (!db || !id || !signalName) return;
-  const variableRef = doc(db, 'variables', id);
-  await updateDoc(variableRef, {
-    [`signal.${signalName}`]: payload,
-    updatedAt: serverTimestamp(),
-  });
+export const deleteVariableDoc = async (id) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.error('Error deleting variable:', err);
+    throw err;
+  }
 };
 
-export const updateSignalFieldDoc = async (db, id, signalName, fieldName, value) => {
-  if (!db || !id || !signalName || !fieldName) return;
-  const variableRef = doc(db, 'variables', id);
-  await updateDoc(variableRef, {
-    [`signal.${signalName}.${fieldName}`]: value,
-    [`signal.${signalName}.lastUpdatedAt`]: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+export const updateSignalDoc = async (id, signalName, payload) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables/${id}/signal/${signalName}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.error('Error updating signal:', err);
+    throw err;
+  }
 };
 
-export const removeSignalDoc = async (db, id, signalName) => {
-  if (!db || !id || !signalName) return;
-  const variableRef = doc(db, 'variables', id);
-  await updateDoc(variableRef, {
-    [`signal.${signalName}`]: deleteField(),
-    updatedAt: serverTimestamp(),
-  });
+export const updateSignalFieldDoc = async (id, signalName, fieldName, value) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables/${id}/signal/${signalName}/${fieldName}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.error('Error updating signal field:', err);
+    throw err;
+  }
+};
+
+export const removeSignalDoc = async (id, signalName) => {
+  try {
+    const API_BASE = getApiBase();
+    const resp = await fetch(`${API_BASE}/api/variables/${id}/signal/${signalName}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } catch (err) {
+    console.error('Error removing signal:', err);
+    throw err;
+  }
 };

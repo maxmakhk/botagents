@@ -90,6 +90,7 @@ const fn = () => {
     let payload = {
       role: 'user', prompt: normalizedPrompt, system: sys
     }
+    
 
     const r = await fetch((import.meta.env.VITE_AI_CHAT_ENDPOINT), {
       method: 'POST',

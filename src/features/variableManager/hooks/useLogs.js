@@ -1,25 +1,26 @@
 import { useState, useCallback } from 'react';
-import {
-  loadLogs as firebaseLoadLogs,
-  appendLog as firebaseAppendLog,
-} from '../services/firebase/logsService';
 
 /**
  * useLogs hook
- * Manages application logs
+ * Manages application logs using the local Node.js API (SQLite)
  */
 export default function useLogs(db) {
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsAllLoaded, setLogsAllLoaded] = useState(false);
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
   // Load logs
   const loadLogs = useCallback(
     async (loadAll = false) => {
       setLogsLoading(true);
       try {
-        const result = await firebaseLoadLogs(db, { loadAll });
-        setLogs(result.logs);
+        const url = `${API_BASE}/api/logs${loadAll ? '?all=true' : ''}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const result = await resp.json();
+        setLogs(result.logs || []);
         setLogsAllLoaded(result.allLoaded);
       } catch (err) {
         console.error('Error loading logs:', err);
@@ -27,22 +28,31 @@ export default function useLogs(db) {
         setLogsLoading(false);
       }
     },
-    [db]
+    []
   );
 
   // Append log
   const appendLog = useCallback(
     async (entry) => {
       try {
-        await firebaseAppendLog(db, entry);
+        const resp = await fetch(`${API_BASE}/api/logs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
         // Reload first 10 logs after appending
-        const result = await firebaseLoadLogs(db, { loadAll: false });
-        setLogs(result.logs);
+        const loadResp = await fetch(`${API_BASE}/api/logs`);
+        if (loadResp.ok) {
+          const loadResult = await loadResp.json();
+          setLogs(loadResult.logs || []);
+        }
       } catch (err) {
         console.error('Error appending log:', err);
       }
     },
-    [db]
+    []
   );
 
   return {

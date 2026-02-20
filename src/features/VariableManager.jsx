@@ -182,7 +182,22 @@ const VariableManager = ({ onBack }) => {
     loadWorkflowIntoFlow,
     exportWorkflow,
     tabSwitchLockRef,
+    layoutDirection,
+    setLayoutDirection,
   } = useWorkflowGraph();
+
+  // Run demo / prompt pipeline hook (must come before handleNodePromptSubmit)
+  const {
+    runProject,
+    runActive,
+    activeNodeId: runCurrentNodeId,
+    activeEdgeId: runCurrentEdgeId,
+    storeVars,
+    setStoreVars,
+    submitPrompt,
+    promptProcessing,
+    promptStatus,
+  } = useRunDemo({ rfNodes, rfEdges, apis });
 
   // Prevent repeatedly applying the same merged workflow (guard against re-renders)
   const lastAppliedMergedRef = useRef(null);
@@ -205,7 +220,8 @@ const VariableManager = ({ onBack }) => {
   // Auto-layout handler using dagre helper
   const handleAutoLayout = useCallback((nodes, edges) => {
     try {
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedNodesAndEdges(nodes || rfNodes || [], edges || rfEdges || [], 'TB');
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedNodesAndEdges(nodes || rfNodes || [], edges || rfEdges || [], 'LR');
+      try { if (typeof setLayoutDirection === 'function') setLayoutDirection('LR'); } catch (e) { /* ignore */ }
       if (Array.isArray(layoutedNodes)) {
         // log before/after positions for debugging layout application
         try {
@@ -228,7 +244,7 @@ const VariableManager = ({ onBack }) => {
     } catch (err) {
       console.error('Auto layout failed:', err);
     }
-  }, [rfNodes, rfEdges, setRfNodes, setRfEdges]);
+  }, [rfNodes, rfEdges, setRfNodes, setRfEdges, setLayoutDirection]);
 
   // Helper: generate a light pastel HSL color
   const getRandLightColor = () => {
@@ -341,223 +357,56 @@ const VariableManager = ({ onBack }) => {
   };
 
 
-  const handleNodePromptSubmit = useCallback(async (nodeId, promptText, related = {}) => {
-    console.log('Node prompt submitted:', { nodeId, promptText, related });
-    // First run normalization on user prompt so it's rewritten into clear numbered steps
-    const normalizationSystemPrompt = `
-You rewrite the user description of a flow into clear, numbered steps.
+  const handleNodePromptSubmit = useCallback((nodeId, promptText, related = {}) => {
+    console.log('Node prompt submitted (server-side pipeline):', { nodeId, promptText, related });
+    submitPrompt(nodeId, promptText, apis, workflowData, (result) => {
+      try {
+        const groupColor = getRandLightColor();
+        const coloredNodes = applyGroupColorToNodes(result.nodes || [], groupColor);
+        // Prefer server-provided generation/system values when available
+        const resolvedSystemPrompt = (result.metadata && (result.metadata.generation && result.metadata.generation.system))
+          || (result.metadata && (result.metadata.systemPrompt || result.metadata.system_prompt))
+          || ((result.nodes || []).find(n => String(n.id) === String(nodeId))?.metadata?.systemPrompt)
+          || ((result.nodes || []).find(n => String(n.id) === String(nodeId))?.data?.metadata?.systemPrompt)
+          || result.metadata?.normalizedPrompt
+          || promptText
+          || '';
 
-Your ONLY task:
-- Turn the user's description into a small list of ordered steps in natural language.
+        let resolvedSystemPromptToFn = (result.metadata && result.metadata.generation && result.metadata.generation.result)
+          || result.metadata?.systemPromptToFn
+          || result.metadata?.systemPromptFn
+          || result.metadata?.system_prompt_to_fn
+          || '';
 
-Rules:
-- Keep the original meaning.
-- Make every implicit check explicit as a separate step BEFORE any "if".
-- When you write a "check ..." step, explicitly list all possible outcomes in that step.
-  - Example: "check day status: possible results are workday or holiday"
-  - Example: "check which bus arrives: possible buses are A1 or B1"
-- One numbered step per line.
-- Do NOT add or remove branches; only make implicit checks explicit and clearer.
-- When you write a "check ..." step, you MUST NOT use the phrase "check if".
-  - NEVER write: "check if I am happy", "check if it is raining", etc.
-  - Default pattern:
-    - "check X status: possible tags are A or B"
-    - or "check X state: possible tags are A or B"
-  - Exception for system/API-like names:
-    - If X already looks like a system / API name (e.g. "openweather", "stripe", "camera"),
-      you MAY omit "status" and write:
-      - "check X: possible tags are A or B"
+        // If server didn't provide a function, try converting the resolved system prompt on the client
+        try {
+          if (!resolvedSystemPromptToFn && resolvedSystemPrompt) {
+            const fnFromPrompt = promptToFunction(resolvedSystemPrompt);
+            if (fnFromPrompt) resolvedSystemPromptToFn = fnFromPrompt;
+          }
+        } catch (e) {
+          console.warn('Failed to convert systemPrompt to function:', e);
+        }
 
-  Example:
-  User: "check openweather, until success, go to end, if fail keep checking"
-
-  You:
-  1) start
-  2) check openweather: possible tags are success or fail
-  3) if openweather:tag is success
-  4) go to end
-  5) if openweather:tag is fail
-  6) keep checking openweather
-  7) go back to step 2
-  8) end
-
-- When the user writes "check X ..." and adds extra qualifiers like location, order, or other details
-  (e.g. "check logisticAPI2.3 in hong kong, order no.1283"),
-  you MUST ALWAYS split it into TWO steps:
-
-  1) "set X context: <everything after X in the original sentence>"
-  2) "check X: possible tags are A or B"
-
-  NEVER write "check X <extra...>: possible tags ...".
-      Example 4:
-      User: "check logisticAPI2.3 in hong kong, order no.1283, until success, go to end, if fail keep checking"
-
-      You:
-      1) start
-      2) set logisticAPI2.3 context: in hong kong, order no.1283
-      3) check logisticAPI2.3: possible tags are success or fail
-      4) if logisticAPI2.3:tag is success
-      5) go to end
-      6) if logisticAPI2.3:tag is fail
-      7) keep checking logisticAPI2.3 in hong kong, order no.1283
-      8) go back to step 3
-      9) end
-
-- When the user mentions that someone "has two choices", "has options", or gives a list like "choice A or choice B":
-  - Treat this as an explicit decision point.
-  - Introduce a separate "check ..." step for that decision, and list all options as possible tags.
-  - Then add one "if ...:tag is ..." step per option, followed by the corresponding action.
-  - Example:
-    - User: "She had two choices: big jump or find another way."
-    - You:
-      1) check Mary choice: possible tags are big_jump or find_another_way
-      2) if Mary choice:tag is big_jump
-      3) Mary chooses to make a big jump
-      4) if Mary choice:tag is find_another_way
-      5) Mary chooses to find another way
-
-- When the user says "after X", "then X", "next", or "when X is finished":
-  - You may introduce a generic completion check instead of splitting by each branch.
-  - Use a pattern like:
-    - "check activity completion status: possible tags are finished or not_finished"
-    - "if activity completion status:tag is finished"
-    - "go next"
-  - Do NOT create separate finished_game / finished_run tags if both branches lead to the same "next" step.
-  - MUST provide a Start and End step if there are multiple steps, even if the user doesn't explicitly say "start" or "end".
-
-Example 1:
-User: "waiting the bus at Bus Stop A, if bus is A1, go to road A, if bus is B1, go to road B, at the end, go to bus stop B"
-
-You:
-1) start
-2) wait at bus stop A
-3) check which bus arrives: possible tag: buses are arrive_bus_A1 or arrive_bus_B1
-4) if the bus is A1:tag is arrive_bus_A1
-5) go to road A
-6) if the bus is B1:tag is arrive_bus_B1
-7) go to road B
-8) go to bus stop B
-9) end
-
-Example 2:
-User: "check day status, if it is a workday, go to the office, if it is a holiday, go to the park, then go back home"
-
-You:
-1) start
-2) check day status: tag are workday or holiday
-3) if the day status:tag is workday
-4) go to the office
-5) if the day status:tag is holiday
-6) go to the park
-7) go back home
-8) end
-
-Example 3:
-User: "if I am happy, play video games, if I am sad, go for a run, if I am very tired, go to sleep"
-
-You:
-1) start
-2) check mood status: possible tags are happy or sad
-3) if mood status:tag is happy
-4) play video games
-5) if mood status:tag is sad
-6) go for a run
-7) check energy status: possible tags are very_tired or not_very_tired
-8) if energy status:tag is very_tired
-9) go to sleep
-10) end
-
-- When a step uses the pattern "X:tag is Y" (for example: "logisticAPI2.3:tag is success"):
-  - You MUST treat X as the variable name (after making it JS-safe).
-  - The variable name MUST be exactly X, with only these transformations:
-    - Replace "." with "_" to make it a valid identifier.
-    - Keep numbers and underscores as-is.
-  - You MUST NOT append "_tag" or any other suffix.
-
-  Examples:
-  - "logisticAPI2.3:tag is success"
-    → const logisticAPI2_3 = storeVars.logisticAPI2_3;
-      if (logisticAPI2_3 === "success") { ... }
-
-  - "status:tag is success"
-    → const status = storeVars.status;
-      if (status === "success") { ... }
-
-    Example (logisticAPI2.3 with context):
-    Input steps:
-    1) start
-    2) set logisticAPI2.3 context: in hong kong, order no.1283
-    3) check logisticAPI2.3: possible tags are success or fail
-    4) if logisticAPI2.3:tag is success
-    5) go to end
-    6) if logisticAPI2.3:tag is fail
-    7) keep checking logisticAPI2.3 in hong kong, order no.1283
-    8) go back to step 3
-    9) end
-
-    Output:
-    const fn = () => {
-      const logisticAPI2_3 = storeVars.logisticAPI2_3;
-      if (logisticAPI2_3 === "success") {
-        console.log("if logisticAPI2.3:tag is success");
-        console.log("go to end");
-        return { next: "end" };
-      } else if (logisticAPI2_3 === "fail") {
-        console.log("if logisticAPI2.3:tag is fail");
-        console.log("keep checking logisticAPI2.3 in hong kong, order no.1283");
-        console.log("go back to \"check logisticAPI2.3\"");
-        return { next: "check logisticAPI2.3" };
+        const workflowResult = {
+          ...(result.workflowData || {}),
+          nodes: coloredNodes,
+          edges: result.edges || [],
+          originalPrompt: result.metadata?.originalPrompt || promptText,
+          normalizedPrompt: result.metadata?.normalizedPrompt,
+          fnString: result.metadata?.fnString,
+          normalizeFnString: result.metadata?.normalizeFnString,
+          systemPrompt: resolvedSystemPrompt,
+          systemPromptToFn: resolvedSystemPromptToFn
+        };
+        applyRemodelResponse(nodeId, workflowResult, related, workflowData);
+        try { if (typeof setTaskFunctionText === 'function') setTaskFunctionText(result.metadata?.fnString); } catch (e) { /* ignore */ }
+      } catch (err) {
+        console.warn('Failed to apply server workflow result:', err);
       }
-      return {};
-    };
-
-Respond with the rewritten numbered steps only.
-
-`;
-
-
-    let normalizedPrompt = promptText;
-    try {
-      const respNorm = await fetch(AI_CHAT_ENDPOINT || import.meta.env.VITE_AI_CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'user', prompt: promptText, system: normalizationSystemPrompt })
-      });
-      const dataNorm = await respNorm.json();
-      const contentNorm = (dataNorm.content || dataNorm.error || '').trim().replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-      if (contentNorm) normalizedPrompt = contentNorm;
-      console.log('Prompt normalization result:', { contentNorm, original: promptText, normalizationSystemPrompt });
-    } catch (err) {
-      console.warn('promptNormalize failed, falling back to original prompt:', err);
-      normalizedPrompt = promptText;
-    }
-    // Attempt to generate a JS function from the normalized prompt
-    try {
-      let generatedFn = await promptToFunction(normalizedPrompt);
-      console.log('Generated function from prompt:', generatedFn);
-
-      let normalizeFnString = normalizeFn(generatedFn);
-      console.log('Normalized generated function:', normalizeFnString);
-
-      let fnToWorkflowResult = fnToWorkflow(normalizeFnString)
-      fnToWorkflowResult = applyPrefixToIds(fnToWorkflowResult);
-      fnToWorkflowResult.originalPrompt = promptText; // include the original user prompt in the result for debugging
-      fnToWorkflowResult.normalizedPrompt = normalizedPrompt; // include the normalized prompt in the result for debugging
-      fnToWorkflowResult.fnString = generatedFn; // include the generated function string in the result for debugging
-      fnToWorkflowResult.normalizeFnString = normalizeFnString;
-      console.log('Generated workflow from function:', fnToWorkflowResult);
-
-      //apply randLightColor to all nodes in parsedFlow (use shared helper)
-      const groupColor = getRandLightColor();
-      fnToWorkflowResult.nodes = applyGroupColorToNodes(fnToWorkflowResult.nodes, groupColor);
-      applyRemodelResponse(nodeId, fnToWorkflowResult, related, workflowData);//<-- apply here
-
-      try { if (typeof setTaskFunctionText === 'function') setTaskFunctionText(generatedFn); } catch (e) { /* ignore */ }
-
-    } catch (err) {
-      console.warn('Failed to generate function or workflow from prompt:', err);
-    }
-  }, [rfNodes, rfEdges]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitPrompt, apis, workflowData]);
 
   // v3
   const applyRemodelResponse = (centerNodeId, remodelJson, related, full = null) => {
@@ -592,6 +441,11 @@ Respond with the rewritten numbered steps only.
     console.log('Remodel edges (raw):', remodelJson.edges);
 
     console.log('applyRemodelResponseV3 (extend_node)', centerNodeId, remodelJson, related, 'full baseNodes baseEdges', baseNodes, baseEdges);
+    // Debug: show normalization/generation metadata and fnToWorkflow diagnostics if present
+    try {
+      console.log('extend_node metadata:', remodelJson.metadata || null);
+      console.log('extend_node fnToWorkflow.levelBlocks:', (remodelJson.fnToWorkflow && remodelJson.fnToWorkflow.levelBlocks) || null);
+    } catch (e) { /* ignore logging errors */ }
 
     // --- 2. clone remodel nodes 先，不直接 mutate remodelJson.nodes ---
     const remodelNodes = JSON.parse(JSON.stringify(remodelJson.nodes || []));
@@ -618,16 +472,63 @@ Respond with the rewritten numbered steps only.
     }
 
     // --- 3. merge 新 nodes/edges 進 base ---
+    // Adjust remodel nodes' positions: scale them down and center around the original center node
+    let centerPos = { x: 0, y: 0 };
+    try {
+      const existingCenter = baseNodes.find(n => String(n.id) === String(centerNodeId));
+      if (existingCenter && existingCenter.position) centerPos = existingCenter.position;
+    } catch (e) { /* ignore */ }
+
+    // compute bounding box of remodelNodes
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let hasPos = false;
+    for (const rn of remodelNodes) {
+      const p = rn.position || { x: 0, y: 0 };
+      if (typeof p.x === 'number' && typeof p.y === 'number') {
+        hasPos = true;
+        if (p.x < minX) minX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y > maxY) maxY = p.y;
+      }
+    }
+
+    const bboxWidth = isFinite(minX) && isFinite(maxX) ? Math.max(1, maxX - minX) : 1;
+    const bboxHeight = isFinite(minY) && isFinite(maxY) ? Math.max(1, maxY - minY) : 1;
+    // desired max span after scaling (keeps nodes reasonably close)
+    const desiredMax = 320; // pixels
+    const scale = hasPos ? Math.min(1, desiredMax / Math.max(bboxWidth, bboxHeight)) : 0.6;
+    const bboxCenterX = hasPos ? (minX + maxX) / 2 : 0;
+    const bboxCenterY = hasPos ? (minY + maxY) / 2 : 0;
+
     baseNodes.push(
-      ...remodelNodes.map(n => ({
-        id: String(n.id),
-        type: n.type || 'action',
-        data: n.data || {},
-        position: n.position || { x: 0, y: 0 },
-        width: n.width || (n.data && n.data.width),
-        height: n.height || (n.data && n.data.height),
-        metadata: n.metadata || (n.data && n.data.metadata) || {},
-      })),
+      ...remodelNodes.map((n, idx) => {
+        const origPos = n.position || { x: 0, y: 0 };
+        let newPos = { x: 0, y: 0 };
+        if (hasPos) {
+          newPos.x = centerPos.x + (origPos.x - bboxCenterX) * scale;
+          newPos.y = centerPos.y + (origPos.y - bboxCenterY) * scale;
+        } else {
+          // fallback: arrange in a compact grid near center
+          const gap = 0;
+          const cols = Math.ceil(Math.sqrt(remodelNodes.length || 1));
+          const r = idx;
+          const col = r % cols;
+          const row = Math.floor(r / cols);
+          newPos.x = centerPos.x + (col - (cols - 1) / 2) * gap;
+          newPos.y = centerPos.y + row * gap - 40;
+        }
+
+        return {
+          id: String(n.id),
+          type: n.type || 'action',
+          data: n.data || {},
+          position: newPos,
+          width: n.width || (n.data && n.data.width),
+          height: n.height || (n.data && n.data.height),
+          metadata: n.metadata || (n.data && n.data.metadata) || {},
+        };
+      }),
     );
 
     baseEdges.push(
@@ -2506,14 +2407,6 @@ Respond with the rewritten numbered steps only.
     return () => clearTimeout(timer);
   }, [rfNodes, rfEdges, activeTab, selectedRuleIndex, functionsList]);
 
-  const {
-    runProject,
-    runActive,
-    activeNodeId: runCurrentNodeId,
-    activeEdgeId: runCurrentEdgeId,
-    storeVars,
-    setStoreVars,
-  } = useRunDemo({ rfNodes, rfEdges, apis });
 
   function printRules() {
     console.log('Current rules:', {
@@ -2916,6 +2809,7 @@ Respond with the rewritten numbered steps only.
             openActionRule={openActionRule}
             onAutoLayout={handleAutoLayout}
             onNodePromptSubmit={handleNodePromptSubmit}
+            layoutDirection={layoutDirection}
             selectedIds={selectedIds}
             handleAiSubmit={handleAiSubmit}
             aiPrompt={aiPrompt}
