@@ -7,8 +7,20 @@ import {
   updateApiMetadata as firebaseUpdateApiMetadata,
   testApi as firebaseTestApi,
 } from '../services/firebase/apisService';
-import { appendLog } from '../services/firebase/logsService';
 
+// Fallback fetch for testing API logs (UI logs panel auto-refreshes when opened)
+async function appendLogToBackend(entry) {
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  try {
+    await fetch(`${API_BASE}/api/logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    });
+  } catch (err) {
+    console.error('Failed to append log:', err);
+  }
+}
 /**
  * useExternalApis hook
  * Manages external API configuration and testing
@@ -106,16 +118,6 @@ export default function useExternalApis(db) {
           action: 'xAI-test',
           warning: result.ok ? null : `HTTP ${result.status}`,
           createdAt: new Date(),
-        };
-        await appendLog(db, entry);
-
-        setTestResult(result);
-      } catch (err) {
-        console.error('Test API error:', err);
-
-        // Log error
-        const entry = {
-          prompt,
           endpoint: api.url,
           rawResponse: '',
           parsed: null,
@@ -124,7 +126,7 @@ export default function useExternalApis(db) {
           warning: 'request-error',
           createdAt: new Date(),
         };
-        await appendLog(db, entry);
+        await appendLogToBackend(entry);
 
         setTestResult({ ok: false, error: err.message });
       } finally {

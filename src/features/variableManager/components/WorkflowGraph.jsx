@@ -177,6 +177,17 @@ const WorkflowNode = ({ id, data }) => {
           transform: 'translateY(-6px)'
         }}
       />
+      {/* Left / Right handles to support LR layouts and explicit handle attachment */}
+      <Handle
+        type="target"
+        id="left"
+        position={Position.Left}
+        style={{
+          ...handleBaseStyle,
+          background: isEntryNode ? '#f59e0b' : '#60a5fa',
+          transform: 'translateX(-6px)'
+        }}
+      />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -184,6 +195,16 @@ const WorkflowNode = ({ id, data }) => {
           ...handleBaseStyle,
           background: isEntryNode ? '#92400e' : '#34d399',
           transform: 'translateY(6px)'
+        }}
+      />
+      <Handle
+        type="source"
+        id="right"
+        position={Position.Right}
+        style={{
+          ...handleBaseStyle,
+          background: isEntryNode ? '#92400e' : '#34d399',
+          transform: 'translateX(6px)'
         }}
       />
       <div style={{display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'stretch'}}>
@@ -347,6 +368,7 @@ const WorkflowGraph = ({
   onToggleNodeLock,
   onAutoLayout,
   onNodePromptSubmit,
+  layoutDirection,
   selectedCount,
   activeNodeId,
   activeEdgeId,
@@ -404,15 +426,24 @@ const WorkflowGraph = ({
     return (rfEdges || []).map((e) => {
       const isActive = String(e.id) === String(activeEdgeId);
       
-      // Detect backward/cycle edges by checking if target is above or at same level as source
+      // Detect backward/cycle edges. For TB layouts check vertical ordering; for LR check horizontal ordering.
       const sourceNode = (rfNodes || []).find(n => String(n.id) === String(e.source));
       const targetNode = (rfNodes || []).find(n => String(n.id) === String(e.target));
-      const isBackwardEdge = sourceNode && targetNode && targetNode.position.y <= sourceNode.position.y;
+      let isBackwardEdge = false;
+      if (sourceNode && targetNode && sourceNode.position && targetNode.position) {
+        if (layoutDirection === 'LR') {
+          isBackwardEdge = targetNode.position.x <= sourceNode.position.x;
+        } else {
+          isBackwardEdge = targetNode.position.y <= sourceNode.position.y;
+        }
+      }
       
+      const edgeType = e.type || 'smoothstep';
+      const pathOptions = isBackwardEdge ? { offset: 40, borderRadius: 20 } : { borderRadius: 20 };
       return {
         ...e,
-        type: e.type || 'smoothstep', // Use smoothstep for better curves
-        pathOptions: isBackwardEdge ? { offset: 60, borderRadius: 20 } : { borderRadius: 20 }, // Add offset for backward edges
+        type: edgeType,
+        pathOptions,
         style: {
           ...(e.style || {}),
           stroke: isActive ? '#f59e0b' : undefined,
@@ -421,7 +452,7 @@ const WorkflowGraph = ({
         }
       };
     });
-  }, [rfEdges, activeEdgeId, rfNodes]);
+  }, [rfEdges, activeEdgeId, rfNodes, layoutDirection]);
 
   // capture React Flow instance for local view controls when parent handlers are not provided
   const flowInstanceRef = useRef(null);
@@ -436,7 +467,7 @@ const WorkflowGraph = ({
         <strong>Task Function &gt; Visual Workflow</strong>
         <div style={{fontSize:'0.85em', color:'#9ca3af'}}>{rfNodes.length} node(s), {rfEdges.length} edge(s)</div>
       </div>
-      <div style={{height: 1420, overflow: 'hidden'}}>
+      <div style={{height: 660, overflow: 'hidden'}}>
         <ReactFlow
           nodes={nodesWithHandlers}
           edges={edgesWithHighlight}

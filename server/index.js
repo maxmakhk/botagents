@@ -1,16 +1,23 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import db from './db.js';
 import { randomUUID } from 'crypto';
+import http from 'http';
+import { Server } from 'socket.io';
+import { runWorkflow } from './workflowRunner.js';
+import { processPrompt } from './workflowPromptProcessor.js';
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
 app.use(express.json());
 app.use(cors());
 
 // -- Helpers ---------------------------------------------------------------
 function normalizeTs(val) {
   if (!val) return new Date().toISOString();
-  try { if (typeof val.toDate === 'function') return val.toDate().toISOString(); } catch (e) {}
+  try { if (typeof val.toDate === 'function') return val.toDate().toISOString(); } catch (e) { }
   if (typeof val === 'string') return val;
   try { return new Date(val).toISOString(); } catch (e) { return new Date().toISOString(); }
 }
@@ -43,6 +50,29 @@ db.exec(`
   );
 `);
 
+// Ensure logs table exists
+db.exec(`
+  CREATE TABLE IF NOT EXISTS logs (
+    id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    payload TEXT NOT NULL
+  );
+`);
+
+// Ensure variables table exists
+db.exec(`
+  CREATE TABLE IF NOT EXISTS variables (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    qty REAL,
+    tag TEXT,
+    signal TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+`);
+
 app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
@@ -52,6 +82,38 @@ app.get('/api/rule-categories', (req, res) => {
   try {
     const rows = db.prepare('SELECT id, name, description, created_at FROM rule_categories ORDER BY created_at DESC').all();
     res.json(rows);
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// ------------------ Logs API ----------------------------------------------
+app.get('/api/logs', (req, res) => {
+  try {
+    const loadAll = req.query.all === 'true';
+    const limitClause = loadAll ? '' : 'LIMIT 10';
+    const rows = db.prepare(`SELECT id, payload FROM logs ORDER BY created_at DESC ${limitClause}`).all();
+
+    // Parse the payload back out so the frontend receives the expected shape
+    const logs = rows.map(r => {
+      let data = {};
+      try { data = JSON.parse(r.payload); } catch (e) { }
+      return { id: r.id, ...data };
+    });
+
+    res.json({ logs, allLoaded: loadAll || logs.length < 10 });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.post('/api/logs', (req, res) => {
+  try {
+    const id = randomUUID();
+    const createdAt = new Date().toISOString();
+
+    // Merge ID/createdAt just in case so they exist in payload too
+    const payloadData = { ...req.body, id, createdAt: req.body.createdAt || createdAt };
+
+    const stmt = db.prepare('INSERT INTO logs (id, created_at, payload) VALUES (?, ?, ?)');
+    stmt.run(id, createdAt, JSON.stringify(payloadData));
+    res.json({ success: true, id });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
@@ -98,7 +160,7 @@ app.get('/api/rules', (req, res) => {
       rows = db.prepare('SELECT * FROM rules ORDER BY created_at DESC').all();
     }
     // parse JSON workflow_object when present
-    const parsed = rows.map(r => ({ ...r, workflowObject: r.workflow_object ? (() => { try { return JSON.parse(r.workflow_object); } catch(e){ return r.workflow_object; } })() : null }));
+    const parsed = rows.map(r => ({ ...r, workflowObject: r.workflow_object ? (() => { try { return JSON.parse(r.workflow_object); } catch (e) { return r.workflow_object; } })() : null }));
     res.json(parsed);
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
@@ -108,7 +170,7 @@ app.get('/api/rules/:id', (req, res) => {
     const id = req.params.id;
     const row = db.prepare('SELECT * FROM rules WHERE id = ?').get(id);
     if (!row) return res.status(404).json({ error: 'not_found' });
-    const out = { ...row, workflowObject: row.workflow_object ? (() => { try { return JSON.parse(row.workflow_object); } catch(e){ return row.workflow_object; } })() : null };
+    const out = { ...row, workflowObject: row.workflow_object ? (() => { try { return JSON.parse(row.workflow_object); } catch (e) { return row.workflow_object; } })() : null };
     res.json(out);
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
@@ -148,6 +210,149 @@ app.delete('/api/rules/:id', (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
+// ------------------ Variables API ----------------------------------------
+app.get('/api/variables', (req, res) => {
+  try {
+    const rows = db.prepare('SELECT * FROM variables ORDER BY created_at DESC').all();
+    // Parse tag and signal JSON fields
+    const parsed = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      qty: r.qty,
+      tag: r.tag ? (() => { try { return JSON.parse(r.tag); } catch (e) { return []; } })() : [],
+      signal: r.signal ? (() => { try { return JSON.parse(r.signal); } catch (e) { return {}; } })() : {},
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
+    }));
+    res.json(parsed);
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.post('/api/variables', (req, res) => {
+  try {
+    const id = req.body.id || randomUUID();
+    const name = req.body.name || '';
+    const description = typeof req.body.description === 'string' ? req.body.description : (req.body.description ? JSON.stringify(req.body.description) : '');
+    const qty = typeof req.body.qty === 'number' ? req.body.qty : 0;
+    const tag = req.body.tag ? (Array.isArray(req.body.tag) ? JSON.stringify(req.body.tag) : (typeof req.body.tag === 'string' ? req.body.tag : JSON.stringify(req.body.tag))) : '[]';
+    const signal = req.body.signal ? (typeof req.body.signal === 'string' ? req.body.signal : JSON.stringify(req.body.signal)) : '{}';
+    const created_at = normalizeTs(req.body.createdAt || req.body.created_at || new Date().toISOString());
+    const updated_at = normalizeTs(req.body.updatedAt || req.body.updated_at || new Date().toISOString());
+
+    const stmt = db.prepare('INSERT OR REPLACE INTO variables (id, name, description, qty, tag, signal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    stmt.run(id, name, description, qty, tag, signal, created_at, updated_at);
+    res.json({ success: true, id });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.put('/api/variables/:id', (req, res) => {
+  try {
+    const id = req.params.id;
+    const name = req.body.name;
+    const description = typeof req.body.description === 'string' ? req.body.description : (req.body.description ? JSON.stringify(req.body.description) : undefined);
+    const qty = typeof req.body.qty === 'number' ? req.body.qty : undefined;
+    const tag = req.body.tag ? (Array.isArray(req.body.tag) ? JSON.stringify(req.body.tag) : (typeof req.body.tag === 'string' ? req.body.tag : JSON.stringify(req.body.tag))) : undefined;
+    const updated_at = normalizeTs(new Date().toISOString());
+
+    let updates = [];
+    let params = [];
+    if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+    if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+    if (qty !== undefined) { updates.push('qty = ?'); params.push(qty); }
+    if (tag !== undefined) { updates.push('tag = ?'); params.push(tag); }
+    updates.push('updated_at = ?');
+    params.push(updated_at);
+    params.push(id);
+
+    if (updates.length > 0) {
+      const stmt = db.prepare(`UPDATE variables SET ${updates.join(', ')} WHERE id = ?`);
+      stmt.run(...params);
+    }
+
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.delete('/api/variables/:id', (req, res) => {
+  try {
+    const id = req.params.id;
+    const stmt = db.prepare('DELETE FROM variables WHERE id = ?');
+    stmt.run(id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.post('/api/variables/:id/signal/:signalName', (req, res) => {
+  try {
+    const id = req.params.id;
+    const signalName = req.params.signalName;
+
+    const row = db.prepare('SELECT signal FROM variables WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'not_found' });
+
+    let signal = {};
+    try { signal = JSON.parse(row.signal || '{}'); } catch (e) { }
+
+    const newSignalData = { ...req.body, lastUpdatedAt: req.body.lastUpdatedAt || new Date().toISOString() };
+    signal[signalName] = newSignalData;
+
+    const updated_at = normalizeTs(new Date().toISOString());
+    const stmt = db.prepare('UPDATE variables SET signal = ?, updated_at = ? WHERE id = ?');
+    stmt.run(JSON.stringify(signal), updated_at, id);
+
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.put('/api/variables/:id/signal/:signalName/:fieldName', (req, res) => {
+  try {
+    const id = req.params.id;
+    const signalName = req.params.signalName;
+    const fieldName = req.params.fieldName;
+    const value = req.body.value;
+
+    const row = db.prepare('SELECT signal FROM variables WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'not_found' });
+
+    let signal = {};
+    try { signal = JSON.parse(row.signal || '{}'); } catch (e) { }
+
+    if (!signal[signalName]) signal[signalName] = {};
+    signal[signalName][fieldName] = value;
+    signal[signalName].lastUpdatedAt = new Date().toISOString();
+
+    const updated_at = normalizeTs(new Date().toISOString());
+    const stmt = db.prepare('UPDATE variables SET signal = ?, updated_at = ? WHERE id = ?');
+    stmt.run(JSON.stringify(signal), updated_at, id);
+
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.delete('/api/variables/:id/signal/:signalName', (req, res) => {
+  try {
+    const id = req.params.id;
+    const signalName = req.params.signalName;
+
+    const row = db.prepare('SELECT signal FROM variables WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'not_found' });
+
+    let signal = {};
+    try { signal = JSON.parse(row.signal || '{}'); } catch (e) { }
+
+    delete signal[signalName];
+
+    const updated_at = normalizeTs(new Date().toISOString());
+    const stmt = db.prepare('UPDATE variables SET signal = ?, updated_at = ? WHERE id = ?');
+    stmt.run(JSON.stringify(signal), updated_at, id);
+
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
 // 建立一個 world（測試用）
 app.post('/worlds', (req, res) => {
   const id = randomUUID();
@@ -168,7 +373,76 @@ app.get('/worlds', (req, res) => {
   res.json(rows);
 });
 
+// ------------------ Socket.IO Workflow Execution -------------------------
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('run_workflow', async (data) => {
+    try {
+      console.log(`[Socket ${socket.id}] Starting workflow execution`);
+      await runWorkflow(socket, data);
+    } catch (err) {
+      console.error('Workflow execution error:', err);
+      try {
+        socket.emit('workflow_complete');
+      } catch (e) { }
+    }
+  });
+
+  socket.on('process_prompt', async (data) => {
+    const { nodeId, promptText, apis = [], workflowData = null } = data;
+    console.log(`[Socket ${socket.id}] Processing prompt for node:`, nodeId);
+
+    try {
+      // Emit start event
+      socket.emit('prompt_processing_start', { nodeId });
+
+      // Run the pipeline
+      const result = await processPrompt({ nodeId, promptText, apis, workflowData });
+
+      // Emit progress events
+      socket.emit('prompt_normalized', {
+        nodeId,
+        normalizedPrompt: result.normalizedPrompt,
+        originalPrompt: result.originalPrompt
+      });
+
+      socket.emit('function_generated', {
+        nodeId,
+        fnString: result.fnString,
+        normalizeFnString: result.normalizeFnString
+      });
+
+      // Emit final result
+      socket.emit('workflow_ready', {
+        nodeId,
+        workflowData: result.workflowData,
+        nodes: result.workflowData?.nodes || [],
+        edges: result.workflowData?.edges || [],
+        metadata: {
+          originalPrompt: result.originalPrompt,
+          normalizedPrompt: result.normalizedPrompt,
+          fnString: result.fnString,
+          normalizeFnString: result.normalizeFnString
+        }
+      });
+
+      console.log(`[Socket ${socket.id}] Prompt processing completed for node:`, nodeId);
+    } catch (err) {
+      console.error(`[Socket ${socket.id}] Prompt processing failed:`, err);
+      socket.emit('prompt_error', {
+        nodeId,
+        message: err.message || 'Failed to process prompt'
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log('server running on', port);
 });

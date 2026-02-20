@@ -18,6 +18,8 @@ export default function useWorkflowGraph() {
 
   // Workflow data management
   const [workflowData, setWorkflowData] = useState(null);
+  // layout direction state (TB | LR)
+  const [layoutDirection, setLayoutDirection] = useState('TB');
 
   // References
   const tabSwitchLockRef = useRef(false);
@@ -121,6 +123,23 @@ export default function useWorkflowGraph() {
               if (e.targetHandle !== undefined && e.targetHandle !== null && String(e.targetHandle) !== 'undefined' && String(e.targetHandle) !== '') {
                 edge.targetHandle = String(e.targetHandle);
               }
+              // if handles not provided, prefer existing rfEdges handles, otherwise apply defaults based on current layoutDirection
+              if (!edge.sourceHandle) {
+                const existing = (rfEdges || []).find(re => String(re.id) === String(edge.id));
+                if (existing && existing.sourceHandle) {
+                  edge.sourceHandle = existing.sourceHandle;
+                } else if (layoutDirection === 'LR') {
+                  edge.sourceHandle = 'right';
+                }
+              }
+              if (!edge.targetHandle) {
+                const existing = (rfEdges || []).find(re => String(re.id) === String(edge.id));
+                if (existing && existing.targetHandle) {
+                  edge.targetHandle = existing.targetHandle;
+                } else if (layoutDirection === 'LR') {
+                  edge.targetHandle = 'left';
+                }
+              }
               return edge;
             })
             .filter(Boolean)
@@ -133,7 +152,7 @@ export default function useWorkflowGraph() {
     } catch (err) {
       console.error('Error loading workflow into flow:', err);
     }
-  }, [setRfNodes, setRfEdges]);
+  }, [setRfNodes, setRfEdges, layoutDirection]);
 
   // Export current nodes/edges to workflow format
   const exportWorkflow = useCallback(() => {
@@ -195,6 +214,9 @@ export default function useWorkflowGraph() {
     setWorkflowData,
     loadWorkflowIntoFlow,
     exportWorkflow,
+    // layout direction (TB | LR)
+    layoutDirection,
+    setLayoutDirection,
 
     // References
     tabSwitchLockRef,
