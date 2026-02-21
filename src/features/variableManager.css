@@ -9,8 +9,10 @@
 
 
 .variable-page-controls-section {
-    width: 100%;
-    float: left;
+  width: 100%;
+  float: left;
+  /* avoid overlapping the floating back button */
+  padding-top: 48px;
 }
 
 
@@ -44,6 +46,37 @@
 .variable-page-header {
     float: left;
     width: 100%;
+}
+
+/* hide all header content except the back button */
+.variable-page-header > *:not(.back-btn) {
+  display: none;
+}
+
+/* ensure back button inside header is floated to top-left */
+.variable-page-header .back-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10001;
+  background: rgba(2,6,23,0.7);
+  color: #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* floating back button placed at top-left */
+.floating-back {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10001;
+  background: rgba(2,6,23,0.7);
+  color: #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.04);
 }
 
 .variable-form {

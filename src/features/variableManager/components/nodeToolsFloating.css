@@ -1,7 +1,7 @@
 .ms-nodetools-floating {
   position: fixed;
-  right: 360px;
-  bottom: 16px;
+  top: 10px;
+  right: 420px;
   width: 280px;
   max-height: 50vh;
   background: rgba(15, 23, 42, 0.9);
