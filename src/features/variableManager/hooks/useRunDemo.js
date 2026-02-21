@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
-export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 1000, apis = [] } = {}) {
+/**
+ * useRunDemo Hook - Observer mode for workflow execution
+ * 
+ * Architecture:
+ * - Node.js server runs projects independently (continues even if clients disconnect)
+ * - Client is an OBSERVER: watches project state and receives updates
+ * - When client enters workflow, it retrieves current project progress
+ * - Run/Stop controls only set project status on server, don't directly trigger execution
+ * - Server's execution loop continuously checks and runs projects with 'running' status
+ */
+export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 1000, apis = [], projectId = null } = {}) {
   const [runActive, setRunActive] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [storeVars, setStoreVars] = useState({});
   const socketRef = useRef(null);
+  const runIdRef = useRef(null);
   const [promptProcessing, setPromptProcessing] = useState(false);
   const [promptStatus, setPromptStatus] = useState('');
   const promptCallbackRef = useRef(null);
+  const projectIdRef = useRef(projectId || null);
+  const [currentProjectId, setCurrentProjectId] = useState(projectId);
 
   // Initialize socket connection
   useEffect(() => {
@@ -19,6 +32,41 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
     socketRef.current.on('connect', () => {
       console.log('Socket connected to backend for workflow execution');
+      
+      // Watch current project immediately after connection
+      if (currentProjectId) {
+        console.log(`[ProjectSync] Watching project on connect: ${currentProjectId}`);
+        socketRef.current.emit('watch_project', { projectId: currentProjectId });
+      }
+    });
+
+    // Receive project state updates from server
+    socketRef.current.on('project_state', (data) => {
+      console.log('[ProjectSync] Received project state:', data);
+      
+      if (data.status === 'running') {
+        setRunActive(true);
+      } else if (data.status === 'stopped') {
+        setRunActive(false);
+      }
+      
+      if (data.activeNodeId !== undefined) setActiveNodeId(data.activeNodeId);
+      if (data.activeEdgeId !== undefined) setActiveEdgeId(data.activeEdgeId);
+      if (data.storeVars) setStoreVars(data.storeVars);
+    });
+
+    socketRef.current.on('project_status', (data) => {
+      console.log('[ProjectSync] Project status:', data);
+      if (data.status === 'running') {
+        setRunActive(true);
+      } else {
+        setRunActive(false);
+      }
+    });
+
+    socketRef.current.on('workflow_updated', (data) => {
+      console.log('[ProjectSync] Workflow updated by another client');
+      // Note: In VariableManager, you could sync rfNodes/rfEdges here if needed
     });
 
     socketRef.current.on('node_start', (data) => {
@@ -59,7 +107,29 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       setRunActive(false);
       setActiveNodeId(null);
       setActiveEdgeId(null);
+      runIdRef.current = null;
       console.log('Workflow execution completed on backend');
+    });
+
+    // server-side run started (created a runId)
+    socketRef.current.on('run.started', (data) => {
+      try {
+        runIdRef.current = data?.runId || null;
+        if (runIdRef.current) {
+          socketRef.current.emit('run.subscribe', { runId: runIdRef.current });
+          setRunActive(true);
+        }
+      } catch (e) { }
+    });
+
+    // generic run events
+    socketRef.current.on('run_status', (data) => {
+      if (!data) return;
+      if (data.runId) runIdRef.current = data.runId;
+      if (data.status === 'running') setRunActive(true);
+      else setRunActive(false);
+      if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
+      if (data.storeVars) setStoreVars(data.storeVars);
     });
 
     // Prompt pipeline progress events
@@ -95,7 +165,15 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         socketRef.current.disconnect();
       }
     };
-  }, []);
+  }, [currentProjectId]);
+
+  // Watch project when projectId changes
+  useEffect(() => {
+    if (socketRef.current && socketRef.current.connected && currentProjectId) {
+      console.log(`[ProjectSync] Watching project: ${currentProjectId}`);
+      socketRef.current.emit('watch_project', { projectId: currentProjectId });
+    }
+  }, [currentProjectId]);
 
   // Set up resume listener from frontend UI
   useEffect(() => {
@@ -113,6 +191,29 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     };
   }, []);
 
+  // When projectId changes, query backend run status and auto-subscribe if a run exists
+  useEffect(() => {
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const pid = projectIdRef.current;
+    if (!pid) return;
+    (async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/run/status?projectId=${encodeURIComponent(pid)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data) return;
+        if (data.runId) {
+          runIdRef.current = data.runId;
+          // join run room to receive updates
+          socketRef.current?.emit('run.subscribe', { runId: data.runId });
+          if (data.status === 'running') setRunActive(true);
+          if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
+          if (data.storeVars) setStoreVars(data.storeVars);
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  }, []);
+
   // Wrapper for manual UI edits to storeVars so they sync with the backend
   const updateStoreVars = (newVarsOrUpdater) => {
     setStoreVars((prev) => {
@@ -126,45 +227,92 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   };
 
   // Trigger backend execution
+  // Note: This only sets project status on server, doesn't wait for execution
+  // Server's execution loop will pick up the project and run it independently
   async function runProject() {
-    if (runActive) {
-      // Toggle off
-      socketRef.current?.emit('stop_workflow');
-      setRunActive(false);
-      setActiveNodeId(null);
-      setActiveEdgeId(null);
+    if (!currentProjectId) {
+      console.warn('[ProjectSync] No projectId set');
       return;
     }
 
-    setRunActive(true);
-    // DO NOT clear storeVars so Node.js can start with existing UI variables
+    if (runActive) {
+      // Stop project - only sets status to 'stopped'
+      console.log('[ProjectSync] Requesting project stop');
+      socketRef.current?.emit('project_control', {
+        projectId: currentProjectId,
+        action: 'stop'
+      });
+      
+      // Also try to stop via run.control if we have a runId
+      const rid = runIdRef.current;
+      if (rid && socketRef.current) {
+        socketRef.current.emit('run.control', { runId: rid, event: 'stop_workflow', payload: {} });
+      }
+      
+      setRunActive(false);
+      setActiveNodeId(null);
+      setActiveEdgeId(null);
+      runIdRef.current = null;
+      return;
+    }
+
+    // Start project - only sets status to 'running'
+    // Server will pick up the project and execute it independently
+    console.log('[ProjectSync] Requesting project start');
     setActiveNodeId(null);
     setActiveEdgeId(null);
 
-    // Filter valid nodes/edges
-    const validNodes = (rfNodes || []).filter(n => n.id);
-    const validEdges = (rfEdges || []).filter(e => e.id);
+    const validNodes = (rfNodes || []).filter(n => n && n.id);
+    const validEdges = (rfEdges || []).filter(e => e && e.id);
 
-    // Send payload to backend with our existing variables
-    socketRef.current?.emit('run_workflow', {
+    socketRef.current?.emit('project_control', {
+      projectId: currentProjectId,
+      action: 'run',
       nodes: validNodes,
       edges: validEdges,
       apis: apis,
-      stepDelay: stepDelay,
-      initialStoreVars: storeVars
+      stepDelay: stepDelay
     });
   }
+
+  const setProjectId = (id) => {
+    if (projectIdRef.current !== id) {
+      // Unwatch old project
+      if (projectIdRef.current && socketRef.current) {
+        socketRef.current.emit('unwatch_project');
+      }
+      
+      if (runIdRef.current && socketRef.current) {
+        socketRef.current.emit('run.unsubscribe', { runId: runIdRef.current });
+      }
+      
+      projectIdRef.current = id;
+      setCurrentProjectId(id);
+      runIdRef.current = null;
+      setRunActive(false);
+      setActiveNodeId(null);
+      setActiveEdgeId(null);
+    }
+  };
 
   // When the user edits nodes/edges while workflow is running, push updates to backend
   useEffect(() => {
     if (!socketRef.current) return;
     if (!runActive) return;
+    if (!currentProjectId) return;
+    
     try {
       const validNodes = (rfNodes || []).filter(n => n && n.id);
       const validEdges = (rfEdges || []).filter(e => e && e.id);
-      socketRef.current.emit('update_workflow', { nodes: validNodes, edges: validEdges });
+      
+      console.log('[ProjectSync] Pushing workflow update');
+      socketRef.current.emit('update_project_workflow', { 
+        projectId: currentProjectId,
+        nodes: validNodes, 
+        edges: validEdges 
+      });
     } catch (e) { /* ignore */ }
-  }, [rfNodes, rfEdges, runActive]);
+  }, [rfNodes, rfEdges, runActive, currentProjectId]);
 
   // Submit a prompt to the server-side pipeline.
   // onReady(result) is called when 'workflow_ready' fires with { nodes, edges, workflowData, metadata }.
@@ -184,5 +332,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     submitPrompt,
     promptProcessing,
     promptStatus,
+    setProjectId,
   };
 }

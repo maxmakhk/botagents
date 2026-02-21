@@ -1,0 +1,108 @@
+{
+  "runs": [
+    {
+      "runId": "run_3d4a1a8d-fb48-4210-a5a2-081872c0ad50",
+      "projectId": "ui_1771636694454",
+      "status": "stopped",
+      "startedAt": "2026-02-21T01:18:14.456Z",
+      "currentNodeId": "api_1771508531717",
+      "lastHeartbeat": "2026-02-21T01:20:10.048Z"
+    },
+    {
+      "runId": "run_b7157c1d-a743-4549-aaa9-c174fdbba3ba",
+      "projectId": "ui_1771636817403",
+      "status": "completed",
+      "startedAt": "2026-02-21T01:20:17.406Z",
+      "currentNodeId": "node_1771508538273",
+      "lastHeartbeat": "2026-02-21T01:20:30.492Z"
+    },
+    {
+      "runId": "run_a684c47d-16f1-4385-b930-8c8e02045c2c",
+      "projectId": "ui_1771636834472",
+      "status": "stopped",
+      "startedAt": "2026-02-21T01:20:34.473Z",
+      "currentNodeId": "step_0",
+      "lastHeartbeat": "2026-02-21T01:21:34.215Z"
+    },
+    {
+      "runId": "run_6b519824-3b6b-4af5-b495-5a3a540f1d77",
+      "projectId": "ui_1771637003109",
+      "status": "stopped",
+      "startedAt": "2026-02-21T01:23:23.110Z",
+      "currentNodeId": "api_1771508531717",
+      "lastHeartbeat": "2026-02-21T01:25:24.480Z"
+    },
+    {
+      "runId": "run_8a15e5a9-2a29-4ee4-b191-f14b775bb094",
+      "projectId": "rule_1770846786680_3m5ujn",
+      "status": "stopped",
+      "startedAt": "2026-02-21T01:28:33.655Z",
+      "currentNodeId": "step_0",
+      "lastHeartbeat": "2026-02-21T01:29:18.336Z"
+    },
+    {
+      "runId": "run_6e62e3f5-7118-4ede-90ac-3aafd765bc75",
+      "projectId": "rule_1770844625829_aepqh3",
+      "status": "stopped",
+      "startedAt": "2026-02-21T10:43:07.897Z",
+      "currentNodeId": "node_1771605504219",
+      "lastHeartbeat": "2026-02-21T10:45:01.312Z"
+    },
+    {
+      "runId": "run_d928d617-17f4-4af6-8465-3e4676a152bb",
+      "projectId": "rule_1770846786680_33jhni",
+      "status": "completed",
+      "startedAt": "2026-02-21T10:46:08.698Z",
+      "currentNodeId": "j0oy9y_7",
+      "lastHeartbeat": "2026-02-21T10:46:17.542Z"
+    },
+    {
+      "runId": "run_abe9b947-4f00-4ea7-a925-9942df250708",
+      "projectId": "rule_1770846786680_33jhni",
+      "status": "completed",
+      "startedAt": "2026-02-21T10:46:26.714Z",
+      "currentNodeId": "j0oy9y_7",
+      "lastHeartbeat": "2026-02-21T10:46:34.175Z"
+    },
+    {
+      "runId": "run_d2e93d38-b438-405e-8748-769d2519b626",
+      "projectId": "rule_1770846786680_33jhni",
+      "status": "completed",
+      "startedAt": "2026-02-21T11:15:17.752Z",
+      "currentNodeId": "j0oy9y_7",
+      "lastHeartbeat": "2026-02-21T11:15:25.578Z"
+    },
+    {
+      "runId": "run_8bcf6150-3d34-4176-b2f6-fad618b71680",
+      "projectId": "rule_1770846786680_33jhni",
+      "status": "completed",
+      "startedAt": "2026-02-21T11:15:34.311Z",
+      "currentNodeId": "j0oy9y_7",
+      "lastHeartbeat": "2026-02-21T11:15:42.660Z"
+    },
+    {
+      "runId": "run_a2fbf6ea-1a80-469e-b374-4a739f9ad1ab",
+      "projectId": "rule_1770846786680_33jhni",
+      "status": "completed",
+      "startedAt": "2026-02-21T11:15:50.108Z",
+      "currentNodeId": "j0oy9y_8",
+      "lastHeartbeat": "2026-02-21T11:16:01.140Z"
+    },
+    {
+      "runId": "run_d6dbedca-dd39-4f2e-99dd-2317d5eaa795",
+      "projectId": "rule_1770846786680_3m5ujn",
+      "status": "stopped",
+      "startedAt": "2026-02-21T11:20:37.777Z",
+      "currentNodeId": "api_1771508531717",
+      "lastHeartbeat": "2026-02-21T11:23:00.883Z"
+    },
+    {
+      "runId": "run_ab9905c3-bd53-4f88-8836-c18853356d4d",
+      "projectId": "rule_1770846786680_3m5ujn",
+      "status": "running",
+      "startedAt": "2026-02-21T11:38:29.869Z",
+      "currentNodeId": "step_0",
+      "lastHeartbeat": "2026-02-21T12:02:34.027Z"
+    }
+  ]
+}

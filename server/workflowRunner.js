@@ -6,13 +6,15 @@
  * evaluating edges and emitting status back to the frontend via Socket.IO.
  */
 
+import projectManager from './projectManager.js';
+
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
 function normalizeVarKey(name) {
     return String(name || '').toLowerCase().replace(/\./g, '_');
 }
 
-export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000, initialStoreVars = {} }) {
+export async function runWorkflow(socket, { projectId, nodes, edges, apis, stepDelay = 1000, initialStoreVars = {} }) {
     let nodesArr = Array.isArray(nodes) ? nodes : [];
     let edgesArr = Array.isArray(edges) ? edges : [];
 
@@ -26,6 +28,13 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
     let abort = false;
     // waitResolvers dict simulating frontend interactive wait behavior, kept here for structure
     const waitResolvers = {};
+
+    // Broadcast state updates to all clients watching this project
+    const broadcastState = (updates) => {
+        if (projectId) {
+            projectManager.updateProjectState(projectId, updates);
+        }
+    };
 
     // Find start node
     const incoming = {};
@@ -101,6 +110,7 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
         const key = normalizeVarKey(name);
         storeVars[key] = value;
         socket.emit('store_vars_update', storeVars);
+        broadcastState({ storeVars });
     };
 
     const makeCtx = (currentNode) => {
@@ -181,6 +191,7 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
         if (!currentNode) return;
 
         socket.emit('node_start', { nodeId: currentNode.id });
+        broadcastState({ activeNodeId: currentNode.id, activeEdgeId: null });
         console.log(`Running node: ${currentNode.id}`);
 
         const resolveApiFnFromApis = (node) => {
@@ -365,6 +376,7 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
         if (!chosenEdge) return;
 
         socket.emit('edge_start', { edgeId: chosenEdge.id || `edge_${chosenEdge.source}_${chosenEdge.target}` });
+        broadcastState({ activeEdgeId: chosenEdge.id || `edge_${chosenEdge.source}_${chosenEdge.target}` });
         await sleep(Math.max(200, stepDelay - 150));
 
         const nextNode = nodesArr.find((n) => String(n.id) === String(chosenEdge.target || chosenEdge.to));
@@ -379,5 +391,259 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
         console.error('Workflow run error:', err);
     } finally {
         socket.emit('workflow_complete');
+        if (projectId) {
+            projectManager.setProjectStatus(projectId, 'stopped');
+            broadcastState({ activeNodeId: null, activeEdgeId: null });
+        }
     }
 }
+
+/**
+ * Execute Workflow - Independent execution without socket dependency
+ * Uses callbacks to broadcast events and update state
+ */
+export async function executeWorkflow({
+    projectId,
+    nodes,
+    edges,
+    apis = [],
+    stepDelay = 1000,
+    initialStoreVars = {},
+    broadcastCallback = () => {},
+    updateStateCallback = () => {},
+    checkAbort = () => false
+}) {
+    let nodesArr = Array.isArray(nodes) ? nodes : [];
+    let edgesArr = Array.isArray(edges) ? edges : [];
+
+    if (nodesArr.length === 0) {
+        broadcastCallback('workflow_complete', {});
+        return;
+    }
+
+    // State
+    let storeVars = { ...initialStoreVars };
+
+    // Find start node
+    const incoming = {};
+    edgesArr.forEach((e) => {
+        if (!e) return;
+        const t = String(e.target || e.to || '');
+        if (!t) return;
+        incoming[t] = (incoming[t] || 0) + 1;
+    });
+    const startNodes = nodesArr.filter((n) => !incoming[String(n.id)]);
+    const startNode = startNodes.length ? startNodes[0] : nodesArr[0];
+
+    if (!startNode) {
+        broadcastCallback('workflow_complete', {});
+        return;
+    }
+
+    const getFromStoreNorm = (name, path) => {
+        const key = String(name || '').toLowerCase().replace(/\./g, '_');
+        const base = storeVars[key];
+        if (base == null) return undefined;
+        if (!path) return base;
+        const parts = String(path).split('.');
+        let cur = base;
+        for (const p of parts) {
+            if (cur == null) return undefined;
+            cur = cur[p];
+        }
+        return cur;
+    };
+
+    const setVar = (name, value) => {
+        const key = normalizeVarKey(name);
+        storeVars[key] = value;
+        broadcastCallback('store_vars_update', { storeVars });
+        updateStateCallback({ storeVars });
+    };
+
+    const makeCtx = (currentNode) => {
+        return {
+            fetch: globalThis.fetch,
+            console: {
+                log: (...args) => {
+                    console.log(`[Node ${currentNode.id}]`, ...args);
+                    broadcastCallback('node_log', { nodeId: currentNode.id, level: 'log', args });
+                },
+                error: (...args) => {
+                    console.error(`[Node ${currentNode.id}] ERROR:`, ...args);
+                    broadcastCallback('node_log', { nodeId: currentNode.id, level: 'error', args });
+                },
+                warn: (...args) => {
+                    console.warn(`[Node ${currentNode.id}] WARN:`, ...args);
+                    broadcastCallback('node_log', { nodeId: currentNode.id, level: 'warn', args });
+                }
+            },
+            alert: (msg) => {
+                console.log(`[Node ${currentNode.id}] ALERT:`, msg);
+                broadcastCallback('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] });
+            },
+            node: currentNode,
+            storeVars: storeVars,
+            setVar,
+            config: currentNode.data?.config || {},
+            apis
+        };
+    };
+
+    const evaluateEdgeCondition = (edgeLabel) => {
+        if (!edgeLabel) return null;
+        const label = String(edgeLabel).trim();
+        if (label.toLowerCase() === 'else') return 'else';
+
+        const conditionMatch = label.match(/^([A-Za-z0-9_.]+)\s*(===|!==|==|!=|<=|>=|<|>)\s*(.+)$/);
+        if (conditionMatch) {
+            const [, varName, operator, expectedValueStr] = conditionMatch;
+            const actualValueRaw = getFromStoreNorm(varName, null);
+            const expectedValue = expectedValueStr.trim();
+
+            let parsedExpected;
+            if (expectedValue === 'true') parsedExpected = true;
+            else if (expectedValue === 'false') parsedExpected = false;
+            else if (expectedValue === 'null') parsedExpected = null;
+            else if (expectedValue === 'undefined') parsedExpected = undefined;
+            else if (!isNaN(expectedValue)) parsedExpected = Number(expectedValue);
+            else parsedExpected = expectedValue.replace(/^['"]/g, '').replace(/['"]$/g, '');
+
+            let actualValue = actualValueRaw;
+            if (parsedExpected !== null && typeof parsedExpected === 'number') {
+                const maybeNum = Number(actualValueRaw);
+                actualValue = isNaN(maybeNum) ? actualValueRaw : maybeNum;
+            }
+
+            switch (operator) {
+                case '===': return actualValue === parsedExpected;
+                case '!==': return actualValue !== parsedExpected;
+                case '==': return actualValue == parsedExpected;
+                case '!=': return actualValue != parsedExpected;
+                case '<=': return actualValue <= parsedExpected;
+                case '>=': return actualValue >= parsedExpected;
+                case '<': return actualValue < parsedExpected;
+                case '>': return actualValue > parsedExpected;
+                default: return null;
+            }
+        }
+        return null;
+    };
+
+    const resolveApiFnFromApis = (node) => {
+        try {
+            if (!apis || !Array.isArray(apis) || apis.length === 0) return null;
+            const rawLabel = String(node?.data?.label || node?.label || node?.data?.labelText || '').trim();
+            const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
+            if (!normalized) return null;
+            for (const a of apis) {
+                const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
+                if (!cand) continue;
+                if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
+                    return a?.function || a?.fnString || a?.functionBody || null;
+                }
+            }
+        } catch (e) { }
+        return null;
+    };
+
+    const runNodeById = async (nodeId) => {
+        if (checkAbort()) {
+            console.log(`[executeWorkflow] Aborted at node ${nodeId}`);
+            return;
+        }
+
+        const currentNode = nodesArr.find((n) => String(n.id) === String(nodeId));
+        if (!currentNode) return;
+
+        broadcastCallback('node_start', { nodeId: currentNode.id });
+        updateStateCallback({ activeNodeId: currentNode.id, activeEdgeId: null });
+        console.log(`[executeWorkflow] Running node: ${currentNode.id}`);
+
+        let source = currentNode.data?.fnString || null;
+        if (!source) {
+            const apiFn = resolveApiFnFromApis(currentNode);
+            if (apiFn) source = apiFn;
+        }
+
+        if (source) {
+            try {
+                const wrapper = new Function(
+                    'ctx',
+                    `
+            const nodeFn = async (ctx) => {
+              ${source}
+
+              const _arg = (ctx && ctx.node && ctx.node.data && (ctx.node.data.input ?? ctx.node.data.config ?? ctx.node.data.payload)) || ctx.config || ctx;
+              
+              if (typeof processRequest === 'function') return await processRequest(_arg);
+              if (typeof handler === 'function') return await handler(_arg);
+              if (typeof main === 'function') return await main(_arg);
+              if (typeof run === 'function') return await run(_arg);
+
+              return undefined;
+            };
+            return nodeFn(ctx);
+          `
+                );
+
+                await wrapper(makeCtx(currentNode));
+            } catch (error) {
+                console.error(`[executeWorkflow] Node ${currentNode.id} execution error:`, error);
+                setVar(`node_${currentNode.id}_error`, (error instanceof Error) ? error.message : String(error));
+                broadcastCallback('node_error', { nodeId: currentNode.id, error: (error instanceof Error) ? error.message : String(error) });
+            }
+        }
+
+        if (checkAbort()) return;
+
+        await sleep(stepDelay);
+
+        const outgoing = edgesArr.filter((e) => String(e.source || e.from || '') === String(currentNode.id));
+        if (!outgoing || outgoing.length === 0) return;
+
+        let chosenEdge = null;
+
+        if (outgoing.length === 1) {
+            chosenEdge = outgoing[0];
+        } else {
+            // Evaluate edge conditions
+            for (const edge of outgoing) {
+                if (evaluateEdgeCondition(edge.label) === true) {
+                    chosenEdge = edge;
+                    break;
+                }
+            }
+
+            if (!chosenEdge) {
+                const elseEdge = outgoing.find((e) => evaluateEdgeCondition(e.label) === 'else');
+                if (elseEdge) {
+                    chosenEdge = elseEdge;
+                } else {
+                    chosenEdge = outgoing[0];
+                }
+            }
+        }
+
+        if (!chosenEdge) return;
+
+        broadcastCallback('edge_start', { edgeId: chosenEdge.id || `edge_${chosenEdge.source}_${chosenEdge.target}` });
+        updateStateCallback({ activeEdgeId: chosenEdge.id || `edge_${chosenEdge.source}_${chosenEdge.target}` });
+        await sleep(Math.max(200, stepDelay - 150));
+
+        const nextNode = nodesArr.find((n) => String(n.id) === String(chosenEdge.target || chosenEdge.to));
+        if (!nextNode) return;
+
+        await runNodeById(nextNode.id);
+    };
+
+    try {
+        await runNodeById(startNode.id);
+    } catch (err) {
+        console.error('[executeWorkflow] Workflow run error:', err);
+    } finally {
+        broadcastCallback('workflow_complete', {});
+        updateStateCallback({ activeNodeId: null, activeEdgeId: null });
+    }
+}
+
