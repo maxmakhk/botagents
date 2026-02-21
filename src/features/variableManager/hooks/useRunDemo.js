@@ -155,6 +155,17 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     });
   }
 
+  // When the user edits nodes/edges while workflow is running, push updates to backend
+  useEffect(() => {
+    if (!socketRef.current) return;
+    if (!runActive) return;
+    try {
+      const validNodes = (rfNodes || []).filter(n => n && n.id);
+      const validEdges = (rfEdges || []).filter(e => e && e.id);
+      socketRef.current.emit('update_workflow', { nodes: validNodes, edges: validEdges });
+    } catch (e) { /* ignore */ }
+  }, [rfNodes, rfEdges, runActive]);
+
   // Submit a prompt to the server-side pipeline.
   // onReady(result) is called when 'workflow_ready' fires with { nodes, edges, workflowData, metadata }.
   const submitPrompt = useCallback((nodeId, promptText, apis = [], workflowData = null, onReady) => {

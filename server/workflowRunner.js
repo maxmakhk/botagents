@@ -13,8 +13,8 @@ function normalizeVarKey(name) {
 }
 
 export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000, initialStoreVars = {} }) {
-    const nodesArr = Array.isArray(nodes) ? nodes : [];
-    const edgesArr = Array.isArray(edges) ? edges : [];
+    let nodesArr = Array.isArray(nodes) ? nodes : [];
+    let edgesArr = Array.isArray(edges) ? edges : [];
 
     if (nodesArr.length === 0) {
         socket.emit('workflow_complete');
@@ -51,6 +51,21 @@ export async function runWorkflow(socket, { nodes, edges, apis, stepDelay = 1000
         if (newVars && typeof newVars === 'object') {
             storeVars = { ...newVars };
             console.log(`[Backend] Synced manual storeVars change from frontend`);
+        }
+    });
+
+    // Allow client to update the workflow while running (live edits)
+    socket.on('update_workflow', (data) => {
+        try {
+            if (data && Array.isArray(data.nodes)) {
+                nodesArr = data.nodes;
+            }
+            if (data && Array.isArray(data.edges)) {
+                edgesArr = data.edges;
+            }
+            console.log('[Backend] Workflow updated during run: nodes=%d edges=%d', (nodesArr || []).length, (edgesArr || []).length);
+        } catch (e) {
+            console.warn('[Backend] Failed to apply update_workflow:', e);
         }
     });
 

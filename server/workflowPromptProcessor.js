@@ -406,6 +406,34 @@ export async function processPrompt({ nodeId, promptText, apis = [], workflowDat
     }
 
     result.workflowData = workflowResult;
+
+    // Try a lightweight server-side layout (dagre) to spread branches before sending to client
+    try {
+      const dagre = (await import('dagre')).default;
+      const g = new dagre.graphlib.Graph();
+      g.setDefaultEdgeLabel(() => ({}));
+      const rankDir = 'LR';
+      g.setGraph({ rankdir: rankDir, ranksep: 80, nodesep: 60, marginx: 20, marginy: 20 });
+      const defaultW = 240, defaultH = 100;
+      (result.workflowData.nodes || []).forEach((n) => {
+        const w = (n.width || (n.data && n.data.width) || defaultW) || defaultW;
+        const h = (n.height || (n.data && n.data.height) || defaultH) || defaultH;
+        try { g.setNode(String(n.id), { width: Math.max(40, Number(w)), height: Math.max(30, Number(h)) }); } catch (e) { }
+      });
+      (result.workflowData.edges || []).forEach((e) => {
+        try { g.setEdge(String(e.source), String(e.target)); } catch (err) { }
+      });
+      try { dagre.layout(g); } catch (e) { }
+      result.workflowData.nodes = (result.workflowData.nodes || []).map((n) => {
+        const d = g.node(String(n.id));
+        if (!d) return n;
+        const w = (n.width || (n.data && n.data.width) || defaultW) || defaultW;
+        const h = (n.height || (n.data && n.data.height) || defaultH) || defaultH;
+        return { ...n, position: { x: d.x - w / 2, y: d.y - h / 2 } };
+      });
+    } catch (e) {
+      // ignore if dagre isn't available or layout fails
+    }
     // Enrich metadata with full records for normalization and generation
     result.metadata = {
       normalization: {
