@@ -78,18 +78,33 @@ class ProjectManager {
 
     console.log(`[ProjectManager] Client ${clientId} watching project ${projectId}`);
 
-    // Send current project state to client
+    // Send current project status to client (只發送 status，不包含執行細節)
     const project = this.projects.get(projectId);
     if (project) {
-      client.socket.emit('project_state', {
+      // Project exists, send status
+      client.socket.emit('project_status', {
         projectId,
-        nodes: project.nodes,
-        edges: project.edges,
-        status: project.status,
-        storeVars: project.storeVars,
-        activeNodeId: project.activeNodeId,
-        activeEdgeId: project.activeEdgeId
+        status: project.status
       });
+      console.log(`[ProjectManager] Sent project status to ${clientId}: status=${project.status}`);
+      
+      // If running, also send current execution state
+      if (project.status === 'running') {
+        client.socket.emit('execution_state', {
+          projectId,
+          activeNodeId: project.activeNodeId,
+          activeEdgeId: project.activeEdgeId,
+          storeVars: project.storeVars
+        });
+        console.log(`[ProjectManager] Sent execution state to ${clientId}`);
+      }
+    } else {
+      // Project doesn't exist yet, send default stopped status
+      client.socket.emit('project_status', {
+        projectId,
+        status: 'stopped'
+      });
+      console.log(`[ProjectManager] Sent default stopped status to ${clientId} for new project ${projectId}`);
     }
   }
 
@@ -171,7 +186,8 @@ class ProjectManager {
   }
 
   /**
-   * Update project execution state
+   * Update project execution state (activeNode, storeVars, etc.)
+   * 這個不會改變 project status，只更新執行細節
    */
   updateProjectState(projectId, updates) {
     const project = this.projects.get(projectId);
@@ -179,7 +195,8 @@ class ProjectManager {
 
     Object.assign(project, updates);
 
-    this.broadcastToProject(projectId, 'project_state', {
+    // 只廣播執行狀態，不包含 status
+    this.broadcastToProject(projectId, 'execution_state', {
       projectId,
       ...updates
     });
@@ -190,12 +207,20 @@ class ProjectManager {
    */
   broadcastToProject(projectId, event, data) {
     const watchers = this.projectWatchers.get(projectId);
-    if (!watchers) return;
+    if (!watchers) {
+      console.log(`[ProjectManager] No watchers for project ${projectId}, cannot broadcast ${event}`);
+      return;
+    }
+
+    console.log(`[ProjectManager] Broadcasting ${event} to ${watchers.size} watchers of project ${projectId}:`, data);
 
     for (const clientId of watchers) {
       const client = this.clients.get(clientId);
       if (client && client.socket) {
         client.socket.emit(event, data);
+        console.log(`[ProjectManager] Sent ${event} to client ${clientId}`);
+      } else {
+        console.log(`[ProjectManager] Client ${clientId} not found or socket missing`);
       }
     }
   }
@@ -311,7 +336,12 @@ class ProjectManager {
     const project = this.loadProject(projectId, nodes, edges, apis, stepDelay);
     
     if (project.status === 'running') {
-      console.log(`[ProjectManager] Project ${projectId} already running`);
+      console.log(`[ProjectManager] Project ${projectId} already running, re-broadcasting status`);
+      // Still broadcast to ensure client gets the status
+      this.broadcastToProject(projectId, 'project_status', {
+        projectId,
+        status: 'running'
+      });
       return;
     }
 
@@ -322,6 +352,8 @@ class ProjectManager {
       projectId,
       status: 'running'
     });
+    
+    console.log(`[ProjectManager] Broadcasted project_status { status: 'running' } to watchers`);
   }
 
   /**
