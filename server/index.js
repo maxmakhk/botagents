@@ -6,7 +6,9 @@ import { randomUUID } from 'crypto';
 import http from 'http';
 import { Server } from 'socket.io';
 import { runWorkflow } from './workflowRunner.js';
+import runManager from './runManager.js';
 import { processPrompt } from './workflowPromptProcessor.js';
+import projectManager from './projectManager.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -159,10 +161,15 @@ app.get('/api/rules', (req, res) => {
     } else {
       rows = db.prepare('SELECT * FROM rules ORDER BY created_at DESC').all();
     }
+    console.log(`check0221 Loaded ${rows.length} rules for categoryId=${categoryId || 'all'}`);
     // parse JSON workflow_object when present
     const parsed = rows.map(r => ({ ...r, workflowObject: r.workflow_object ? (() => { try { return JSON.parse(r.workflow_object); } catch (e) { return r.workflow_object; } })() : null }));
     res.json(parsed);
-  } catch (err) { res.status(500).json({ error: String(err) }); }
+  } catch (err) { 
+    console.error('check0221 Error loading rules:', err);
+    res.status(500).json({ error: String(err) }); 
+
+  }
 });
 
 app.get('/api/rules/:id', (req, res) => {
@@ -377,6 +384,97 @@ app.get('/worlds', (req, res) => {
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
+  // Register client with ProjectManager
+  projectManager.registerClient(socket.id, socket);
+
+  // Client wants to watch a project
+  socket.on('watch_project', (data) => {
+    const { projectId } = data || {};
+    if (!projectId) return;
+    console.log(`[Socket] Client ${socket.id} wants to watch project ${projectId}`);
+    projectManager.watchProject(socket.id, projectId);
+  });
+
+  // Client wants to unwatch current project
+  socket.on('unwatch_project', () => {
+    const client = projectManager.clients.get(socket.id);
+    if (client && client.projectId) {
+      projectManager.unwatchProject(socket.id, client.projectId);
+      client.projectId = null;
+    }
+  });
+
+  // Client triggers run/stop for a project
+  socket.on('project_control', (data) => {
+    const { projectId, action } = data || {};
+    if (!projectId || !action) return;
+
+    console.log(`[Socket] Client ${socket.id} ${action} project ${projectId}`);
+
+    if (action === 'run') {
+      // Load or update project with provided data
+      const nodes = data.nodes || [];
+      const edges = data.edges || [];
+      const apis = data.apis || [];
+      const stepDelay = data.stepDelay || 1000;
+      
+      // Start project (sets status to 'running', execution loop will pick it up)
+      projectManager.startProject(projectId, nodes, edges, apis, stepDelay);
+      
+    } else if (action === 'stop') {
+      // Stop project (sets status to 'stopped', execution loop will abort it)
+      projectManager.stopProject(projectId);
+    }
+  });
+
+  // Client updates workflow (nodes/edges)
+  socket.on('update_project_workflow', (data) => {
+    const { projectId, nodes, edges } = data || {};
+    if (!projectId) return;
+
+    console.log(`[Socket] Client ${socket.id} updated workflow for ${projectId}`);
+    projectManager.updateProjectWorkflow(projectId, nodes, edges);
+  });
+
+  // Allow clients to subscribe to run updates by runId
+  socket.on('run.subscribe', (data) => {
+    try {
+      const { runId } = data || {};
+      if (!runId) return socket.emit('run_error', { message: 'runId required to subscribe' });
+      const room = `run:${runId}`;
+      socket.join(room);
+      const run = runManager.getRun(runId);
+      socket.emit('run_status', run ? { runId: run.runId, status: run.status, projectId: run.projectId } : { notFound: true });
+    } catch (e) { console.warn('subscribe error', e); }
+  });
+
+  // Allow clients to unsubscribe from run updates
+  socket.on('run.unsubscribe', (data) => {
+    try {
+      const { runId } = data || {};
+      if (!runId) return;
+      socket.leave(`run:${runId}`);
+    } catch (e) { }
+  });
+
+  // Client-side control messages forwarded to run manager
+  socket.on('run.control', (data) => {
+    try {
+      const { runId, event, payload } = data || {};
+      if (!runId || !event) return socket.emit('run_control_ack', { ok: false, message: 'runId and event required' });
+      const ok = runManager.receiveClientEvent(runId, event, payload);
+      socket.emit('run_control_ack', { ok });
+    } catch (e) { socket.emit('run_control_ack', { ok: false, message: String(e) }); }
+  });
+
+  // Allow starting a run via socket (convenience)
+  socket.on('run.start', (data) => {
+    try {
+      const run = runManager.startRun(data || {});
+      socket.emit('run.started', { runId: run.runId, projectId: run.projectId });
+    } catch (e) { socket.emit('run_error', { message: String(e) }); }
+  });
+
   socket.on('run_workflow', async (data) => {
     try {
       console.log(`[Socket ${socket.id}] Starting workflow execution`);
@@ -439,7 +537,49 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
+    projectManager.unregisterClient(socket.id);
   });
+});
+
+// Initialize run manager with io so it can broadcast to rooms
+runManager.init(io);
+
+// Initialize project manager with io and start execution loop
+projectManager.init(io);
+
+// ------------------ Run Control REST API --------------------------------
+app.post('/api/run/start', (req, res) => {
+  try {
+    const { projectId, nodes, edges, apis, options } = req.body || {};
+    if (!projectId) return res.status(400).json({ error: 'projectId required' });
+    const run = runManager.startRun({ projectId, nodes, edges, apis, options });
+    res.json({ success: true, runId: run.runId });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.post('/api/run/stop', (req, res) => {
+  try {
+    const { runId } = req.body || {};
+    if (!runId) return res.status(400).json({ error: 'runId required' });
+    const r = runManager.stopRun(runId);
+    res.json({ success: !!r });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.get('/api/run/status', (req, res) => {
+  try {
+    const { projectId, runId } = req.query || {};
+    if (projectId) {
+      const s = runManager.getRunStatusByProject(projectId);
+      //console.log(`[RunStatus] query projectId=${projectId} -> ${s ? `runId=${s.runId} status=${s.status}` : 'no-run'}`);
+      return res.json(s || {});
+    }
+    if (runId) {
+      const s = runManager.getRun(runId);
+      return res.json(s || {});
+    }
+    res.status(400).json({ error: 'projectId or runId required' });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
 const port = process.env.PORT || 3001;
