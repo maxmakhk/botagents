@@ -40,28 +40,25 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       }
     });
 
-    // Receive project state updates from server
-    socketRef.current.on('project_state', (data) => {
-      console.log('[ProjectSync] Received project state:', data);
-      
+    // Receive project STATUS updates (只更新 run/stop 按鈕狀態)
+    socketRef.current.on('project_status', (data) => {
+      console.log('🔵 [CLIENT STATUS UPDATE] Received project_status:', data);
       if (data.status === 'running') {
+        console.log('🟢 [CLIENT STATUS UPDATE] Setting runActive to TRUE');
         setRunActive(true);
       } else if (data.status === 'stopped') {
+        console.log('🔴 [CLIENT STATUS UPDATE] Setting runActive to FALSE');
         setRunActive(false);
       }
+    });
+
+    // Receive execution STATE updates (只更新執行細節，不影響按鈕)
+    socketRef.current.on('execution_state', (data) => {
+      console.log('⚙️ [CLIENT EXECUTION UPDATE] Received execution_state:', data);
       
       if (data.activeNodeId !== undefined) setActiveNodeId(data.activeNodeId);
       if (data.activeEdgeId !== undefined) setActiveEdgeId(data.activeEdgeId);
       if (data.storeVars) setStoreVars(data.storeVars);
-    });
-
-    socketRef.current.on('project_status', (data) => {
-      console.log('[ProjectSync] Project status:', data);
-      if (data.status === 'running') {
-        setRunActive(true);
-      } else {
-        setRunActive(false);
-      }
     });
 
     socketRef.current.on('workflow_updated', (data) => {
@@ -238,33 +235,46 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     if (runActive) {
       // Stop project - only sets status to 'stopped'
       console.log('[ProjectSync] Requesting project stop');
+      
+      // Store runId before clearing it
+      const rid = runIdRef.current;
+      
+      // Optimistically update UI immediately
+      console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to FALSE');
+      setRunActive(false);
+      setActiveNodeId(null);
+      setActiveEdgeId(null);
+      runIdRef.current = null;
+      
+      // Send stop command to server
       socketRef.current?.emit('project_control', {
         projectId: currentProjectId,
         action: 'stop'
       });
       
       // Also try to stop via run.control if we have a runId
-      const rid = runIdRef.current;
       if (rid && socketRef.current) {
         socketRef.current.emit('run.control', { runId: rid, event: 'stop_workflow', payload: {} });
       }
       
-      setRunActive(false);
-      setActiveNodeId(null);
-      setActiveEdgeId(null);
-      runIdRef.current = null;
       return;
     }
 
     // Start project - only sets status to 'running'
     // Server will pick up the project and execute it independently
     console.log('[ProjectSync] Requesting project start');
+    console.log('[ProjectSync] Current runActive:', runActive);
+    
+    // Optimistically update UI immediately
+    console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');
+    setRunActive(true);
     setActiveNodeId(null);
     setActiveEdgeId(null);
 
     const validNodes = (rfNodes || []).filter(n => n && n.id);
     const validEdges = (rfEdges || []).filter(e => e && e.id);
 
+    // Send run command to server
     socketRef.current?.emit('project_control', {
       projectId: currentProjectId,
       action: 'run',
@@ -275,25 +285,28 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     });
   }
 
-  const setProjectId = (id) => {
-    if (projectIdRef.current !== id) {
-      // Unwatch old project
-      if (projectIdRef.current && socketRef.current) {
-        socketRef.current.emit('unwatch_project');
-      }
-      
-      if (runIdRef.current && socketRef.current) {
-        socketRef.current.emit('run.unsubscribe', { runId: runIdRef.current });
-      }
-      
-      projectIdRef.current = id;
-      setCurrentProjectId(id);
-      runIdRef.current = null;
-      setRunActive(false);
-      setActiveNodeId(null);
-      setActiveEdgeId(null);
+  const setProjectId = useCallback((id) => {
+    if (projectIdRef.current === id) {
+      console.log(`[ProjectSync] Already watching project ${id}, skipping`);
+      return; // Already watching this project
     }
-  };
+    
+    // Unwatch old project
+    if (projectIdRef.current && socketRef.current) {
+      socketRef.current.emit('unwatch_project');
+    }
+    
+    if (runIdRef.current && socketRef.current) {
+      socketRef.current.emit('run.unsubscribe', { runId: runIdRef.current });
+    }
+    
+    projectIdRef.current = id;
+    setCurrentProjectId(id);
+    runIdRef.current = null;
+    setRunActive(false);
+    setActiveNodeId(null);
+    setActiveEdgeId(null);
+  }, []);
 
   // When the user edits nodes/edges while workflow is running, push updates to backend
   useEffect(() => {

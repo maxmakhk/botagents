@@ -740,58 +740,56 @@ const VariableManager = ({ onBack }) => {
   // Track which rule is being edited
   const [selectedRuleIndex, setSelectedRuleIndex] = useState(0);
 
-  // When a rule selection changes, set the projectId and subscribe to run status
+  // Calculate projectId based on selected rule (memoized to avoid unnecessary recalculations)
+  const projectIdForRun = useMemo(() => {
+    const currentFn = (functionsList && typeof selectedRuleIndex !== 'undefined' && functionsList[selectedRuleIndex]) 
+      ? functionsList[selectedRuleIndex] 
+      : null;
+    
+    return currentFn?.id || currentFn?.ruleId || 
+      (typeof selectedRuleIndex !== 'undefined' ? `rule_${selectedRuleIndex}` : null);
+  }, [selectedRuleIndex, functionsList]);
+
+  // When projectId changes, set it in useRunDemo and query backend status
   // Client acts as OBSERVER: retrieves current project progress when entering workflow
   // Server runs projects independently, client just watches and receives updates
   useEffect(() => {
-    try {
-      // Derive a stable projectId for runs (use function.id or ruleId when available)
-      const currentFn = (functionsList && typeof selectedRuleIndex !== 'undefined' && functionsList[selectedRuleIndex]) 
-        ? functionsList[selectedRuleIndex] 
-        : null;
-      
-      const projectIdForRun = currentFn?.id || currentFn?.ruleId || 
-        (typeof selectedRuleIndex !== 'undefined' ? `rule_${selectedRuleIndex}` : null);
-      
-      if (!projectIdForRun) return;
+    if (!projectIdForRun) return;
 
-      console.log(`[VariableManager] Selected project: ${projectIdForRun} (observer mode)`);
-      
-      // Set projectId in useRunDemo to begin watching this project
-      if (typeof setProjectId === 'function') {
-        setProjectId(projectIdForRun);
-      }
-
-      // Also query backend for existing run status
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      (async () => {
-        try {
-          const res = await fetch(`${backendUrl}/api/run/status?projectId=${encodeURIComponent(projectIdForRun)}`);
-          if (!res.ok) return;
-          const data = await res.json();
-          if (!data || !data.runId) return;
-
-          // Join run room via socket
-          if (socketRef && socketRef.current) {
-            socketRef.current.emit('run.subscribe', { runId: data.runId });
-          }
-          
-          // Hydrate storeVars immediately if present
-          if (data.storeVars && typeof setStoreVars === 'function') {
-            setStoreVars(data.storeVars);
-          }
-
-          // Hydrate executing nodes/edges so we don't lose them on page refresh
-          if ((data.status === 'running' || data.status === 'starting') && data.nodes && data.nodes.length > 0) {
-            if (typeof setRfNodes === 'function') setRfNodes(data.nodes);
-            if (data.edges && typeof setRfEdges === 'function') setRfEdges(data.edges);
-          }
-        } catch (e) { /* ignore */ }
-      })();
-    } catch (e) {
-      console.error('[VariableManager] Error updating projectId:', e);
+    console.log(`📌 [VariableManager] Selected project: ${projectIdForRun} (observer mode)`);
+    
+    // Set projectId in useRunDemo to begin watching this project
+    if (typeof setProjectId === 'function') {
+      setProjectId(projectIdForRun);
     }
-  }, [selectedRuleIndex, functionsList, socketRef, setStoreVars, setRfNodes, setRfEdges, setProjectId]);
+
+    // Also query backend for existing run status
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    (async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/run/status?projectId=${encodeURIComponent(projectIdForRun)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.runId) return;
+
+        // Join run room via socket
+        if (socketRef && socketRef.current) {
+          socketRef.current.emit('run.subscribe', { runId: data.runId });
+        }
+        
+        // Hydrate storeVars immediately if present
+        if (data.storeVars && typeof setStoreVars === 'function') {
+          setStoreVars(data.storeVars);
+        }
+
+        // Hydrate executing nodes/edges so we don't lose them on page refresh
+        if ((data.status === 'running' || data.status === 'starting') && data.nodes && data.nodes.length > 0) {
+          if (typeof setRfNodes === 'function') setRfNodes(data.nodes);
+          if (data.edges && typeof setRfEdges === 'function') setRfEdges(data.edges);
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  }, [projectIdForRun, setProjectId]);
 
   const {
     taskFunctionText,

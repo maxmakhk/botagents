@@ -411,6 +411,13 @@ io.on('connection', (socket) => {
 
     console.log(`[Socket] Client ${socket.id} ${action} project ${projectId}`);
 
+    // Ensure client is watching this project
+    const client = projectManager.clients.get(socket.id);
+    if (client && client.projectId !== projectId) {
+      console.log(`[Socket] Client ${socket.id} not watching ${projectId}, auto-watching now`);
+      projectManager.watchProject(socket.id, projectId);
+    }
+
     if (action === 'run') {
       // Load or update project with provided data
       const nodes = data.nodes || [];
@@ -418,10 +425,13 @@ io.on('connection', (socket) => {
       const apis = data.apis || [];
       const stepDelay = data.stepDelay || 1000;
       
+      console.log(`[Socket] Starting project ${projectId} with ${nodes.length} nodes, ${edges.length} edges`);
+      
       // Start project (sets status to 'running', execution loop will pick it up)
       projectManager.startProject(projectId, nodes, edges, apis, stepDelay);
       
     } else if (action === 'stop') {
+      console.log(`[Socket] Stopping project ${projectId}`);
       // Stop project (sets status to 'stopped', execution loop will abort it)
       projectManager.stopProject(projectId);
     }
