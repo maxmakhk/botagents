@@ -222,6 +222,143 @@ const ExternalAPIPanel = ({
                         </div>
                       )}
                     </div>
+
+                    {/* Upload Image - Only in Edit Mode */}
+                    {editingApiId === a.id && (
+                      <div style={{ marginTop: 8, marginBottom: 8 }}>
+                        <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>Upload Component Image</div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] || null;
+                              setUploadFiles(s => ({ ...s, [a.id]: file }));
+                              setUploadStatus(s => ({ ...s, [a.id]: 'idle' }));
+                            }}
+                            disabled={uploadStatus[a.id] === 'uploading' || uploadingIds[a.id]}
+                          />
+                          <button
+                            className="btn-primary"
+                            onClick={async () => {
+                              const file = uploadFiles[a.id];
+                              if (!file) {
+                                setAiWarning('Please select a file to upload');
+                                setTimeout(() => setAiWarning(''), 2000);
+                                return;
+                              }
+                              try {
+                                setUploadingIds(s => ({ ...s, [a.id]: true }));
+                                setUploadStatus(s => ({ ...s, [a.id]: 'uploading' }));
+                                const form = new FormData();
+                                form.append('file', file);
+                                const res = await fetch('https://maxsolo.co.uk/images/upload.php', {
+                                  method: 'POST',
+                                  body: form
+                                });
+                                const json = await res.json();
+                                console.log('Upload response', json);
+                                if (json?.status === 'success' && json.new_name) {
+                                  const imageName = json.url;
+                                  try {
+                                    await updateApiMetadata(a.id, { metadata: { image: imageName } });
+                                    setUploadStatus(s => ({ ...s, [a.id]: 'success' }));
+                                    setTimeout(() => setUploadStatus(s => ({ ...s, [a.id]: 'idle' })), 3000);
+                                  } catch (err) {
+                                    console.error('Failed to save image name to firestore', err);
+                                    setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
+                                    setAiWarning('Uploaded but failed to save metadata');
+                                    setTimeout(() => setAiWarning(''), 2000);
+                                  }
+                                  setApis(s => s.map(item => item.id === a.id ? { ...item, metadata: { ...(item.metadata || {}), image: imageName } } : item));
+                                  setUploadFiles(s => ({ ...s, [a.id]: null }));
+                                  setAiWarning('Image uploaded and saved');
+                                  setTimeout(() => setAiWarning(''), 2000);
+                                } else {
+                                  console.error('Upload response', json);
+                                  setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
+                                  setAiWarning('Upload failed');
+                                  setTimeout(() => setAiWarning(''), 2000);
+                                }
+                              } catch (err) {
+                                console.error('Upload error', err);
+                                setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
+                                setAiWarning('Upload failed: ' + (err.message || err));
+                                setTimeout(() => setAiWarning(''), 2000);
+                              } finally {
+                                setUploadingIds(s => ({ ...s, [a.id]: false }));
+                              }
+                            }}
+                            disabled={uploadStatus[a.id] === 'uploading' || uploadingIds[a.id]}
+                            style={{ fontSize: '0.85rem', padding: '4px 8px' }}
+                          >
+                            {uploadStatus[a.id] === 'uploading' || uploadingIds[a.id] ? 'Uploading...' : 'Upload'}
+                          </button>
+                          <div style={{ minWidth: 120, fontSize: '0.85rem' }}>
+                            {uploadStatus[a.id] === 'uploading' && <span style={{ color: '#f59e0b' }}>⏳ Uploading...</span>}
+                            {uploadStatus[a.id] === 'success' && <span style={{ color: '#10b981' }}>✅ Saved</span>}
+                            {uploadStatus[a.id] === 'error' && <span style={{ color: '#ef4444' }}>❌ Failed</span>}
+                            {!uploadStatus[a.id] && a.metadata?.image && (
+                              <span style={{ color: '#9ca3af' }}>Current: {a.metadata.image.split('/').pop()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Component Size - Only in Edit Mode */}
+                    {editingApiId === a.id && (
+                      <div style={{ marginTop: 8, marginBottom: 8 }}>
+                        <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>
+                          Component Size (ratio format: width:height)
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: 8 }}>
+                            Examples: 1:1 (64x64px), 2:1 (128x64px), 3:1 (192x64px), 2:2 (128x128px)
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="2:1"
+                            value={a.metadata?.size || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setApis(s => s.map(item => item.id === a.id ? { ...item, metadata: { ...(item.metadata || {}), size: value } } : item));
+                            }}
+                            style={{ 
+                              padding: '6px 8px', 
+                              borderRadius: 4, 
+                              border: '1px solid #475569', 
+                              background: '#111827', 
+                              color: '#e5e7eb',
+                              width: '120px',
+                              fontSize: '0.85rem'
+                            }}
+                          />
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            {['1:1', '2:1', '3:1', '2:2', '4:1', '3:2'].map(preset => (
+                              <button
+                                key={preset}
+                                className="btn-secondary"
+                                onClick={() => {
+                                  setApis(s => s.map(item => item.id === a.id ? { ...item, metadata: { ...(item.metadata || {}), size: preset } } : item));
+                                }}
+                                style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                          {a.metadata?.size && (
+                            <span style={{ fontSize: '0.80rem', color: '#9ca3af' }}>
+                              {(() => {
+                                const [w, h] = (a.metadata.size || '2:1').split(':').map(n => parseInt(n) || 1);
+                                return `${w * 64}×${h * 64}px`;
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
@@ -316,84 +453,7 @@ const ExternalAPIPanel = ({
                         <pre style={{ background: '#0b1220', padding: 8, borderRadius: 4, overflow: 'auto', fontSize: '0.80rem', color: '#9ca3af', margin: 0 }}>{a.metadata?.cssStyle || '(No CSS defined)'}</pre>
                       )}
                     </div>
-                    <div style={{ marginTop: 12 }}>
-                      <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>Upload Image</div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            setUploadFiles(s => ({ ...s, [a.id]: file }));
-                            setUploadStatus(s => ({ ...s, [a.id]: 'idle' }));
-                          }}
-                          disabled={uploadStatus[a.id] === 'uploading' || uploadingIds[a.id]}
-                        />
-                        <button
-                          className="btn-primary"
-                          onClick={async () => {
-                            const file = uploadFiles[a.id];
-                            if (!file) {
-                              setAiWarning('Please select a file to upload');
-                              setTimeout(() => setAiWarning(''), 2000);
-                              return;
-                            }
-                            try {
-                              setUploadingIds(s => ({ ...s, [a.id]: true }));
-                              setUploadStatus(s => ({ ...s, [a.id]: 'uploading' }));
-                              const form = new FormData();
-                              form.append('file', file);
-                              const res = await fetch('https://maxsolo.co.uk/images/upload.php', {
-                                method: 'POST',
-                                body: form
-                              });
-                              const json = await res.json();
-                              console.log('Upload response', json);
-                              if (json?.status === 'success' && json.new_name) {
-                                const imageName = json.url;
-                                try {
-                                  await updateApiMetadata(a.id, { metadata: { image: imageName } });
-                                  setUploadStatus(s => ({ ...s, [a.id]: 'success' }));
-                                  setTimeout(() => setUploadStatus(s => ({ ...s, [a.id]: 'idle' })), 3000);
-                                } catch (err) {
-                                  console.error('Failed to save image name to firestore', err);
-                                  setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
-                                  setAiWarning('Uploaded but failed to save metadata');
-                                  setTimeout(() => setAiWarning(''), 2000);
-                                }
-                                setApis(s => s.map(item => item.id === a.id ? { ...item, metadata: { ...(item.metadata || {}), image: imageName } } : item));
-                                setUploadFiles(s => ({ ...s, [a.id]: null }));
-                                setAiWarning('Image uploaded and saved');
-                                setTimeout(() => setAiWarning(''), 2000);
-                              } else {
-                                console.error('Upload response', json);
-                                setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
-                                setAiWarning('Upload failed');
-                                setTimeout(() => setAiWarning(''), 2000);
-                              }
-                            } catch (err) {
-                              console.error('Upload error', err);
-                              setUploadStatus(s => ({ ...s, [a.id]: 'error' }));
-                              setAiWarning('Upload failed: ' + (err.message || err));
-                              setTimeout(() => setAiWarning(''), 2000);
-                            } finally {
-                              setUploadingIds(s => ({ ...s, [a.id]: false }));
-                            }
-                          }}
-                          disabled={uploadStatus[a.id] === 'uploading' || uploadingIds[a.id]}
-                        >
-                          {uploadStatus[a.id] === 'uploading' || uploadingIds[a.id] ? 'Uploading...' : 'Upload Image'}
-                        </button>
-                        <div style={{ minWidth: 120 }}>
-                          {uploadStatus[a.id] === 'uploading' && <span style={{ color: '#f59e0b' }}>⏳ Uploading...</span>}
-                          {uploadStatus[a.id] === 'success' && <span style={{ color: '#10b981' }}>✅ Saved</span>}
-                          {uploadStatus[a.id] === 'error' && <span style={{ color: '#ef4444' }}>❌ Failed</span>}
-                          {!uploadStatus[a.id] && a.metadata?.image && (
-                            <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Saved: {a.metadata.image}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+
                     <div style={{ fontSize: '0.80rem', color: '#6b7280' }}>
                       Created: {new Date(a.createdAt?.toDate?.() || a.createdAt).toLocaleString()}
                       {a.updatedAt && <div>Updated: {new Date(a.updatedAt?.toDate?.() || a.updatedAt).toLocaleString()}</div>}

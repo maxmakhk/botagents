@@ -1,7 +1,6 @@
 .variable-page {
   background: #020617;
   color: #e5e7eb;
-  padding: 24px 28px;
   border-radius: 12px;
   width: 100%;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6);
@@ -11,8 +10,6 @@
 .variable-page-controls-section {
   width: 100%;
   float: left;
-  /* avoid overlapping the floating back button */
-  padding-top: 48px;
 }
 
 
@@ -44,8 +41,9 @@
 }
 
 .variable-page-header {
-    float: left;
-    width: 100%;
+    position: fixed;
+    right: 0;
+    top: 0
 }
 
 /* hide all header content except the back button */

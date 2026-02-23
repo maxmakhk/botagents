@@ -237,12 +237,7 @@ const VariableManager = ({ onBack }) => {
         setRfNodes(rounded);
       }
       if (Array.isArray(layoutedEdges)) setRfEdges(layoutedEdges);
-      // fit the viewport to the new layout when possible
-      try {
-        fitViewportToNodes();
-      } catch (err) {
-        // ignore
-      }
+      // keep current zoom level; do not auto-fit after layout
     } catch (err) {
       console.error('Auto layout failed:', err);
     }
@@ -875,6 +870,7 @@ const VariableManager = ({ onBack }) => {
                     n.metadata.image = found.metadata?.image || found.image || found.icon || found.imageName || found.new_name || found.newName || found.filename || found.fileName || found.file || null;
                     n.metadata.function = found.function || found.fnString || found.functionBody || null;
                     n.metadata.cssStyle = found.metadata?.cssStyle || found.cssStyle || found.style || null;
+                    n.metadata.size = found.metadata?.size || found.size || n.metadata.size || '1:1';
                     n.metadata.tags = Array.isArray(found.tags) ? found.tags : (found.tags ? String(found.tags).split(',').map(t => t.trim()) : []);
                   }
                 }
@@ -1397,6 +1393,15 @@ const VariableManager = ({ onBack }) => {
     const meta = api.metadata || {};
     const image = meta.image || api.image || api.icon || null;
     const css = meta.cssStyle || api.cssStyle || null;
+    const size = meta.size || '2:1'; // Component size ratio (e.g., "3:1", "2:2")
+    
+    // Calculate width and height from size ratio
+    const [widthRatio, heightRatio] = size.split(':').map(n => parseInt(n) || 1);
+    const nodeWidth = widthRatio * 64;
+    const nodeHeight = heightRatio * 64;
+    
+    console.log(`[addRfApiNode] Creating node with size: ${size} (${nodeWidth}x${nodeHeight}px)`, api);
+    
     const newNode = {
       id,
       position: { x: 200 + (rfNodes.length * 20), y: 200 },
@@ -1406,6 +1411,8 @@ const VariableManager = ({ onBack }) => {
         label: `API: ${label}`,
         description: 'external api',
         actions: [],
+        width: nodeWidth,
+        height: nodeHeight,
         metadata: {
           apiId: api.id,
           apiName: label,
@@ -1413,10 +1420,11 @@ const VariableManager = ({ onBack }) => {
           image: image,
           function: api.function || api.fnString || null,
           cssStyle: css,
+          size: size,
           tags: Array.isArray(api.tags) ? api.tags : (api.tags ? String(api.tags).split(',').map(t => t.trim()) : [])
         }
       },
-      style: { borderRadius: 10, padding: 8, minWidth: 170 }
+      style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
     };
     setRfNodes((n) => [...n, newNode]);
     setSelectedIds([id]);
@@ -2628,7 +2636,6 @@ const VariableManager = ({ onBack }) => {
   return (
     <div className="variable-page">
       <div className="variable-page-header">
-        <div style={{ float: 'left' }}>
 
           <button className="back-btn" onClick={onBack}>
             ??Back to menu
@@ -2638,7 +2645,6 @@ const VariableManager = ({ onBack }) => {
           <p className="page-subtitle">
             Manage variables with name, description, and tags.
           </p>
-        </div>
 
 
 
