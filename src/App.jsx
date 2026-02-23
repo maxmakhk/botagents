@@ -2,6 +2,8 @@ import { useState } from "react";
 const COMPANY_NAME = import.meta.env.VITE_COMPANY_NAME;
 import "./App.css";
 import VariableManager from "./features/VariableManager.jsx";
+import OutputView from "./components/OutputView.jsx";
+import NodeTemplates from "./components/NodeTemplates.jsx";
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -23,15 +25,19 @@ window.auth = getAuth(app);
 const PAGES = {
   HOME: "HOME",
   VARIABLE_MANAGER: "VARIABLE_MANAGER",
+  NODE_TEMPLATES: "NODE_TEMPLATES",
 };
 
 function App() {
   const [activePage, setActivePage] = useState(PAGES.HOME);
+  const [isOutputOpen, setIsOutputOpen] = useState(false);
 
   const renderPage = () => {
     switch (activePage) {
       case PAGES.VARIABLE_MANAGER:
         return <VariableManager onBack={() => setActivePage(PAGES.HOME)} />;
+      case PAGES.NODE_TEMPLATES:
+        return <NodeTemplates onBack={() => setActivePage(PAGES.HOME)} />;
       case PAGES.HOME:
       default:
         return (
@@ -43,13 +49,26 @@ function App() {
               <button onClick={() => setActivePage(PAGES.VARIABLE_MANAGER)}>
                 Variable Manager
               </button>
+              
+              <button onClick={() => setIsOutputOpen(true)}>
+                Output View
+              </button>
+
+              <button onClick={() => setActivePage(PAGES.NODE_TEMPLATES)}>
+                Node Templates
+              </button>
             </div>
           </div>
         );
     }
   };
 
-  return <div className="app-shell">{renderPage()}</div>;
+  return (
+    <div className="app-shell">
+      {renderPage()}
+      {isOutputOpen && <OutputView onClose={() => setIsOutputOpen(false)} />}
+    </div>
+  );
 }
 
 export default App;
