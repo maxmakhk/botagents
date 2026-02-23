@@ -199,6 +199,7 @@ const VariableManager = ({ onBack }) => {
     promptProcessing,
     promptStatus,
     setProjectId,
+    allProjectStatuses,
   } = useRunDemo({ rfNodes, rfEdges, apis });
 
   // Prevent repeatedly applying the same merged workflow (guard against re-renders)
@@ -2842,6 +2843,7 @@ const VariableManager = ({ onBack }) => {
             rulePrompts={rulePrompts}
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
+            allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
             printRules={printRules}
             confirmPreview={confirmPreview}

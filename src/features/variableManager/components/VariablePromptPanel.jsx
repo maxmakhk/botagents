@@ -12,6 +12,7 @@ const VariablePromptPanel = ({
   rulePrompts,
   visibleRuleIndices,
   functionsList,
+  allProjectStatuses,
   saveSynthFunctionToRule,
   printRules,
   confirmPreview,
@@ -89,30 +90,53 @@ const VariablePromptPanel = ({
 
         {/* Quick rule tabs for easier switching */}
         <div id="quickRuleTabs" style={{display:'flex', gap:6, overflowX:'auto', padding:'4px 6px', maxWidth:'100%'}}>
-          {visibleRuleIndices.map((idx) => (
-            <button
-              className="btn-secondary"
-              key={idx}
-              onClick={() => setSelectedRuleIndex(idx)}
-              title={(ruleNames[idx] && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || `Rule ${idx+1}`)}
-              style={{
-                padding: '10px 10px',
-                background: selectedRuleIndex === idx ? '#c2c7d1' : '#000000',
-                color: selectedRuleIndex === idx ? '#000000' : '#c2c7d1',
-                border: 'none',
-                borderBottom: selectedRuleIndex === idx ? '3px solid #7dd3fc' : '3px solid transparent',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                whiteSpace: 'nowrap',
-                borderRadius: 6
-              }}
-            >
-              <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <div style={{fontWeight:700}}>{((ruleNames[idx] !== undefined && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || `Rule ${idx+1}`)).slice(0, 28)}</div>
-                <div style={{fontSize:'0.7rem', color:'#9ca3af', marginTop:4}}>{functionsList && functionsList[idx] && (functionsList[idx].ruleId || functionsList[idx].id) ? (functionsList[idx].ruleId || functionsList[idx].id) : ''}</div>
-              </div>
-            </button>
-          ))}
+          {visibleRuleIndices.map((idx) => {
+            // Get projectId for this rule
+            const currentFunction = functionsList && functionsList[idx];
+            const projectId = currentFunction?.id || currentFunction?.ruleId || `rule_${idx}`;
+            const isRunning = allProjectStatuses && allProjectStatuses[projectId] === 'running';
+            
+            return (
+              <button
+                className="btn-secondary"
+                key={idx}
+                onClick={() => setSelectedRuleIndex(idx)}
+                title={(ruleNames[idx] && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || `Rule ${idx+1}`)}
+                style={{
+                  padding: '10px 10px',
+                  background: selectedRuleIndex === idx ? '#c2c7d1' : '#000000',
+                  color: selectedRuleIndex === idx ? '#000000' : '#c2c7d1',
+                  border: 'none',
+                  borderBottom: selectedRuleIndex === idx ? '3px solid #7dd3fc' : '3px solid transparent',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  borderRadius: 6,
+                  position: 'relative'
+                }}
+              >
+                {/* Running indicator */}
+                {isRunning && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#22c55e',
+                    boxShadow: '0 0 4px rgba(34, 197, 94, 0.6)',
+                    animation: 'pulse 2s infinite'
+                  }} title="Project is running" />
+                )}
+                
+                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                  <div style={{fontWeight:700}}>{((ruleNames[idx] !== undefined && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || `Rule ${idx+1}`)).slice(0, 28)}</div>
+                  <div style={{fontSize:'0.7rem', color:'#9ca3af', marginTop:4}}>{functionsList && functionsList[idx] && (functionsList[idx].ruleId || functionsList[idx].id) ? (functionsList[idx].ruleId || functionsList[idx].id) : ''}</div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
