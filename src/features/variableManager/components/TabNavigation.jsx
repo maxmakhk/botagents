@@ -6,7 +6,7 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
     { id: 'ruleChecker', label: 'Rule Checker' },
     { id: 'ruleCategory', label: 'Rule Category' },
     { id: 'manualEdit', label: 'Manual Edit' },
-    { id: 'externalApi', label: 'External API' },
+    { id: 'externalApi', label: 'Components' },
     { id: 'variablePrompt', label: 'Projects' },
     { id: 'logs', label: 'Variable Manager Log' }
   ];

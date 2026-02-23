@@ -82,6 +82,7 @@ export default function useWorkflowGraph() {
 
   // Load workflow data into React Flow nodes/edges
   const loadWorkflowIntoFlow = useCallback((workflow) => {
+    console.log('Loading workflow into flow:', workflow);
     if (!workflow) {
       setRfNodes([]);
       setRfEdges([]);
@@ -90,21 +91,50 @@ export default function useWorkflowGraph() {
 
     try {
       const nodes = Array.isArray(workflow.nodes)
-        ? workflow.nodes.map((n) => ({
-            id: String(n.id),
-            position: { x: Number(n?.position?.x ?? 0), y: Number(n?.position?.y ?? 0) },
-            type: n.type || 'workflowNode',
-            data: {
-              labelText: n.label || n.id,
-              description: n.description || n.type || '',
-              label: n.label || n.id,
-              actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
-              metadata: n.metadata || (n.data && n.data.metadata) || {},
-              backgroundColor: n.backgroundColor || (n.data && n.data.backgroundColor) || undefined,
-              textColor: n.textColor || (n.data && n.data.textColor) || undefined,
-            },
-          }))
+        ? workflow.nodes.map((n) => {
+            const metadata = n.metadata || (n.data && n.data.metadata) || {};
+            const sizeRatio = n?.data?.scale || n?.data?.size || metadata.size || '2:1';
+            const [widthRatio, heightRatio] = String(sizeRatio).split(':').map((v) => parseInt(v, 10) || 1);
+            const fallbackWidth = widthRatio * 96;
+            const fallbackHeight = heightRatio * 96;
+            const width = Number(n?.data?.width) || fallbackWidth;
+            const height = Number(n?.data?.height) || fallbackHeight;
+            const baseStyle = (n.style && typeof n.style === 'object') ? n.style : {};
+            return {
+              id: String(n.id),
+              position: { x: Number(n?.position?.x ?? 0), y: Number(n?.position?.y ?? 0) },
+              type: n.type || 'workflowNode',
+              data: {
+                labelText: n.label || n.id,
+                description: n.description || n.type || '',
+                label: n.label || n.id,
+                actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
+                metadata,
+                backgroundColor: n.backgroundColor || (n.data && n.data.backgroundColor) || undefined,
+                textColor: n.textColor || (n.data && n.data.textColor) || undefined,
+                width,
+                height,
+                scale: sizeRatio,
+              },
+              style: {
+                ...baseStyle,
+                width,
+                height,
+                minHeight: height,
+              },
+            };
+          })
         : [];
+
+      if (nodes.length) {
+        console.log('Loaded workflow nodes (size info):', nodes.map((n) => ({
+          id: n.id,
+          scale: n?.data?.scale,
+          width: n?.data?.width,
+          height: n?.data?.height,
+          metadataSize: n?.data?.metadata?.size,
+        })));
+      }
 
       const nodeIds = new Set(nodes.map((n) => String(n.id)));
       const edges = Array.isArray(workflow.edges)

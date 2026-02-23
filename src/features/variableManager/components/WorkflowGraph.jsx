@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, Handle, Position } from 'reactflow';
+import copperSquareBg from '../../../assets/copper_square_a.jpg';
+import badge2 from '../../../assets/badge_2.png';
+import badge4 from '../../../assets/badge_4.png';
 import 'reactflow/dist/style.css';
 import NodeToolsFloating from './NodeToolsFloating';
 
@@ -20,6 +23,15 @@ const ensureInjectedCss = (cssText) => {
   }
 };
 
+const defaultNodeCss = `.api-node {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.1;
+  text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);
+  transform: translateY(1px);
+}`;
+
 const WorkflowNode = ({ id, data }) => {
   const actions = Array.isArray(data?.actions) ? data.actions : [];
   const onOpenActionRule = data?.onOpenActionRule;
@@ -33,21 +45,37 @@ const WorkflowNode = ({ id, data }) => {
   const isEntryNode = !!(data?.metadata?.sourceRuleId || data?.metadata?.entryForRuleId || String(data?.labelText || '').startsWith('Entry:'));
   const isActive = String(id) === String(activeNodeId);
   
+  // Calculate width and height from component size metadata (format: "width:height" like "3:1", "2:2")
+  // Use pre-calculated values from data if available, otherwise calculate from size ratio
+  let nodeWidth = data?.width || 220;
+  let nodeHeight = data?.height || 64;
+  
+  if (!data?.width && data?.metadata?.size) {
+    const sizeRatio = data.metadata.size;
+    const [widthRatio, heightRatio] = sizeRatio.split(':').map(n => parseInt(n) || 1);
+    nodeWidth = widthRatio * 64;
+    nodeHeight = heightRatio * 64;
+    console.log(`[WorkflowNode ${id}] Calculated size from ratio ${sizeRatio}: ${nodeWidth}x${nodeHeight}px`);
+  }
+  
   const bgColor = data?.backgroundColor || (isEntryNode ? '#fffbeb' : '#ffffff');
   const textColor = data?.textColor || (isEntryNode ? '#92400e' : '#0f172a');
   let containerStyle = {
     position: 'relative',
-    width: 220,
-    padding: 10,
-    background: isActive ? '#fbbf24' : bgColor,
-    color: isActive ? '#1f2937' : textColor,
+    width: nodeWidth,
+    minHeight: nodeHeight,
+    padding: 0,
+    background: bgColor,
+    color: textColor,
     borderRadius: 8,
-    border: isActive ? '2px solid #f59e0b' : (isEntryNode ? '1px solid #fde68a' : undefined),
-    boxShadow: isActive ? '0 0 20px rgba(251, 146, 60, 0.6)' : (isEntryNode ? '0 6px 18px rgba(250,204,21,0.12)' : '0 6px 18px rgba(2,6,23,0.4)'),
+    border: isEntryNode ? '1px solid #fde68a' : undefined,
+    boxShadow: isEntryNode ? '0 6px 18px rgba(250,204,21,0.12)' : '0 6px 18px rgba(2,6,23,0.4)',
+    filter: isActive ? 'brightness(1.5) contrast(1.30)' : undefined,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'stretch',
-    justifyContent: 'center'
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center'
   };
 
   // If API supplied CSS is present, avoid inline background/color/border/boxShadow
@@ -107,8 +135,11 @@ const WorkflowNode = ({ id, data }) => {
     width: 18,
     height: 18,
     borderRadius: 9,
-    border: '2px solid #021827',
-    boxShadow: '0 4px 10px rgba(2,6,23,0.5)'
+    border: 'none',
+    boxShadow: 'none',
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
   };
 
   const imageName = data?.metadata?.image || data?.metadata?.icon;
@@ -118,12 +149,20 @@ const WorkflowNode = ({ id, data }) => {
     const asStr = String(imageName || '').trim();
     imageUrl = asStr.startsWith('http://') || asStr.startsWith('https://') ? asStr : `https://www.maxsolo.co.uk/images/${asStr}`;
   }
+  const fallbackImageUrl = imageUrl || (!cssTextPresent ? copperSquareBg : null);
+  if (fallbackImageUrl) {
+    containerStyle.backgroundImage = `url('${fallbackImageUrl}')`;
+    containerStyle.backgroundSize = '100% 100%';
+    containerStyle.backgroundPosition = 'center';
+    containerStyle.backgroundRepeat = 'no-repeat';
+  }
 
   // Apply CSS from API metadata when present
   const cssText = data?.metadata?.cssStyle;
+  useEffect(() => { ensureInjectedCss(defaultNodeCss); }, []);
   useEffect(() => { if (cssText) ensureInjectedCss(cssText); }, [cssText]);
 
-  const extraClass = cssText ? 'api-node' : '';
+  const extraClass = 'api-node';
   const apiIdClass = data?.metadata?.apiId ? `api-node-${String(data.metadata.apiId).replace(/[^a-z0-9_-]/gi, '')}` : '';
 
   // local state to cycle through a single parameter of input/output signals
@@ -158,7 +197,7 @@ const WorkflowNode = ({ id, data }) => {
   return (
     <div style={containerStyle} className={`entry-btn ${extraClass} ${apiIdClass}`.trim()}>
       {/* lock button + prompt icon top-right */}
-      <div style={{position:'absolute', right:8, top:8, display:'flex', gap:6, flexDirection: 'column'}}>
+      <div style={{position:'absolute', right:2, top:2, display:'flex', gap:2, flexDirection: 'row'}}>
         <button
           title={data?.locked || data?.metadata?.locked ? 'Unlock node' : 'Lock node'}
           onClick={(ev) => { ev.stopPropagation(); try { if (typeof onToggleNodeLock === 'function') onToggleNodeLock(id); } catch(e){} }}
@@ -173,7 +212,7 @@ const WorkflowNode = ({ id, data }) => {
         position={Position.Top}
         style={{
           ...handleBaseStyle,
-          background: isEntryNode ? '#f59e0b' : '#60a5fa',
+          backgroundImage: `url('${badge2}')`,
           transform: 'translateY(-6px)'
         }}
       />
@@ -184,7 +223,7 @@ const WorkflowNode = ({ id, data }) => {
         position={Position.Left}
         style={{
           ...handleBaseStyle,
-          background: isEntryNode ? '#f59e0b' : '#60a5fa',
+          backgroundImage: `url('${badge2}')`,
           transform: 'translateX(-6px)'
         }}
       />
@@ -193,7 +232,7 @@ const WorkflowNode = ({ id, data }) => {
         position={Position.Bottom}
         style={{
           ...handleBaseStyle,
-          background: isEntryNode ? '#92400e' : '#34d399',
+          backgroundImage: `url('${badge4}')`,
           transform: 'translateY(6px)'
         }}
       />
@@ -203,50 +242,14 @@ const WorkflowNode = ({ id, data }) => {
         position={Position.Right}
         style={{
           ...handleBaseStyle,
-          background: isEntryNode ? '#92400e' : '#34d399',
+          backgroundImage: `url('${badge4}')`,
           transform: 'translateX(6px)'
         }}
       />
       <div style={{display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'stretch'}}>
-        {hasIcon && (
-          <div style={{width: 56, display: 'flex', alignItems: 'stretch'}}>
-            <img src={imageUrl} alt="icon" style={{width: 56, height: '100%', objectFit: 'cover', borderRadius: 6}} onError={(e) => { e.target.style.display = 'none'; }} />
-          </div>
-        )}
-        <div style={{textAlign: 'left', flex: 1}}>
+        <div style={{textAlign: 'center', flex: 1, padding: 8}}>
         <div style={{fontWeight:700, fontSize:'1rem'}}>{String(data?.labelText || data?.label || 'Step').split('\n')[0]}</div>
-        <div style={{fontSize: '0.72rem', color: '#6b7280', marginTop: 4}}>ID: {String(id)}</div>
-        {/* Input / Output signal quick view */}
-        <div style={{display:'flex', gap:8, marginTop:8, alignItems:'center'}}>
-          <div style={{display:'flex', gap:6, alignItems:'center'}}>
-            <div style={{fontSize:'0.72rem', color:'#9ca3af'}}>In:</div>
-            {inEntries.length ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); setInParamIdx((s) => (s + 1) % inEntries.length); }}
-                title={inEntries[inParamIdx % inEntries.length][0]}
-                style={{padding:'4px 8px', background:'#0ea5b7', color:'#021827', border:'none', borderRadius:6, cursor:'pointer', fontSize:'0.8rem'}}
-              >
-                {inEntries[inParamIdx % inEntries.length][0]}: {shortVal(inEntries[inParamIdx % inEntries.length][1])}
-              </button>
-            ) : (
-              <div style={{color:'#6b7280', fontSize:'0.85rem'}}>-</div>
-            )}
-          </div>
-          <div style={{display:'flex', gap:6, alignItems:'center'}}>
-            <div style={{fontSize:'0.72rem', color:'#9ca3af'}}>Out:</div>
-            {outEntries.length ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); setOutParamIdx((s) => (s + 1) % outEntries.length); }}
-                title={outEntries[outParamIdx % outEntries.length][0]}
-                style={{padding:'4px 8px', background:'#34d399', color:'#021827', border:'none', borderRadius:6, cursor:'pointer', fontSize:'0.8rem'}}
-              >
-                {outEntries[outParamIdx % outEntries.length][0]}: {shortVal(outEntries[outParamIdx % outEntries.length][1])}
-              </button>
-            ) : (
-              <div style={{color:'#6b7280', fontSize:'0.85rem'}}>-</div>
-            )}
-          </div>
-        </div>
+        <div style={{fontSize: '0.72rem', marginTop: 4}}>ID: {String(id)}</div>
         {((String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId) && (
           <div title={data?.metadata?.ruleId || undefined} style={{fontSize: '0.7rem', color: isEntryNode ? '#92400e' : '#6b7280', marginTop: 6, lineHeight: 1.05, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
             {(String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId)}
@@ -482,7 +485,7 @@ const WorkflowGraph = ({
           onInit={handleInit}
           zoomOnScroll={false}
           panOnScroll={false}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
         >
           <MiniMap />
           <Background />
