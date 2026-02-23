@@ -5,6 +5,8 @@
  */
 
 import { executeWorkflow } from './workflowRunner.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 class ProjectManager {
   constructor() {
@@ -25,6 +27,67 @@ class ProjectManager {
     
     // Execution loop interval
     this.executionInterval = null;
+  }
+
+  /**
+   * Load projects from runs_store.json (if exists)
+   */
+  async loadFromDisk(filePath) {
+    try {
+      const fp = filePath || path.join(process.cwd(), 'runs_store.json');
+      const raw = await fs.readFile(fp, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.projects)) {
+        for (const p of parsed.projects) {
+          // Restore minimal project shape
+          this.projects.set(p.projectId, {
+            nodes: p.nodes || [],
+            edges: p.edges || [],
+            status: p.status || 'stopped',
+            storeVars: p.storeVars || {},
+            activeNodeId: p.activeNodeId || null,
+            activeEdgeId: p.activeEdgeId || null,
+            apis: p.apis || [],
+            stepDelay: p.stepDelay || 1000
+          });
+        }
+      }
+      console.log(`[ProjectManager] Loaded ${this.projects.size} projects from ${filePath || 'runs_store.json'}`);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        console.log('[ProjectManager] No runs_store.json found, starting fresh');
+        return;
+      }
+      console.error('[ProjectManager] Error loading runs_store.json:', e);
+    }
+  }
+
+  /**
+   * Save projects to runs_store.json (only minimal necessary state)
+   */
+  async saveToDisk(filePath) {
+    try {
+      const fp = filePath || path.join(process.cwd(), 'runs_store.json');
+      const projects = [];
+      for (const [projectId, p] of this.projects.entries()) {
+        projects.push({
+          projectId,
+          nodes: p.nodes || [],
+          edges: p.edges || [],
+          status: p.status || 'stopped',
+          storeVars: p.storeVars || {},
+          activeNodeId: p.activeNodeId || null,
+          activeEdgeId: p.activeEdgeId || null,
+          apis: p.apis || [],
+          stepDelay: p.stepDelay || 1000
+        });
+      }
+      const out = { savedAt: new Date().toISOString(), projects };
+      await fs.writeFile(fp, JSON.stringify(out, null, 2), 'utf8');
+      console.log(`[ProjectManager] Saved ${projects.length} projects to ${fp}`);
+    } catch (e) {
+      console.error('[ProjectManager] Error saving runs_store.json:', e);
+    }
   }
 
   /**

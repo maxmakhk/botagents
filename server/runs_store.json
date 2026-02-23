@@ -1,108 +1,287 @@
 {
-  "runs": [
+  "savedAt": "2026-02-22T23:00:40.008Z",
+  "projects": [
     {
-      "runId": "run_3d4a1a8d-fb48-4210-a5a2-081872c0ad50",
-      "projectId": "ui_1771636694454",
-      "status": "stopped",
-      "startedAt": "2026-02-21T01:18:14.456Z",
-      "currentNodeId": "api_1771508531717",
-      "lastHeartbeat": "2026-02-21T01:20:10.048Z"
-    },
-    {
-      "runId": "run_b7157c1d-a743-4549-aaa9-c174fdbba3ba",
-      "projectId": "ui_1771636817403",
-      "status": "completed",
-      "startedAt": "2026-02-21T01:20:17.406Z",
-      "currentNodeId": "node_1771508538273",
-      "lastHeartbeat": "2026-02-21T01:20:30.492Z"
-    },
-    {
-      "runId": "run_a684c47d-16f1-4385-b930-8c8e02045c2c",
-      "projectId": "ui_1771636834472",
-      "status": "stopped",
-      "startedAt": "2026-02-21T01:20:34.473Z",
-      "currentNodeId": "step_0",
-      "lastHeartbeat": "2026-02-21T01:21:34.215Z"
-    },
-    {
-      "runId": "run_6b519824-3b6b-4af5-b495-5a3a540f1d77",
-      "projectId": "ui_1771637003109",
-      "status": "stopped",
-      "startedAt": "2026-02-21T01:23:23.110Z",
-      "currentNodeId": "api_1771508531717",
-      "lastHeartbeat": "2026-02-21T01:25:24.480Z"
-    },
-    {
-      "runId": "run_8a15e5a9-2a29-4ee4-b191-f14b775bb094",
       "projectId": "rule_1770846786680_3m5ujn",
+      "nodes": [
+        {
+          "id": "step_0",
+          "position": {
+            "x": 20,
+            "y": 20
+          },
+          "type": "action",
+          "data": {
+            "labelText": "Create a new Node",
+            "description": "action",
+            "label": "Create a new Node",
+            "actions": [],
+            "metadata": {
+              "stepNumber": 0,
+              "loopType": "filter",
+              "parallelCount": 1,
+              "condition": "if (!datalist)"
+            }
+          },
+          "width": 240,
+          "height": 94
+        },
+        {
+          "id": "api_1771508531717",
+          "position": {
+            "x": 340,
+            "y": 20
+          },
+          "type": "api",
+          "data": {
+            "labelText": "Connect the new Node to the process",
+            "description": "api",
+            "label": "Connect the new Node to the process",
+            "actions": [],
+            "metadata": {
+              "cssStyle": null,
+              "apiName": "show Button",
+              "image": null,
+              "apiId": "E5tInoIhMDck4CQq8Idt",
+              "apiUrl": null,
+              "tags": [
+                "Show Button",
+                "Output View"
+              ],
+              "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n"
+            }
+          },
+          "width": 240,
+          "height": 118
+        },
+        {
+          "id": "node_1771508538273",
+          "position": {
+            "x": 660,
+            "y": 20
+          },
+          "type": "action",
+          "data": {
+            "labelText": "Make the process a loop",
+            "description": "action",
+            "label": "Make the process a loop",
+            "actions": [],
+            "metadata": {}
+          },
+          "width": 240,
+          "height": 94
+        },
+        {
+          "id": "node_1771633067771",
+          "position": {
+            "x": 980,
+            "y": 20
+          },
+          "type": "action",
+          "data": {
+            "labelText": "Task Checker",
+            "description": "Check all the tasks completed",
+            "label": "Task Checker",
+            "actions": [],
+            "metadata": {}
+          },
+          "width": 244,
+          "height": 97
+        }
+      ],
+      "edges": [
+        {
+          "id": "reactflow__edge-step_0-api_1771508531717",
+          "source": "step_0",
+          "target": "api_1771508531717",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-api_1771508531717-node_1771508538273",
+          "source": "api_1771508531717",
+          "target": "node_1771508538273",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-node_1771508538273right-node_1771633067771left",
+          "source": "node_1771508538273",
+          "target": "node_1771633067771",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-node_1771633067771right-step_0left",
+          "source": "node_1771633067771",
+          "target": "step_0",
+          "label": ""
+        }
+      ],
       "status": "stopped",
-      "startedAt": "2026-02-21T01:28:33.655Z",
-      "currentNodeId": "step_0",
-      "lastHeartbeat": "2026-02-21T01:29:18.336Z"
-    },
-    {
-      "runId": "run_6e62e3f5-7118-4ede-90ac-3aafd765bc75",
-      "projectId": "rule_1770844625829_aepqh3",
-      "status": "stopped",
-      "startedAt": "2026-02-21T10:43:07.897Z",
-      "currentNodeId": "node_1771605504219",
-      "lastHeartbeat": "2026-02-21T10:45:01.312Z"
-    },
-    {
-      "runId": "run_d928d617-17f4-4af6-8465-3e4676a152bb",
-      "projectId": "rule_1770846786680_33jhni",
-      "status": "completed",
-      "startedAt": "2026-02-21T10:46:08.698Z",
-      "currentNodeId": "j0oy9y_7",
-      "lastHeartbeat": "2026-02-21T10:46:17.542Z"
-    },
-    {
-      "runId": "run_abe9b947-4f00-4ea7-a925-9942df250708",
-      "projectId": "rule_1770846786680_33jhni",
-      "status": "completed",
-      "startedAt": "2026-02-21T10:46:26.714Z",
-      "currentNodeId": "j0oy9y_7",
-      "lastHeartbeat": "2026-02-21T10:46:34.175Z"
-    },
-    {
-      "runId": "run_d2e93d38-b438-405e-8748-769d2519b626",
-      "projectId": "rule_1770846786680_33jhni",
-      "status": "completed",
-      "startedAt": "2026-02-21T11:15:17.752Z",
-      "currentNodeId": "j0oy9y_7",
-      "lastHeartbeat": "2026-02-21T11:15:25.578Z"
-    },
-    {
-      "runId": "run_8bcf6150-3d34-4176-b2f6-fad618b71680",
-      "projectId": "rule_1770846786680_33jhni",
-      "status": "completed",
-      "startedAt": "2026-02-21T11:15:34.311Z",
-      "currentNodeId": "j0oy9y_7",
-      "lastHeartbeat": "2026-02-21T11:15:42.660Z"
-    },
-    {
-      "runId": "run_a2fbf6ea-1a80-469e-b374-4a739f9ad1ab",
-      "projectId": "rule_1770846786680_33jhni",
-      "status": "completed",
-      "startedAt": "2026-02-21T11:15:50.108Z",
-      "currentNodeId": "j0oy9y_8",
-      "lastHeartbeat": "2026-02-21T11:16:01.140Z"
-    },
-    {
-      "runId": "run_d6dbedca-dd39-4f2e-99dd-2317d5eaa795",
-      "projectId": "rule_1770846786680_3m5ujn",
-      "status": "stopped",
-      "startedAt": "2026-02-21T11:20:37.777Z",
-      "currentNodeId": "api_1771508531717",
-      "lastHeartbeat": "2026-02-21T11:23:00.883Z"
-    },
-    {
-      "runId": "run_ab9905c3-bd53-4f88-8836-c18853356d4d",
-      "projectId": "rule_1770846786680_3m5ujn",
-      "status": "running",
-      "startedAt": "2026-02-21T11:38:29.869Z",
-      "currentNodeId": "step_0",
-      "lastHeartbeat": "2026-02-21T12:02:34.027Z"
+      "storeVars": {},
+      "activeNodeId": null,
+      "activeEdgeId": null,
+      "apis": [
+        {
+          "id": "E5tInoIhMDck4CQq8Idt",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495135,
+            "nanoseconds": 814000000
+          },
+          "tags": [
+            "Show Button",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": ""
+          },
+          "name": "show Button",
+          "url": "",
+          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
+          "lastPrompt": "",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539639,
+            "nanoseconds": 249000000
+          }
+        },
+        {
+          "id": "zJoNOauAnOf2nlglnlkf",
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771507422,
+            "nanoseconds": 804000000
+          },
+          "lastPrompt": "",
+          "name": "show Text",
+          "url": "",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495123,
+            "nanoseconds": 317000000
+          },
+          "tags": [
+            "Show Text",
+            "Output View"
+          ],
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg"
+          }
+        },
+        {
+          "id": "UNqCOI0lbGdZagC0kra5",
+          "url": "",
+          "name": "show Image",
+          "lastPrompt": "",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771509269,
+            "nanoseconds": 912000000
+          },
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
+          "tags": [
+            "show Image",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": "sdfsdf"
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495005,
+            "nanoseconds": 117000000
+          }
+        },
+        {
+          "id": "EqR1uSyCMk59JYM86lSw",
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771457802,
+            "nanoseconds": 351000000
+          },
+          "function": "",
+          "name": "xAI(Ram)",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "tags": [
+            "world",
+            "information"
+          ],
+          "metadata": {
+            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
+            "image": "img_6996397284cb31.64842724.jpg"
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218220,
+            "nanoseconds": 600000000
+          }
+        },
+        {
+          "id": "0FnnIKiR0PxZlv4MT9nm",
+          "tags": [
+            "openweather"
+          ],
+          "metadata": {
+            "cssStyle": ".api-node {\n  background: linear-gradient(90deg, #06b6d4, #6366f1);\n  color: green;\n  border-radius: 0px;\n  padding: 6px;\n  /* 新增立體邊框效果：多層 box-shadow 模擬高光、陰影和內凹 */\n  box-shadow: \n    0 2px 4px rgba(0,0,0,0.3),      /* 底部外陰影，增加浮起感 */\n    0 -1px 2px rgba(255,255,255,0.5), /* 頂部高光 */\n    2px 0 2px rgba(0,0,0,0.2),       /* 右側陰影 */\n    -2px 0 2px rgba(255,255,255,0.4), /* 左側高光 */\n    inset 0 1px 0 rgba(255,255,255,0.6),   /* 內部頂部高光 */\n    inset 0 -1px 0 rgba(0,0,0,0.2);        /* 內部底部陰影 */\n}",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69963a5b3f1718.65509345.jpg"
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770215450,
+            "nanoseconds": 531000000
+          },
+          "name": "OpenWeather",
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "lastPrompt": "",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771515713,
+            "nanoseconds": 663000000
+          },
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n"
+        },
+        {
+          "id": "rACQtq73fn2l4o7LHcQW",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770213924,
+            "nanoseconds": 893000000
+          },
+          "metadata": {
+            "cssStyle": ""
+          },
+          "tags": [
+            "missioncheck"
+          ],
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539114,
+            "nanoseconds": 225000000
+          },
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
+          "name": "Mission Check"
+        },
+        {
+          "id": "jJjkD9yPzcKD21Jljtqg",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770212884,
+            "nanoseconds": 535000000
+          },
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "name": "xAI",
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218230,
+            "nanoseconds": 106000000
+          }
+        }
+      ],
+      "stepDelay": 1000
     }
   ]
 }

@@ -9,6 +9,7 @@ import { runWorkflow } from './workflowRunner.js';
 import runManager from './runManager.js';
 import { processPrompt } from './workflowPromptProcessor.js';
 import projectManager from './projectManager.js';
+import path from 'path';
 
 const app = express();
 const server = http.createServer(app);
@@ -78,6 +79,34 @@ db.exec(`
 app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
+
+// Load persisted runs_store.json (if present) before initializing runtime
+(async () => {
+  try {
+    const runsPath = path.join(process.cwd(), 'runs_store.json');
+    await projectManager.loadFromDisk(runsPath);
+  } catch (e) {
+    console.warn('Error loading runs_store.json at startup', e);
+  }
+
+  // Initialize project manager with Socket.IO after loading
+  projectManager.init(io);
+
+  // Save on graceful shutdown
+  const saveAndExit = async () => {
+    try {
+      const runsPath = path.join(process.cwd(), 'runs_store.json');
+      await projectManager.saveToDisk(runsPath);
+      console.log('Saved runs_store.json on shutdown');
+    } catch (e) {
+      console.error('Error saving runs_store.json on shutdown', e);
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', saveAndExit);
+  process.on('SIGTERM', saveAndExit);
+})();
 
 // ------------------ Rule Categories API ----------------------------------
 app.get('/api/rule-categories', (req, res) => {
