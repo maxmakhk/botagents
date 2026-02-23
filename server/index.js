@@ -416,6 +416,11 @@ io.on('connection', (socket) => {
   // Register client with ProjectManager
   projectManager.registerClient(socket.id, socket);
 
+  // Send all project statuses immediately on connect
+  const allStatuses = projectManager.getAllProjectStatuses();
+  socket.emit('all_project_statuses', allStatuses);
+  console.log(`[Socket] Sent all project statuses to ${socket.id}:`, allStatuses);
+
   // Client wants to watch a project
   socket.on('watch_project', (data) => {
     const { projectId } = data || {};
@@ -618,6 +623,13 @@ app.get('/api/run/status', (req, res) => {
       return res.json(s || {});
     }
     res.status(400).json({ error: 'projectId or runId required' });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.get('/api/projects/statuses', (req, res) => {
+  try {
+    const statuses = projectManager.getAllProjectStatuses();
+    res.json(statuses);
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 

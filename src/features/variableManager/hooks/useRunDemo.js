@@ -16,6 +16,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [storeVars, setStoreVars] = useState({});
+  const [allProjectStatuses, setAllProjectStatuses] = useState({}); // projectId -> 'running' | 'stopped'
   const socketRef = useRef(null);
   const runIdRef = useRef(null);
   const [promptProcessing, setPromptProcessing] = useState(false);
@@ -37,6 +38,35 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       if (currentProjectId) {
         console.log(`[ProjectSync] Watching project on connect: ${currentProjectId}`);
         socketRef.current.emit('watch_project', { projectId: currentProjectId });
+      }
+    });
+
+    // Receive ALL project statuses on connection
+    socketRef.current.on('all_project_statuses', (statuses) => {
+      console.log('📋 [CLIENT] Received all project statuses:', statuses);
+      setAllProjectStatuses(statuses || {});
+    });
+
+    // Receive GLOBAL project status changes (sent to all clients)
+    socketRef.current.on('project_status_change', (data) => {
+      console.log('🔔 [CLIENT] Project status changed:', data);
+      const { projectId: changedProjectId, status } = data || {};
+      if (changedProjectId) {
+        setAllProjectStatuses((prev) => ({
+          ...prev,
+          [changedProjectId]: status
+        }));
+        
+        // Also update runActive if this is the current project
+        if (changedProjectId === currentProjectId) {
+          if (status === 'running') {
+            console.log('🟢 [CLIENT STATUS CHANGE] Current project running, setting runActive to TRUE');
+            setRunActive(true);
+          } else if (status === 'stopped') {
+            console.log('🔴 [CLIENT STATUS CHANGE] Current project stopped, setting runActive to FALSE');
+            setRunActive(false);
+          }
+        }
       }
     });
 
@@ -346,5 +376,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     promptProcessing,
     promptStatus,
     setProjectId,
+    allProjectStatuses, // Export global project statuses
   };
 }

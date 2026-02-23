@@ -242,7 +242,8 @@ class ProjectManager {
 
     project.status = status;
 
-    this.broadcastToProject(projectId, 'project_status', {
+    // Broadcast to ALL clients, not just watchers
+    this.broadcastToAllClients('project_status_change', {
       projectId,
       status
     });
@@ -263,6 +264,19 @@ class ProjectManager {
       projectId,
       ...updates
     });
+  }
+
+  /**
+   * Broadcast event to ALL connected clients (regardless of what they're watching)
+   */
+  broadcastToAllClients(event, data) {
+    console.log(`[ProjectManager] Broadcasting ${event} to ALL ${this.clients.size} clients:`, data);
+
+    for (const [clientId, client] of this.clients.entries()) {
+      if (client && client.socket) {
+        client.socket.emit(event, data);
+      }
+    }
   }
 
   /**
@@ -293,6 +307,17 @@ class ProjectManager {
    */
   getProject(projectId) {
     return this.projects.get(projectId);
+  }
+
+  /**
+   * Get all project statuses (projectId -> status)
+   */
+  getAllProjectStatuses() {
+    const statuses = {};
+    for (const [projectId, project] of this.projects.entries()) {
+      statuses[projectId] = project.status || 'stopped';
+    }
+    return statuses;
   }
 
   /**
@@ -375,18 +400,16 @@ class ProjectManager {
       // Clean up running state
       this.runningProjects.delete(projectId);
       
-      // Set project status to stopped
+      // Set project status to stopped (broadcasts to ALL clients)
       const currentProject = this.projects.get(projectId);
       if (currentProject) {
-        currentProject.status = 'stopped';
         currentProject.activeNodeId = null;
         currentProject.activeEdgeId = null;
         
-        this.broadcastToProject(projectId, 'project_status', {
-          projectId,
-          status: 'stopped'
-        });
+        // Use setProjectStatus to broadcast to all clients
+        this.setProjectStatus(projectId, 'stopped');
         
+        // Also broadcast workflow_complete to watchers
         this.broadcastToProject(projectId, 'workflow_complete', { projectId });
       }
     }
@@ -400,23 +423,14 @@ class ProjectManager {
     
     if (project.status === 'running') {
       console.log(`[ProjectManager] Project ${projectId} already running, re-broadcasting status`);
-      // Still broadcast to ensure client gets the status
-      this.broadcastToProject(projectId, 'project_status', {
-        projectId,
-        status: 'running'
-      });
+      // Still broadcast to ensure all clients get the status
+      this.setProjectStatus(projectId, 'running');
       return;
     }
 
-    project.status = 'running';
-    console.log(`[ProjectManager] Project ${projectId} status set to running`);
-
-    this.broadcastToProject(projectId, 'project_status', {
-      projectId,
-      status: 'running'
-    });
-    
-    console.log(`[ProjectManager] Broadcasted project_status { status: 'running' } to watchers`);
+    // Use setProjectStatus to broadcast to all clients
+    this.setProjectStatus(projectId, 'running');
+    console.log(`[ProjectManager] Project ${projectId} status set to running and broadcasted to all clients`);
   }
 
   /**
@@ -426,19 +440,15 @@ class ProjectManager {
     const project = this.projects.get(projectId);
     if (!project) return;
 
-    project.status = 'stopped';
-    console.log(`[ProjectManager] Project ${projectId} status set to stopped`);
-
     // Mark for abort
     const runInfo = this.runningProjects.get(projectId);
     if (runInfo) {
       runInfo.abort = true;
     }
 
-    this.broadcastToProject(projectId, 'project_status', {
-      projectId,
-      status: 'stopped'
-    });
+    // Use setProjectStatus to broadcast to all clients
+    this.setProjectStatus(projectId, 'stopped');
+    console.log(`[ProjectManager] Project ${projectId} stopped and broadcasted to all clients`);
   }
 }
 
