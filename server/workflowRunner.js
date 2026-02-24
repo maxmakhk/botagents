@@ -43,6 +43,7 @@ async function runLoop({
   checkAbort,
   makeCtx
 }) {
+  const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
   const findStartNode = () => {
     const nodesArr = getNodes();
@@ -142,14 +143,20 @@ async function runLoop({
 
     const resolveApiFnFromApis = (node) => {
       try {
-        if (!apis || !Array.isArray(apis) || apis.length === 0) return null;
+        const apiList = getApis();
+
+        if (!apiList || !Array.isArray(apiList) || apiList.length === 0) return null;
         const rawLabel = String(node?.data?.label || node?.label || node?.data?.labelText || '').trim();
         const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
-        if (!normalized) return null;
-        for (const a of apis) {
+        if (!normalized){
+          console.warn(`Node ${node.id} has no label to resolve API function from`);
+          return null;
+        }
+        for (const a of apiList) {
           const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
           if (!cand) continue;
           if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
+            console.log(`Resolved API function for node ${node.id} using label "${rawLabel}" to API "${a.name || a.label || a.displayName || a.id}"`);
             return a?.function || a?.fnString || a?.functionBody || null;
           }
         }

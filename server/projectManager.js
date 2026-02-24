@@ -389,7 +389,7 @@ class ProjectManager {
         // pass getter functions so executeWorkflow can read latest nodes/edges during run
         nodes: () => this.projects.get(projectId)?.nodes || [],
         edges: () => this.projects.get(projectId)?.edges || [],
-        apis: project.apis || [],
+        apis: () => this.projects.get(projectId)?.apis || [],
         stepDelay: project.stepDelay || 1000,
         initialStoreVars: project.storeVars || {},
         broadcastCallback: (event, data) => {

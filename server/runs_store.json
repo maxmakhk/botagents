@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-02-24T13:05:37.524Z",
+  "savedAt": "2026-02-24T13:13:00.243Z",
   "projects": [
     {
       "projectId": "rule_1770846786680_3m5ujn",
@@ -1293,7 +1293,7 @@
               "apiName": "Waiting",
               "apiUrl": null,
               "image": "https://maxsolo.co.uk/images/uploads/img_699d77b1625ed2.70755447.jpg",
-              "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
+              "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 2.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
               "cssStyle": null,
               "size": "1:1",
               "tags": [
@@ -1334,11 +1334,11 @@
       "status": "running",
       "storeVars": {
         "node_api_1771926306270_error": "waitResolvers is not defined",
-        "waiting_wait": true,
+        "waiting_wait": false,
         "node_api_1771926377629_error": "await is only valid in async functions and the top level bodies of modules",
         "node_api_1771927445374_error": "await is only valid in async functions and the top level bodies of modules",
         "node_api_1771926306270_status": "waiting_user_input",
-        "node_api_1771926306270_wait_start": 1771938291931
+        "node_api_1771926306270_wait_start": 1771938339170
       },
       "activeNodeId": "api_1771927445374",
       "activeEdgeId": null,
@@ -1346,7 +1346,7 @@
         {
           "id": "CKrZDm2g9Vt1gNId0Gt1",
           "name": "Waiting",
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 5.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
+          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771926544,
