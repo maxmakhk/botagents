@@ -405,7 +405,7 @@ export const migrationExample = {
   before: {
     type: 'api',
     data: {
-      labelText: 'API: WeatherService',
+      labelText: 'WeatherService',
       url: 'https://api.weatherapi.com/v1.1/current.json?key=KEY&q=London',
       varName: 'weather',
     },

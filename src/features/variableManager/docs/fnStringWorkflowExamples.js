@@ -329,7 +329,7 @@ export const mixedWorkflow = {
       type: 'api',
       position: { x: 260, y: 100 },
       data: {
-        labelText: 'API: JSONPlaceholder',
+        labelText: 'JSONPlaceholder',
         url: 'https://jsonplaceholder.typicode.com/todos/1',
         varName: 'todo',
       },

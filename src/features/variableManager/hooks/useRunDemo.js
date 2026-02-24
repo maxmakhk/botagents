@@ -16,6 +16,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [storeVars, setStoreVars] = useState({});
+  const [globalStoreVars, setGlobalStoreVars] = useState({});
   const [allProjectStatuses, setAllProjectStatuses] = useState({}); // projectId -> 'running' | 'stopped'
   const socketRef = useRef(null);
   const runIdRef = useRef(null);
@@ -84,11 +85,13 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
     // Receive execution STATE updates (只更新執行細節，不影響按鈕)
     socketRef.current.on('execution_state', (data) => {
-      console.log('⚙️ [CLIENT EXECUTION UPDATE] Received execution_state:', data);
-      
-      if (data.activeNodeId !== undefined) setActiveNodeId(data.activeNodeId);
-      if (data.activeEdgeId !== undefined) setActiveEdgeId(data.activeEdgeId);
-      if (data.storeVars) setStoreVars(data.storeVars);
+      try {
+        console.log('⚙️ [CLIENT EXECUTION UPDATE] Received execution_state:', data);
+        if (data.activeNodeId !== undefined) setActiveNodeId(data.activeNodeId);
+        if (data.activeEdgeId !== undefined) setActiveEdgeId(data.activeEdgeId);
+        if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));
+        if (data.globalStoreVars) setGlobalStoreVars((prev) => ({ ...(prev || {}), ...(data.globalStoreVars || {}) }));
+      } catch (e) { /* ignore malformed */ }
     });
 
     socketRef.current.on('workflow_updated', (data) => {
@@ -106,7 +109,20 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     });
 
     socketRef.current.on('store_vars_update', (data) => {
-      setStoreVars(data);
+      try {
+        // Always merge incoming storeVars so the client accumulates variables across projects
+        const incoming = data && data.storeVars ? data.storeVars : data || {};
+        setStoreVars((prev) => ({ ...(prev || {}), ...(incoming || {}) }));
+      } catch (e) { /* ignore malformed payloads */ }
+    });
+
+    // Global store vars updates (single-layer global store)
+    socketRef.current.on('global_store_vars_update', (data) => {
+      try {
+        // server sends { globalStoreVars: {...} }, extract the inner object
+        const incoming = (data && data.globalStoreVars) ? data.globalStoreVars : (data || {});
+        setGlobalStoreVars(incoming);
+      } catch (e) { /* ignore malformed payloads */ }
     });
 
     socketRef.current.on('node_wait', (data) => {
@@ -156,7 +172,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       if (data.status === 'running') setRunActive(true);
       else setRunActive(false);
       if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
-      if (data.storeVars) setStoreVars(data.storeVars);
+      if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));
     });
 
     // Prompt pipeline progress events
@@ -235,7 +251,8 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
           socketRef.current?.emit('run.subscribe', { runId: data.runId });
           if (data.status === 'running') setRunActive(true);
           if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
-          if (data.storeVars) setStoreVars(data.storeVars);
+          if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));
+          if (data.globalStoreVars) setGlobalStoreVars((prev) => ({ ...(prev || {}), ...(data.globalStoreVars || {}) }));
         }
       } catch (e) { /* ignore */ }
     })();
@@ -244,7 +261,15 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   // Wrapper for manual UI edits to storeVars so they sync with the backend
   const updateStoreVars = (newVarsOrUpdater) => {
     setStoreVars((prev) => {
-      const nextVars = typeof newVarsOrUpdater === 'function' ? newVarsOrUpdater(prev) : newVarsOrUpdater;
+      let nextVars;
+      if (typeof newVarsOrUpdater === 'function') {
+        nextVars = newVarsOrUpdater(prev);
+      } else if (newVarsOrUpdater && typeof newVarsOrUpdater === 'object') {
+        // merge incoming object into previous vars
+        nextVars = { ...(prev || {}), ...newVarsOrUpdater };
+      } else {
+        nextVars = newVarsOrUpdater;
+      }
       // Sync manual changes to the backend runner if it's currently active
       if (socketRef.current) {
         socketRef.current.emit('update_store_vars', nextVars);
@@ -377,5 +402,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     promptStatus,
     setProjectId,
     allProjectStatuses, // Export global project statuses
+    globalStoreVars,
   };
 }

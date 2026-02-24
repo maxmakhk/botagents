@@ -248,8 +248,11 @@ const WorkflowNode = ({ id, data }) => {
       />
       <div style={{display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'stretch'}}>
         <div style={{textAlign: 'center', flex: 1, padding: 8}}>
-        <div style={{fontWeight:700, fontSize:'1rem'}}>{String(data?.labelText || data?.label || 'Step').split('\n')[0]}</div>
-        <div style={{fontSize: '0.72rem', marginTop: 4}}>ID: {String(id)}</div>
+          {(() => {
+            const rawLabel = String(data?.labelText || data?.label || 'Step').split('\n')[0] || '';
+            const displayLabel = rawLabel.replace(/^API:\s*/i, '').trim();
+            return <div style={{fontWeight:700, fontSize:'1rem'}}>{displayLabel}</div>;
+          })()}
         {((String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId) && (
           <div title={data?.metadata?.ruleId || undefined} style={{fontSize: '0.7rem', color: isEntryNode ? '#92400e' : '#6b7280', marginTop: 6, lineHeight: 1.05, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
             {(String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId)}
@@ -487,7 +490,7 @@ const WorkflowGraph = ({
           panOnScroll={false}
           defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
         >
-          <MiniMap />
+          <MiniMap style={{ left: 10, right: 'auto', bottom: 10 }} />
           <Background />
         </ReactFlow>
       </div>

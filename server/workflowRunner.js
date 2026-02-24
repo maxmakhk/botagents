@@ -41,7 +41,8 @@ async function runLoop({
   broadcastLog,
   broadcastState,
   checkAbort,
-  makeCtx
+  makeCtx,
+  projectId = null
 }) {
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
@@ -67,7 +68,9 @@ async function runLoop({
 
   const getFromStoreNorm = (name, path) => {
     const key = String(name || '').toLowerCase().replace(/\./g, '_');
-    const base = storeVars[key];
+    // check namespaced (project-scoped) key first
+    const namespacedKey = projectId ? `${projectId}__${key}` : null;
+    const base = (namespacedKey && Object.prototype.hasOwnProperty.call(storeVars, namespacedKey)) ? storeVars[namespacedKey] : storeVars[key];
     if (base == null) return undefined;
     if (!path) return base;
     const parts = String(path).split('.');
@@ -79,11 +82,44 @@ async function runLoop({
     return cur;
   };
 
+  const isTransientKey = (k) => {
+    if (!k) return false;
+    const s = String(k).toLowerCase();
+    return s === 'waiting_wait' || s.startsWith('node_');
+  };
+
+  //const GLOBAL_KEYS = new Set(['imageurl','outputviewdialogue1','outputviewdialogue2','outputviewdialogue3','outputviewdialogue4']);
+  const getVar = (k) => {
+    console.log(`[getVar] ${k}`, projectManager.getGlobalVars());
+    try {
+      const key = normalizeVarKey(k);
+      const global = projectManager.getGlobalVars() || {};
+      if (Object.prototype.hasOwnProperty.call(global, key)) return global[key];
+      if (Object.prototype.hasOwnProperty.call(storeVars, key)) return storeVars[key];
+      return undefined;
+    } catch (e) { return undefined; }
+  };
+  
   const setVar = (name, value) => {
     const key = normalizeVarKey(name);
+
+    projectManager.setGlobalVar(key, value);
+    //broadcastLog('store_vars_update', { storeVars, projectId });
+    //broadcastState({ storeVars, projectId });
+    // transient keys (waiting/node_*) remain only in local storeVars
+    if (projectId && isTransientKey(key)) {
+      const namespaced = `${projectId}__${key}`;
+      storeVars[namespaced] = value;
+      // broadcast transient updates to project watchers
+      //broadcastLog('store_vars_update', { storeVars, projectId });
+      //broadcastState({ storeVars, projectId });
+      return;
+    }
+
+    // default: write into local storeVars
     storeVars[key] = value;
-    broadcastLog('store_vars_update', { storeVars });
-    broadcastState({ storeVars });
+    broadcastLog('store_vars_update', { storeVars, projectId });
+    broadcastState({ storeVars, projectId });
   };
 
   const evaluateEdgeCondition = (edgeLabel) => {
@@ -127,6 +163,29 @@ async function runLoop({
   };
 
   const nodesArrHolder = { getNodes, getEdges };
+
+  // Wrap makeCtx output with a Proxy so `ctx.someKey = value` can route to setVar for GLOBAL_KEYS
+  const proxiedMakeCtx = (currentNode) => {
+    const base = makeCtx(currentNode);
+    const handler = {
+      set(target, prop, value) {
+        try {
+          const p = String(prop || '');
+          const key = normalizeVarKey(p);
+          const isGlobal = GLOBAL_KEYS.has(key);
+          console.log(`[Proxy] ctx assignment: prop=${p}, key=${key}, value=`, value, `isGlobal=${isGlobal}`);
+          if (isGlobal) {
+            // route to runner setVar (will write to projectManager for GLOBAL_KEYS)
+            setVar(p, value);
+            return true;
+          }
+        } catch (e) { /* ignore */ }
+        // default behavior
+        return Reflect.set(target, prop, value);
+      }
+    };
+    return new Proxy(base, handler);
+  };
 
   const runNodeById = async (nodeId) => {
     if (checkAbort && checkAbort()) return;
@@ -180,6 +239,7 @@ async function runLoop({
             // compatibility aliases
             const storeVars = ctx.storeVars;
             const setVar = ctx.setVar;
+            const getVar = ctx.getVar;
             const node = ctx.node;
             const apis = ctx.apis;
             const fetch = ctx.fetch;
@@ -201,14 +261,28 @@ async function runLoop({
         const startTs = Date.now();
         console.log(`Node ${currentNode.id} fn start - ${new Date(startTs).toISOString()}`);
         broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn start', new Date(startTs).toISOString()] });
-        await wrapper(makeCtx(currentNode));
+        // Log ctx snapshot before execution
+        try {
+          const baseCtx = makeCtx(currentNode);
+          //console.log(`[Runner] ctx keys:`, Object.keys(baseCtx));
+          //console.log(`[Runner] ctx.storeVars keys:`, Object.keys(baseCtx.storeVars || {}));
+          //console.log(`[Runner] ctx.globalStoreVars keys:`, Object.keys(baseCtx.globalStoreVars || {}));
+        } catch (e) { /* ignore logging errors */ }
+
+        await wrapper(proxiedMakeCtx(currentNode));
+
+        // Log store snapshots after execution
+        try {
+          //console.log(`[Runner] after node ${currentNode.id} storeVars keys:`, Object.keys(storeVars || {}));
+          //console.log('[Runner] after node globalStoreVars keys:', Object.keys(projectManager.getGlobalVars() || {}));
+        } catch (e) { /* ignore */ }
         const endTs = Date.now();
         const dur = endTs - startTs;
         console.log(`Node ${currentNode.id} fn end - ${new Date(endTs).toISOString()} (duration ${dur}ms)`);
         broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn end', new Date(endTs).toISOString(), dur] });
 
         // Check wait
-        const isWaiting = storeVars['waiting_wait'];
+        const isWaiting = getFromStoreNorm('waiting_wait');
         if (isWaiting) {
           setVar(`node_${currentNode.id}_status`, 'waiting_user_input');
           setVar(`node_${currentNode.id}_wait_start`, Date.now());
@@ -305,10 +379,28 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
     node: currentNode,
     storeVars: storeVars,
-    setVar: (n, v) => { storeVars[normalizeVarKey(n)] = v; broadcastLog('store_vars_update', { storeVars }); broadcastState({ storeVars }); },
+    globalStoreVars: projectManager.getGlobalVars(),
+    setVar: (n, v) => {
+      // use runner-level setVar so namespacing and broadcasts are consistent
+      setVar(n, v);
+    },
+    // helper to read vars: checks global store first, then local storeVars
+    getVar: (k) => {
+      console.log(`[makeCtx.getVar] getVar called with key: ${k}`, projectManager.getGlobalVars());
+      try {
+        const key = normalizeVarKey(k);
+        const global = projectManager.getGlobalVars() || {};
+        if (Object.prototype.hasOwnProperty.call(global, key)) return global[key];
+        if (Object.prototype.hasOwnProperty.call(storeVars, key)) return storeVars[key];
+        return undefined;
+      } catch (e) { return undefined; }
+    },
     config: currentNode.data?.config || {},
     apis
   });
+
+  // Wrap makeCtx output with a Proxy so `ctx.someKey = value` can route to setVar for GLOBAL_KEYS
+  
 
   // socket controls
   socket.on('disconnect', () => { abort = true; });
@@ -340,7 +432,8 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     getNodes, getEdges, apis, stepDelay, storeVars,
     broadcastLog, broadcastState,
     checkAbort: () => abort,
-    makeCtx
+    makeCtx,
+    projectId
   });
 
   broadcastLog('workflow_complete', {});
@@ -376,7 +469,52 @@ export async function executeWorkflow({
     alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
     node: currentNode,
     storeVars: storeVars,
-    setVar: (n, v) => { storeVars[normalizeVarKey(n)] = v; broadcastLog('store_vars_update', { storeVars }); broadcastState({ storeVars }); },
+    globalStoreVars: projectManager.getGlobalVars(),
+    setVar: (n, v) => {
+      const key = normalizeVarKey(n);
+      const isTransientKey = (k) => {
+        if (!k) return false;
+        const s = String(k).toLowerCase();
+        return s === 'waiting_wait' || s.startsWith('node_');
+      };
+      const GLOBAL_KEYS = new Set(['imageurl','outputviewdialogue1','outputviewdialogue2','outputviewdialogue3','outputviewdialogue4']);
+
+      // transient keys (waiting/node_*) remain only in local storeVars
+      if (projectId && isTransientKey(key)) {
+        const namespaced = `${projectId}__${key}`;
+        storeVars[namespaced] = v;
+        broadcastLog('store_vars_update', { storeVars });
+        broadcastState({ storeVars });
+        return;
+      }
+
+      // global keys -> write to projectManager.globalStoreVars and broadcast separately
+      if (GLOBAL_KEYS.has(key)) {
+        try {
+          if (projectId && typeof projectManager?.setGlobalVar === 'function') {
+            projectManager.setGlobalVar(key, v);
+          } else if (typeof projectManager?.setGlobalVar === 'function') {
+            projectManager.setGlobalVar(key, v);
+          }
+        } catch (e) { /* ignore */ }
+        return;
+      }
+
+      // default: write into local storeVars
+      storeVars[key] = v;
+      broadcastLog('store_vars_update', { storeVars });
+      broadcastState({ storeVars });
+    },
+    // helper to read vars: checks global store first, then local storeVars
+    getVar: (k) => {
+      try {
+        const key = normalizeVarKey(k);
+        const global = projectManager.getGlobalVars() || {};
+        if (Object.prototype.hasOwnProperty.call(global, key)) return global[key];
+        if (Object.prototype.hasOwnProperty.call(storeVars, key)) return storeVars[key];
+        return undefined;
+      } catch (e) { return undefined; }
+    },
     config: currentNode.data?.config || {},
     apis
   });
@@ -385,6 +523,7 @@ export async function executeWorkflow({
     getNodes, getEdges, apis, stepDelay, storeVars,
     broadcastLog, broadcastState,
     checkAbort,
-    makeCtx
+    makeCtx,
+    projectId
   });
 }

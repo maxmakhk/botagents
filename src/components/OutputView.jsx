@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "../App.css";
 import virtualspace from "../assets/virtualspace.png";
 
-export default function OutputView({ onClose }) {
+export default function OutputView({ onClose, socket, projectId }) {
   // create 4 default dialogue icons positioned around the 512x512 canvas
   const createIcons = () => {
     return [
@@ -54,10 +54,15 @@ export default function OutputView({ onClose }) {
   };
 
   const [icons, setIcons] = useState(createIcons);
+  const iconsRef = useRef(icons);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    iconsRef.current = icons;
+  }, [icons]);
+
   const draggingRef = useRef(null);
   const movedRef = useRef({});
-  const demoRef = useRef(null);
-  const [isDemoPlaying, setIsDemoPlaying] = useState(false);
 
   const onPointerDownIcon = (e, icon) => {
     e.stopPropagation();
@@ -150,72 +155,174 @@ export default function OutputView({ onClose }) {
     return opts[getRandomInt(0, opts.length - 1)];
   };
 
-  const tickDemo = () => {
-    setIcons((prev) =>
-      prev.map((icon) => {
-        const line1 = icon.name && icon.name.length ? icon.name : `Icon${icon.id}`;
-        const line2 = pickStatusFor(icon.name);
-        return { ...icon, dialogueLine1: line1, dialogueLine2: line2 };
-      })
-    );
-  };
+  // removed demo tick; OutputView will use globalStoreVars instead
 
-  const startDemo = () => {
-    if (demoRef.current) return;
-    tickDemo();
-    demoRef.current = setInterval(tickDemo, 2000);
-    setIsDemoPlaying(true);
-  };
+  // processRequest: resolves templates in createIcons against storeVars
+  async function processRequest({ storeVars = {}, createIconsParam = null } = {}) {
+    const normalize = (k) => String(k || "").trim().toLowerCase().replace(/\./g, "_");
 
-  const stopDemo = () => {
-    if (demoRef.current) {
-      clearInterval(demoRef.current);
-      demoRef.current = null;
+    const normalizedVars = {};
+    for (const key of Object.keys(storeVars || {})) {
+      normalizedVars[normalize(key)] = storeVars[key];
     }
-    setIsDemoPlaying(false);
-  };
 
+    const resolveTemplate = (tpl) => {
+      if (!tpl || typeof tpl !== "string") return "";
+      return tpl.replace(/\{\{\s*([^}]+)\s*\}\}/g, (_, rawKey) => {
+        const k = normalize(rawKey);
+        if (Object.prototype.hasOwnProperty.call(normalizedVars, k)) {
+          const v = normalizedVars[k];
+          return v === undefined || v === null ? "" : String(v);
+        }
+        return "";
+      });
+    };
+
+    const baseIcons = Array.isArray(createIconsParam) ? createIconsParam : createIcons();
+    const updatedIcons = baseIcons.map((ic) => {
+      const labelTpl = ic.labelTemplate || ic.label || "";
+      // allow per-icon override variables: outputviewdialogue1..4
+      const overrideKey = `outputviewdialogue${ic.id}`;
+      const hasOverride = Object.prototype.hasOwnProperty.call(normalizedVars, overrideKey);
+      const overrideVal = hasOverride ? normalizedVars[overrideKey] : null;
+      let dialogTpl = overrideVal != null ? String(overrideVal) : (ic.dialogTemplate || ic.dialog || "");
+
+      // Resolve new values
+      const dialogueLine1 = resolveTemplate(labelTpl) || ic.name || "";
+      let dialogueLine2 = "";
+      
+      // If we have an override value, always use it
+      if (hasOverride && overrideVal != null) {
+        dialogueLine2 = String(overrideVal);
+      } else if (dialogTpl) {
+        // Try to resolve the template
+        const resolved = resolveTemplate(dialogTpl);
+        // Only update if we got a non-empty value, otherwise keep existing value
+        if (resolved && resolved.trim() !== "") {
+          dialogueLine2 = resolved;
+        } else {
+          // Preserve existing dialogueLine2 if present
+          dialogueLine2 = ic.dialogueLine2 || "";
+        }
+      } else {
+        // No template, preserve existing value
+        dialogueLine2 = ic.dialogueLine2 || "";
+      }
+
+      return { ...ic, dialogueLine1, dialogueLine2 };
+    });
+
+    const dialogues = updatedIcons.slice(0, 4).map((ic) => {
+      const lines = [];
+      if (ic.dialogueLine1) lines.push(ic.dialogueLine1);
+      if (ic.dialogueLine2) lines.push(ic.dialogueLine2);
+      return lines.join("\n");
+    });
+
+    return { updatedIcons, dialogues, normalizedVars };
+  }
+
+  // subscribe to server storeVars updates via socket or poll /api/projects/:projectId/state every 5s
   useEffect(() => {
-    return () => {
-      // cleanup on unmount
-      if (demoRef.current) {
-        clearInterval(demoRef.current);
-        demoRef.current = null;
+    let pollInterval = null;
+
+    const handleStoreVarsPayload = async (payload) => {
+      try {
+        const pid = payload?.projectId || payload?.project || null;
+        if (projectId) {
+          if (pid && pid !== projectId) return; // ignore other projects
+        } else {
+          // if OutputView has no projectId prop, only accept payloads without projectId
+            if (pid) return;
+          }
+          // Merge globalStoreVars (if present) with local storeVars.
+          // Local storeVars should override globals when keys conflict.
+          const globalSv = payload && payload.globalStoreVars ? payload.globalStoreVars : {};
+          const localSv = payload && payload.storeVars ? payload.storeVars : (payload || {});
+          const mergedSv = { ...(globalSv || {}), ...(localSv || {}) };
+          // Use iconsRef to get current icons without adding dependency
+          const { updatedIcons } = await processRequest({ storeVars: mergedSv, createIconsParam: iconsRef.current });
+          setIcons(updatedIcons);
+      } catch (e) {
+        console.warn('processRequest failed', e);
       }
     };
-  }, []);
 
-  const copyPositions = async () => {
-    const data = icons.map((i) => ({ id: i.id, x: i.x, y: i.y, name: i.name }));
-    const snippet = JSON.stringify(data, null, 2);
-    try {
-      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(snippet);
-        console.log("Copied positions to clipboard:", snippet);
-        return;
-      }
-    } catch (err) {
-      // ignore
+    if (socket && socket.on) {
+      socket.on('store_vars_update', handleStoreVarsPayload);
+      // execution_state may include { storeVars, globalStoreVars, projectId }
+      socket.on('execution_state', (d) => handleStoreVarsPayload(d));
+      // listen for global store updates specifically so OutputView stays in sync
+      socket.on('global_store_vars_update', (d) => {
+        try {
+          // payload may be { projectId, globalStoreVars } or the globalStoreVars object directly
+          if (!d) return;
+          const payload = (d && d.globalStoreVars) ? { projectId: d.projectId, globalStoreVars: d.globalStoreVars } : { globalStoreVars: d };
+          handleStoreVarsPayload(payload);
+        } catch (e) { /* ignore */ }
+      });
+    } else if (projectId) {
+      // poll for state every 5s
+      const fetchOnce = async () => {
+        try {
+          const resp = await fetch(`/api/projects/${encodeURIComponent(projectId)}/state`);
+          if (resp.ok) {
+            const json = await resp.json();
+            await handleStoreVarsPayload(json.storeVars || {});
+          }
+        } catch (e) {}
+      };
+      fetchOnce();
+      pollInterval = setInterval(fetchOnce, 5000);
     }
-    // fallback: log to console
-    console.log("Positions (copy manually):", snippet);
-  };
+
+    return () => {
+      if (socket && socket.off) {
+        socket.off('store_vars_update', handleStoreVarsPayload);
+        socket.off('execution_state', handleStoreVarsPayload);
+        socket.off('global_store_vars_update');
+      }
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [socket, projectId]);
+
+  // Run global store vars once by fetching /api/global-store and applying them
+  // NOTE: OutputView relies on socket events to receive globalStoreVars.
+  // We no longer poll /api/global-store on mount or expose Run Globals UI.
+
+  // copyPositions removed per request (no UI button needed)
 
   return (
     <div className="output-view" role="region" aria-label="Output View">
-      <div className="output-header">
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="close-output" onClick={onClose}>
-            Close
-          </button>
-          <button className="close-output" onClick={copyPositions}>
-            Copy Positions
-          </button>
-          <button className="close-output" onClick={() => (isDemoPlaying ? stopDemo() : startDemo())}>
-            {isDemoPlaying ? "Stop Demo" : "Play Demo"}
-          </button>
-        </div>
-      </div>
+
+        <button
+          className="close-output"
+          onClick={onClose}
+          aria-label="Close output view"
+          title="Close"
+          style={{
+            position: "absolute",
+            right: 38,
+            top: 8,
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path d="M18 6L6 18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6 6L18 18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
       <div
         className="output-body"
         style={{

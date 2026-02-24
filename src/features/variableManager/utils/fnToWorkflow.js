@@ -73,7 +73,7 @@ export default function fnToWorkflow(fnString) {
             checkVarName = nextMatch[2];
           }
         }
-        stmts.push({ kind: 'requestAPI', text: line, apiName, apiUrl, apiParams: m[3] || '{}', storeLocation: m[4] || '', message: `Request API: ${m[1]}`, checkVarName });
+        stmts.push({ kind: 'requestAPI', text: line, apiName, apiUrl, apiParams: m[3] || '{}', storeLocation: m[4] || '', message: `Request ${m[1]}`, checkVarName });
         i++; continue;
       }
       if (logRegex.test(line)) { const m = line.match(logRegex); const message = m[2]; stmts.push({ kind: 'log', text: line, message }); i++; continue; }

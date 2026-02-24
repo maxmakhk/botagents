@@ -35,6 +35,7 @@ import getLayoutedNodesAndEdges from './variableManager/utils/autoLayout';
 import { collection, getDocs } from 'firebase/firestore';
 import { loadRulesFromFirebaseService, saveRuleToFirebase } from './variableManager/services/firebase';
 import './variableManager.css';
+import OutputView from '../components/OutputView.jsx';
 
 const VariableManager = ({ onBack }) => {
   const db = window.db;
@@ -200,7 +201,9 @@ const VariableManager = ({ onBack }) => {
     promptStatus,
     setProjectId,
     allProjectStatuses,
+    globalStoreVars,
   } = useRunDemo({ rfNodes, rfEdges, apis });
+  
 
   // Prevent repeatedly applying the same merged workflow (guard against re-renders)
   const lastAppliedMergedRef = useRef(null);
@@ -1019,6 +1022,9 @@ const VariableManager = ({ onBack }) => {
     try { window.setApiResultsContent = setApiResultsContent; } catch (e) { }
     return () => { try { delete window.setApiResultsContent; } catch (e) { } };
   }, [setApiResultsContent]);
+
+  // Local state to open OutputView modal from Project page
+  const [isOutputOpenLocal, setIsOutputOpenLocal] = useState(false);
 
   useEffect(() => {
     // lazy load API list when component mounts
@@ -2702,7 +2708,7 @@ const VariableManager = ({ onBack }) => {
       </div>
 
       {/* Floating StoreVars Inspector */}
-      <StoreVarsFloating storeVars={storeVars} setStoreVars={setStoreVars} />
+      <StoreVarsFloating storeVars={{ ...(storeVars || {}), globalStoreVars: (globalStoreVars || {}) }} setStoreVars={setStoreVars} />
       <ApiResultsFloating title="Output View" content={apiResultsContent} setContent={setApiResultsContent} />
       {showApiNodes && (
         <ApiNodesFloating
@@ -2888,6 +2894,7 @@ const VariableManager = ({ onBack }) => {
             allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
             printRules={printRules}
+            openOutputView={() => setIsOutputOpenLocal(true)}
             confirmPreview={confirmPreview}
             aiLoading={aiLoading}
             taskFunctionText={taskFunctionText}
@@ -2967,6 +2974,9 @@ const VariableManager = ({ onBack }) => {
         updateActionOnNode={updateActionOnNode}
         updateNodeDetails={updateNodeDetails}
       />
+      {isOutputOpenLocal && (
+        <OutputView onClose={() => setIsOutputOpenLocal(false)} socket={socketRef && socketRef.current ? socketRef.current : null} projectId={projectIdForRun} />
+      )}
     </div>
   );
 };

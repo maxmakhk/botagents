@@ -16,6 +16,7 @@ const VariablePromptPanel = ({
   allProjectStatuses,
   saveSynthFunctionToRule,
   printRules,
+  openOutputView,
   confirmPreview,
   aiLoading,
   taskFunctionText,
@@ -90,11 +91,7 @@ const VariablePromptPanel = ({
           ))}
         </select>
 
-        {/* Add New Workflow input/button */}
-        <div style={{display:'flex', gap:6, alignItems:'center', marginLeft:8}}>
-          <input value={newWorkflowName} onChange={e => setNewWorkflowName(e.target.value)} placeholder="New workflow name" style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#021827', color:'#e5e7eb', width:180}} onKeyDown={(e) => { if (e.key === 'Enter') { if (typeof addNewWorkflow === 'function') addNewWorkflow(newWorkflowName || 'New Workflow'); setNewWorkflowName(''); } }} />
-          <button className="btn-primary" onClick={() => { if (typeof addNewWorkflow === 'function') addNewWorkflow(newWorkflowName || 'New Workflow'); setNewWorkflowName(''); }} style={{padding:'8px 10px'}}>Add New Workflow</button>
-        </div>
+        {/* Add New Workflow moved next to Output View */}
 
         {/* Quick rule tabs for easier switching */}
         <div id="quickRuleTabs" style={{display:'flex', gap:6, overflowX:'auto', padding:'4px 6px', maxWidth:'100%'}}>
@@ -150,11 +147,36 @@ const VariablePromptPanel = ({
 
       {typeof selectedRuleIndex !== 'undefined' && selectedRuleIndex !== null && (
         <div id="projectTitle" style={{marginBottom:10, padding:10, borderRadius:6, background:'#021827', border:'1px solid #13353b', color:'#e5f6ff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12}}>
-          <div style={{display: 'flex', gap: 8}}>
+          <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
             <button className="btn-secondary" onClick={saveSynthFunctionToRule} disabled={aiLoading} title="Save Project to Rule Checker">
               Save → Firebase
             </button>
-            <button className="btn-secondary" onClick={printRules} style={{padding: '6px 10px'}}>Print Rules</button>
+            <div style={{display: 'flex', gap: 6, alignItems: 'center'}}>
+              <input
+                value={newWorkflowName}
+                onChange={e => setNewWorkflowName(e.target.value)}
+                placeholder="New workflow name"
+                style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#021827', color:'#e5e7eb', width:180}}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (typeof addNewWorkflow === 'function' && String(newWorkflowName || '').trim() !== '') {
+                      addNewWorkflow(String(newWorkflowName).trim());
+                      setNewWorkflowName('');
+                    }
+                  }
+                }}
+              />
+              <button
+                className="btn-primary"
+                onClick={() => { if (typeof addNewWorkflow === 'function' && String(newWorkflowName || '').trim() !== '') { addNewWorkflow(String(newWorkflowName).trim()); setNewWorkflowName(''); } }}
+                style={{padding:'8px 10px'}}
+                disabled={String(newWorkflowName || '').trim() === ''}
+              >
+                Add New Workflow
+              </button>
+            </div>
+            <button className="btn-secondary" onClick={() => { try { if (typeof openOutputView === 'function') openOutputView(); } catch (e) {} }} style={{padding: '6px 10px'}}>Open Output View</button>
             {/* Run moved to floating Node Tools panel */}
           </div>
           <div style={{fontSize:'0.85rem', color:'#9dd3ff', fontWeight:700}}>Editing Rule: {(ruleNames && ruleNames[selectedRuleIndex]) ? ruleNames[selectedRuleIndex] : (rulePrompts && rulePrompts[selectedRuleIndex]) || `Rule ${Number(selectedRuleIndex)+1}`}</div>

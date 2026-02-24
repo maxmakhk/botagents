@@ -24,11 +24,37 @@ class ProjectManager {
     
     // Socket.IO instance for broadcasting
     this.io = null;
+    // Global store for application-wide variables (single object)
+    this.globalStoreVars = {};
     
     // Execution loop interval
     this.executionInterval = null;
     // Verbose logging toggle (set env PROJECT_MANAGER_VERBOSE=true to enable)
     this.verbose = (process.env.PROJECT_MANAGER_VERBOSE === 'true');
+  }
+
+  // Global store var helpers
+  getGlobalVars() {
+    return this.globalStoreVars || {};
+  }
+
+  setGlobalVar(key, value) {
+    try {
+      const k = String(key || '').trim();
+      if (!k) return;
+      this.globalStoreVars[k] = value;
+      // Always log global var updates for debugging
+      console.log(`[ProjectManager] setGlobalVar: projectGlobal ${k} =`, value);
+      // Broadcast to all connected clients that global store changed
+      this.broadcastToAllClients('global_store_vars_update', { globalStoreVars: this.globalStoreVars });
+    } catch (e) { /* ignore */ }
+  }
+
+  replaceGlobalVars(obj) {
+    try {
+      this.globalStoreVars = Object.assign({}, obj || {});
+      this.broadcastToAllClients('global_store_vars_update', { globalStoreVars: this.globalStoreVars });
+    } catch (e) { }
   }
 
   log(...args) {
@@ -163,7 +189,8 @@ class ProjectManager {
           projectId,
           activeNodeId: project.activeNodeId,
           activeEdgeId: project.activeEdgeId,
-          storeVars: project.storeVars
+          storeVars: project.storeVars,
+          globalStoreVars: this.getGlobalVars()
         });
         //console.log(`[ProjectManager] Sent execution state to ${clientId}`);
       }

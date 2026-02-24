@@ -339,6 +339,31 @@ app.get('/api/projects/:projectId/state', (req, res) => {
   }
 });
 
+// ------------------ Global Store API (debug) --------------------------
+// Return the single-layer global store object maintained by ProjectManager
+app.get('/api/global-store', (req, res) => {
+  try {
+    const out = projectManager.getGlobalVars();
+    res.json({ test: "OK", globalStoreVars: out });
+  } catch (err) {
+    console.error('GET /api/global-store error', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// POST to set a global var for testing: { key: 'name', value: any }
+app.post('/api/global-store', (req, res) => {
+  try {
+    const { key, value } = req.body || {};
+    if (!key) return res.status(400).json({ error: 'key_required' });
+    projectManager.setGlobalVar(key, value);
+    res.json({ success: true, key, value });
+  } catch (err) {
+    console.error('POST /api/global-store error', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 app.post('/api/rule-categories', (req, res) => {
   try {
     const id = req.body.id || randomUUID();

@@ -1,8 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './storeVarsFloating.css';
 
+/**
+ * StoreVarsFloating - Global Variables Inspector
+ * 
+ * ⚠️ STABLE - DO NOT MODIFY SHORT TERM ⚠️
+ * This component displays only globalStoreVars (server-side shared variables).
+ * Updates in real-time via socket subscription in parent (VariableManager).
+ * All displayed variables are read-only.
+ * 
+ * Last stable: 2026-02-24
+ */
 export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null }) {
-  const entries = storeVars ? Object.entries(storeVars) : [];
+  // Expand `globalStoreVars` (if present) so each key appears individually in the UI.
+  // Global keys are displayed but treated as read-only (no edit/remove).
+  
+  const entries = React.useMemo(() => {
+    const global = {};
+    if (storeVars && typeof storeVars === 'object') {
+      const gs = storeVars.globalStoreVars;
+      if (gs && typeof gs === 'object' && !Array.isArray(gs)) {
+        Object.keys(gs).forEach((k) => {
+          global[k] = gs[k];
+        });
+      }
+    }
+    const out = [];
+    Object.entries(global).forEach(([k, v]) => out.push({ key: String(k), value: v, isGlobal: true }));
+    return out;
+  }, [storeVars]);
   const nodeRef = useRef(null);
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
   const [pos, setPos] = useState(null); // { left, top } when moved
@@ -44,7 +70,8 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
     if (typeof setStoreVars === 'function') setStoreVars(updater);
   };
 
-  const startEdit = (key) => {
+  const startEdit = (key, isGlobal) => {
+    if (isGlobal) return; // do not allow editing global vars here
     const val = storeVars?.[key];
     const display = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val === undefined ? '' : val);
     setEditing({ key, draftKey: key, draftVal: display });
@@ -120,14 +147,13 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
           </div>
         )}
 
-        {entries.map(([k, v]) => {
-          const key = String(k);
-          const isObj = v && typeof v === 'object';
+        {entries.map(({ key, value, isGlobal }) => {
+          const isObj = value && typeof value === 'object';
           const expandedFlag = !!expanded[key];
-          const displayed = isObj ? (expandedFlag ? JSON.stringify(v, null, 2) : JSON.stringify(v)) : String(v);
+          const displayed = isObj ? (expandedFlag ? JSON.stringify(value, null, 2) : JSON.stringify(value)) : String(value);
           const short = displayed.length > 120 ? displayed.slice(0, 120) + '…' : displayed;
           return (
-            <div key={key} className={`ms-storevars-row ${expandedFlag ? 'expanded' : ''}`}>
+            <div key={key} className={`ms-storevars-row ${expandedFlag ? 'expanded' : ''} ${isGlobal ? 'global' : ''}`}>
               {editing && editing.key === key ? (
                 <>
                   <input className="ms-storevars-input-key" value={editing.draftKey} onChange={(e) => setEditing((s) => ({ ...s, draftKey: e.target.value }))} />
@@ -139,13 +165,19 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
                 </>
               ) : (
                 <>
-                  <div className="ms-storevars-key" onClick={() => startEdit(key)} title="Click name to edit">{key}</div>
-                  <div className="ms-storevars-val" onClick={() => startEdit(key)}>
+                  <div className="ms-storevars-key" title={isGlobal ? 'Global (read-only)' : ''}>{key}{isGlobal ? ' (global)' : ''}</div>
+                  <div className="ms-storevars-val">
                     <pre className="ms-storevars-pre">{expandedFlag ? displayed : short}</pre>
                   </div>
                   <div className="ms-storevars-row-actions">
-                    <button className="ms-btn ms-btn-edit" onClick={() => startEdit(key)}>Edit</button>
-                    <button className="ms-btn ms-btn-remove" onClick={() => removeVar(key)}>Remove</button>
+                    {isGlobal ? (
+                      <div className="ms-storevars-global-badge">Global</div>
+                    ) : (
+                      <>
+                        <button className="ms-btn ms-btn-edit" onClick={() => startEdit(key, false)}>Edit</button>
+                        <button className="ms-btn ms-btn-remove" onClick={() => removeVar(key)}>Remove</button>
+                      </>
+                    )}
                   </div>
                 </>
               )}
