@@ -110,8 +110,63 @@ const ExternalAPIPanel = ({
   };
 
   const insertFunctionTemplate = () => {
-    const template = `/**\n * API Function Definition\n * Processes incoming request and returns result\n */\nasync function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n  \n  // Add your custom logic here\n  const result = {\n    status: 'success',\n    message: 'Request processed',\n    input: prompt || data,\n    timestamp: new Date().toISOString(),\n    // Add your response data here\n    output: null\n  };\n  \n  return result;\n}`;
+    const template = `async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n  \n  // Add your custom logic here\n  const result = {\n    status: 'success',\n    message: 'Request processed',\n    input: prompt || data,\n    timestamp: new Date().toISOString(),\n    // Add your response data here\n    output: null\n  };\n  \n  return result;\n}`;
     if (functionEditModal) setFunctionEditModal({ ...functionEditModal, tempFunction: template });
+  };
+
+  const testFunctionInModal = async () => {
+    if (!functionEditModal) return;
+    const code = functionEditModal.tempFunction || '';
+    console.log('--- Function test start ---');
+    try {
+      let fn = null;
+      // provide a minimal ctx for functions to use (setVar/getVar)
+      const _ctx_store = {};
+      const ctx = {
+        setVar: (k, v) => { _ctx_store[k] = v; console.log('ctx.setVar', k, v); },
+        getVar: (k) => _ctx_store[k],
+        _dump: () => ({ ..._ctx_store }),
+      };
+
+      // Try as a function expression: (input) => {...} or async function expression
+      try {
+        // Wrap in parentheses so function expressions parse
+        // eslint-disable-next-line no-eval
+        fn = eval('(' + code + ')');
+      } catch (e) {
+        // ignore
+      }
+
+      // If not a function yet, try evaluating code that defines a named function like processRequest
+      if (typeof fn !== 'function') {
+        try {
+          // eslint-disable-next-line no-eval
+          eval(code);
+          // eslint-disable-next-line no-undef
+          if (typeof processRequest === 'function') fn = processRequest;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (typeof fn !== 'function') {
+        throw new Error('No callable function found. Define a function expression or a named function `processRequest`.');
+      }
+
+      // Call the function with a sample payload. The function can reference `ctx` from this scope.
+      const maybePromise = fn({ prompt: 'test', data: {} });
+      const result = await Promise.resolve(maybePromise);
+      console.log('Function returned:', result);
+      console.log('ctx store after run:', ctx._dump());
+      console.log('--- Function test end ---');
+      setAiWarning('Function test completed (see console)');
+      setTimeout(() => setAiWarning(''), 2000);
+      return result;
+    } catch (err) {
+      console.error('Function test error:', err);
+      setAiWarning('Function test error: ' + (err.message || err));
+      setTimeout(() => setAiWarning(''), 3000);
+    }
   };
 
   return (
@@ -174,9 +229,9 @@ const ExternalAPIPanel = ({
         />
       </div>
 
-      {/* Saved APIs List */}
+      {/* Saved Components List */}
       <div style={{ marginBottom: 12 }}>
-        <h4 style={{ margin: '0 0 8px 0' }}>Saved APIs ({filteredApis.length})</h4>
+        <h4 style={{ margin: '0 0 8px 0' }}>Saved Components ({filteredApis.length})</h4>
         {apisLoading ? (
           <div>Loading...</div>
         ) : (
@@ -357,6 +412,36 @@ const ExternalAPIPanel = ({
                             </span>
                           )}
                         </div>
+
+                        {/* Function Definition - moved into edit form */}
+                        <div style={{ marginTop: 10 }}>
+                          <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>Function Definition:</div>
+                          <textarea
+                            value={a.function || ''}
+                            onChange={(e) => handleEditField(a.id, 'function', e.target.value)}
+                            rows={4}
+                            placeholder="Function definition or JS code"
+                            style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #475569', background: '#111827', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.80rem' }}
+                          />
+                        </div>
+
+                        {/* CSS Style - moved into edit form */}
+                        <div style={{ marginTop: 12 }}>
+                          <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>CSS Style (applies to node display)</div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <textarea
+                              value={a.cssStyle !== undefined ? a.cssStyle : (a.metadata?.cssStyle || '')}
+                              onChange={(e) => handleEditField(a.id, 'cssStyle', e.target.value)}
+                              rows={3}
+                              placeholder=".api-node { background: #fff; }"
+                              style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #475569', background: '#111827', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.80rem' }}
+                            />
+                            <button className="btn-secondary" onClick={() => {
+                              const tpl = `/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: white;\n  border-radius:6px;\n  padding:6px;\n}`;
+                              handleEditField(a.id, 'cssStyle', tpl);
+                            }}>Insert CSS Template</button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -471,7 +556,9 @@ const ExternalAPIPanel = ({
 
       {/* Function Editor Modal */}
       {functionEditModal && (
-        <div style={{
+        <div 
+        id="function-edit-modal"
+        style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -524,18 +611,28 @@ const ExternalAPIPanel = ({
             {/* Body - Editor */}
             <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
               <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
                     Function Definition (JavaScript or plain text description)
                   </label>
-                  <button
-                    onClick={insertFunctionTemplate}
-                    className="btn-secondary"
-                    title="Insert a function template"
-                    style={{ fontSize: '0.80rem', padding: '4px 12px' }}
-                  >
-                    📋 Insert Template
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={insertFunctionTemplate}
+                      className="btn-secondary"
+                      title="Insert a function template"
+                      style={{ fontSize: '0.80rem', padding: '4px 12px' }}
+                    >
+                      📋 Insert Template
+                    </button>
+                    <button
+                      onClick={testFunctionInModal}
+                      className="btn-secondary"
+                      title="Run the function once and log result to console"
+                      style={{ fontSize: '0.80rem', padding: '4px 12px' }}
+                    >
+                      ▶ Test Function
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   value={functionEditModal.tempFunction}

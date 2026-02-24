@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-02-23T23:23:46.567Z",
+  "savedAt": "2026-02-24T13:05:37.524Z",
   "projects": [
     {
       "projectId": "rule_1770846786680_3m5ujn",
@@ -147,212 +147,212 @@
           "label": ""
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {},
-      "activeNodeId": "step_0",
-      "activeEdgeId": "reactflow__edge-step_0-api_1771508531717",
+      "activeNodeId": null,
+      "activeEdgeId": null,
       "apis": [
         {
           "id": "eJ2AB3vSxgbwoNinjMnD",
+          "tags": [
+            "Get Image"
+          ],
+          "lastPrompt": "",
+          "name": "CameraInput",
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    snapshotApi = 'https://visionai.maxsolo.co.uk/snapshot',\n    esp32BaseUrl = 'http://192.168.1.50',\n  } = input || {};\n\n  const url = new URL(snapshotApi);\n  url.searchParams.set('esp32Url', esp32BaseUrl);\n\n  try {\n    const res = await fetch(url.toString());\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const { imageUrl } = await res.json(); // 後端回傳 { imageUrl }\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('esp32ImageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from ESP32',\n      input,\n      timestamp: new Date().toISOString(),\n      output: { imageUrl },\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840604,
             "nanoseconds": 972000000
           },
-          "name": "CameraInput",
-          "tags": [
-            "Get Image"
-          ],
-          "url": "",
-          "lastPrompt": "",
           "metadata": {
             "cssStyle": ""
           },
-          "function": "export async function processRequest(input, ctx) {\n  const {\n    snapshotApi = 'https://visionai.maxsolo.co.uk/snapshot',\n    esp32BaseUrl = 'http://192.168.1.50',\n  } = input || {};\n\n  const url = new URL(snapshotApi);\n  url.searchParams.set('esp32Url', esp32BaseUrl);\n\n  try {\n    const res = await fetch(url.toString());\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const { imageUrl } = await res.json(); // 後端回傳 { imageUrl }\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('esp32ImageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from ESP32',\n      input,\n      timestamp: new Date().toISOString(),\n      output: { imageUrl },\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n"
+          "url": ""
         },
         {
           "id": "UsWhf6pyCDQW1nvcnHxa",
-          "url": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771840254,
-            "nanoseconds": 472000000
+          "metadata": {
+            "cssStyle": ""
           },
-          "lastPrompt": "",
+          "url": "",
           "name": "VisionAI",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840006,
             "nanoseconds": 714000000
           },
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840254,
+            "nanoseconds": 472000000
+          },
+          "lastPrompt": "",
           "tags": [
             "image to label"
-          ],
-          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "metadata": {
-            "cssStyle": ""
-          }
+          ]
         },
         {
           "id": "E5tInoIhMDck4CQq8Idt",
-          "url": "",
           "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771539639,
-            "nanoseconds": 249000000
+          "tags": [
+            "Show Button",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": ""
           },
+          "url": "",
+          "name": "show Button",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495135,
             "nanoseconds": 814000000
           },
-          "name": "show Button",
-          "tags": [
-            "Show Button",
-            "Output View"
-          ],
           "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
-          "metadata": {
-            "cssStyle": ""
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539639,
+            "nanoseconds": 249000000
           }
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
+          "url": "",
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg"
           },
-          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
-          "tags": [
-            "Show Text",
-            "Output View"
-          ],
           "name": "show Text",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495123,
             "nanoseconds": 317000000
           },
-          "lastPrompt": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771507422,
             "nanoseconds": 804000000
           },
-          "url": ""
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
+          "tags": [
+            "Show Text",
+            "Output View"
+          ],
+          "lastPrompt": ""
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
-          "tags": [
-            "show Image",
-            "Output View"
-          ],
+          "url": "",
+          "metadata": {
+            "cssStyle": "sdfsdf"
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495005,
             "nanoseconds": 117000000
           },
           "name": "show Image",
-          "lastPrompt": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771509269,
             "nanoseconds": 912000000
           },
-          "url": "",
-          "metadata": {
-            "cssStyle": "sdfsdf"
-          },
-          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}"
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
+          "tags": [
+            "show Image",
+            "Output View"
+          ],
+          "lastPrompt": ""
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771457802,
-            "nanoseconds": 351000000
-          },
+          "tags": [
+            "world",
+            "information"
+          ],
           "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "metadata": {
+            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
+            "image": "img_6996397284cb31.64842724.jpg"
+          },
           "name": "xAI(Ram)",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770218220,
             "nanoseconds": 600000000
           },
-          "tags": [
-            "world",
-            "information"
-          ],
-          "function": "",
-          "metadata": {
-            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
-            "image": "img_6996397284cb31.64842724.jpg"
-          }
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771457802,
+            "nanoseconds": 351000000
+          },
+          "function": ""
         },
         {
           "id": "0FnnIKiR0PxZlv4MT9nm",
           "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "lastPrompt": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1"
+          },
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771882992,
             "nanoseconds": 482000000
           },
-          "name": "OpenWeather",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770215450,
             "nanoseconds": 531000000
           },
+          "name": "OpenWeather",
           "tags": [
             "openweather"
           ],
-          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "size": "3:1"
-          }
+          "lastPrompt": ""
         },
         {
           "id": "rACQtq73fn2l4o7LHcQW",
           "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
-          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771539114,
             "nanoseconds": 225000000
           },
+          "name": "Mission Check",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770213924,
             "nanoseconds": 893000000
           },
-          "name": "Mission Check",
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
           "tags": [
             "missioncheck"
-          ],
-          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
-          "metadata": {
-            "cssStyle": ""
-          }
+          ]
         },
         {
           "id": "jJjkD9yPzcKD21Jljtqg",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770212884,
+            "nanoseconds": 535000000
+          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770218230,
             "nanoseconds": 106000000
           },
-          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
           "name": "xAI",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770212884,
-            "nanoseconds": 535000000
-          }
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}"
         }
       ],
       "stepDelay": 1000
@@ -587,12 +587,12 @@
       ],
       "status": "stopped",
       "storeVars": {
-        "openweathertemp": 9.46,
+        "openweathertemp": 9.57,
         "openweather_result": {
           "status": "success",
           "message": "Request processed",
           "input": {},
-          "timestamp": "2026-02-23T23:23:00.206Z",
+          "timestamp": "2026-02-23T23:38:33.572Z",
           "output": {
             "coord": {
               "lon": -2.0109,
@@ -608,8 +608,8 @@
             ],
             "base": "stations",
             "main": {
-              "temp": 9.46,
-              "feels_like": 7.84,
+              "temp": 9.57,
+              "feels_like": 7.59,
               "temp_min": 8.01,
               "temp_max": 10.32,
               "pressure": 1013,
@@ -617,16 +617,16 @@
               "sea_level": 1013,
               "grnd_level": 985
             },
-            "visibility": 44,
+            "visibility": 411,
             "wind": {
-              "speed": 3.04,
-              "deg": 208,
-              "gust": 10.08
+              "speed": 3.76,
+              "deg": 219,
+              "gust": 10.82
             },
             "clouds": {
               "all": 100
             },
-            "dt": 1771888977,
+            "dt": 1771889934,
             "sys": {
               "type": 2,
               "id": 2013239,
@@ -646,41 +646,41 @@
       "apis": [
         {
           "id": "eJ2AB3vSxgbwoNinjMnD",
-          "lastPrompt": "",
-          "url": "",
-          "name": "CameraInput",
           "tags": [
             "Get Image"
           ],
-          "metadata": {
-            "cssStyle": ""
-          },
+          "lastPrompt": "",
+          "name": "CameraInput",
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    snapshotApi = 'https://visionai.maxsolo.co.uk/snapshot',\n    esp32BaseUrl = 'http://192.168.1.50',\n  } = input || {};\n\n  const url = new URL(snapshotApi);\n  url.searchParams.set('esp32Url', esp32BaseUrl);\n\n  try {\n    const res = await fetch(url.toString());\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const { imageUrl } = await res.json(); // 後端回傳 { imageUrl }\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('esp32ImageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from ESP32',\n      input,\n      timestamp: new Date().toISOString(),\n      output: { imageUrl },\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840604,
             "nanoseconds": 972000000
           },
-          "function": "export async function processRequest(input, ctx) {\n  const {\n    snapshotApi = 'https://visionai.maxsolo.co.uk/snapshot',\n    esp32BaseUrl = 'http://192.168.1.50',\n  } = input || {};\n\n  const url = new URL(snapshotApi);\n  url.searchParams.set('esp32Url', esp32BaseUrl);\n\n  try {\n    const res = await fetch(url.toString());\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const { imageUrl } = await res.json(); // 後端回傳 { imageUrl }\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('esp32ImageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from ESP32',\n      input,\n      timestamp: new Date().toISOString(),\n      output: { imageUrl },\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n"
-        },
-        {
-          "id": "UsWhf6pyCDQW1nvcnHxa",
-          "url": "",
-          "lastPrompt": "",
           "metadata": {
             "cssStyle": ""
           },
+          "url": ""
+        },
+        {
+          "id": "UsWhf6pyCDQW1nvcnHxa",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "url": "",
+          "name": "VisionAI",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840006,
             "nanoseconds": 714000000
           },
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840254,
             "nanoseconds": 472000000
           },
-          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "name": "VisionAI",
+          "lastPrompt": "",
           "tags": [
             "image to label"
           ]
@@ -688,8 +688,6 @@
         {
           "id": "E5tInoIhMDck4CQq8Idt",
           "lastPrompt": "",
-          "url": "",
-          "name": "show Button",
           "tags": [
             "Show Button",
             "Output View"
@@ -697,46 +695,47 @@
           "metadata": {
             "cssStyle": ""
           },
+          "url": "",
+          "name": "show Button",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495135,
             "nanoseconds": 814000000
           },
+          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771539639,
             "nanoseconds": 249000000
-          },
-          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n"
+          }
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
+          "url": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg"
+          },
+          "name": "show Text",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495123,
             "nanoseconds": 317000000
-          },
-          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg"
           },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771507422,
             "nanoseconds": 804000000
           },
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
           "tags": [
             "Show Text",
             "Output View"
           ],
-          "name": "show Text",
-          "url": "",
           "lastPrompt": ""
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
           "url": "",
-          "lastPrompt": "",
           "metadata": {
             "cssStyle": "sdfsdf"
           },
@@ -745,6 +744,7 @@
             "seconds": 1771495005,
             "nanoseconds": 117000000
           },
+          "name": "show Image",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771509269,
@@ -755,41 +755,40 @@
             "show Image",
             "Output View"
           ],
-          "name": "show Image"
+          "lastPrompt": ""
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
-          "name": "xAI(Ram)",
           "tags": [
             "world",
             "information"
           ],
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "metadata": {
+            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
+            "image": "img_6996397284cb31.64842724.jpg"
+          },
+          "name": "xAI(Ram)",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770218220,
             "nanoseconds": 600000000
           },
-          "function": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771457802,
             "nanoseconds": 351000000
           },
-          "metadata": {
-            "image": "img_6996397284cb31.64842724.jpg",
-            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}"
-          },
-          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback"
+          "function": ""
         },
         {
           "id": "0FnnIKiR0PxZlv4MT9nm",
           "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "lastPrompt": "",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770215450,
-            "nanoseconds": 531000000
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1"
           },
           "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "updatedAt": {
@@ -797,43 +796,42 @@
             "seconds": 1771882992,
             "nanoseconds": 482000000
           },
-          "metadata": {
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "size": "3:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg"
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770215450,
+            "nanoseconds": 531000000
           },
           "name": "OpenWeather",
           "tags": [
             "openweather"
-          ]
+          ],
+          "lastPrompt": ""
         },
         {
           "id": "rACQtq73fn2l4o7LHcQW",
           "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
-          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "metadata": {
+            "cssStyle": ""
+          },
           "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771539114,
             "nanoseconds": 225000000
           },
-          "metadata": {
-            "cssStyle": ""
-          },
+          "name": "Mission Check",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770213924,
             "nanoseconds": 893000000
           },
-          "name": "Mission Check",
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
           "tags": [
             "missioncheck"
           ]
         },
         {
           "id": "jJjkD9yPzcKD21Jljtqg",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770212884,
@@ -844,6 +842,740 @@
             "seconds": 1770218230,
             "nanoseconds": 106000000
           },
+          "name": "xAI",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}"
+        }
+      ],
+      "stepDelay": 1000
+    },
+    {
+      "projectId": "rule_1770844625829_aepqh3",
+      "nodes": [
+        {
+          "id": "step_0",
+          "position": {
+            "x": 20,
+            "y": 75
+          },
+          "type": "loop",
+          "data": {
+            "labelText": "Iterate through DataList",
+            "description": "Iterates through each item in the input data list.",
+            "label": "Iterate through DataList",
+            "actions": [
+              {
+                "action": "set_id",
+                "notes": "Assigns a unique ID to each item."
+              }
+            ],
+            "metadata": {
+              "stepNumber": 0,
+              "loopType": "forEach",
+              "condition": null,
+              "parallelCount": null
+            },
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 192,
+          "height": 96
+        },
+        {
+          "id": "node_1771605504219",
+          "position": {
+            "x": 340,
+            "y": 20
+          },
+          "type": "action",
+          "data": {
+            "labelText": "New node 2",
+            "description": "Describe this step",
+            "label": "New node 2",
+            "actions": [],
+            "metadata": {},
+            "backgroundColor": "hsl(87, 77%, 85%)",
+            "textColor": "#0f172a",
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 192,
+          "height": 96
+        },
+        {
+          "id": "node_1771605519374",
+          "position": {
+            "x": 660,
+            "y": 75
+          },
+          "type": "action",
+          "data": {
+            "labelText": "New node 3",
+            "description": "Describe this step",
+            "label": "New node 3",
+            "actions": [],
+            "metadata": {},
+            "backgroundColor": "hsl(162, 65%, 92%)",
+            "textColor": "#0f172a",
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 192,
+          "height": 96
+        },
+        {
+          "id": "node_1771605539147",
+          "position": {
+            "x": 1123.3192727272728,
+            "y": -15.238060606060628
+          },
+          "type": "action",
+          "data": {
+            "labelText": "New node 4",
+            "description": "Describe this step",
+            "label": "New node 4",
+            "actions": [],
+            "metadata": {},
+            "backgroundColor": "hsl(237, 77%, 85%)",
+            "textColor": "#0f172a",
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 192,
+          "height": 96
+        }
+      ],
+      "edges": [
+        {
+          "id": "reactflow__edge-step_0-node_1771605504219",
+          "source": "step_0",
+          "target": "node_1771605504219",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-node_1771605504219-node_1771605519374",
+          "source": "node_1771605504219",
+          "target": "node_1771605519374",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-node_1771605519374-node_1771605539147",
+          "source": "node_1771605519374",
+          "target": "node_1771605539147",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-node_1771605539147right-step_0left",
+          "source": "node_1771605539147",
+          "target": "step_0",
+          "label": ""
+        }
+      ],
+      "status": "stopped",
+      "storeVars": {},
+      "activeNodeId": null,
+      "activeEdgeId": null,
+      "apis": [
+        {
+          "id": "eJ2AB3vSxgbwoNinjMnD",
+          "tags": [
+            "Get Image"
+          ],
+          "lastPrompt": "",
+          "name": "CameraInput",
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    snapshotApi = 'https://visionai.maxsolo.co.uk/snapshot',\n    esp32BaseUrl = 'http://192.168.1.50',\n  } = input || {};\n\n  const url = new URL(snapshotApi);\n  url.searchParams.set('esp32Url', esp32BaseUrl);\n\n  try {\n    const res = await fetch(url.toString());\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const { imageUrl } = await res.json(); // 後端回傳 { imageUrl }\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('esp32ImageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from ESP32',\n      input,\n      timestamp: new Date().toISOString(),\n      output: { imageUrl },\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840604,
+            "nanoseconds": 972000000
+          },
+          "metadata": {
+            "cssStyle": ""
+          },
+          "url": ""
+        },
+        {
+          "id": "UsWhf6pyCDQW1nvcnHxa",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "url": "",
+          "name": "VisionAI",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840006,
+            "nanoseconds": 714000000
+          },
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840254,
+            "nanoseconds": 472000000
+          },
+          "lastPrompt": "",
+          "tags": [
+            "image to label"
+          ]
+        },
+        {
+          "id": "E5tInoIhMDck4CQq8Idt",
+          "lastPrompt": "",
+          "tags": [
+            "Show Button",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": ""
+          },
+          "url": "",
+          "name": "show Button",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495135,
+            "nanoseconds": 814000000
+          },
+          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539639,
+            "nanoseconds": 249000000
+          }
+        },
+        {
+          "id": "zJoNOauAnOf2nlglnlkf",
+          "url": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg"
+          },
+          "name": "show Text",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495123,
+            "nanoseconds": 317000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771507422,
+            "nanoseconds": 804000000
+          },
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
+          "tags": [
+            "Show Text",
+            "Output View"
+          ],
+          "lastPrompt": ""
+        },
+        {
+          "id": "UNqCOI0lbGdZagC0kra5",
+          "url": "",
+          "metadata": {
+            "cssStyle": "sdfsdf"
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495005,
+            "nanoseconds": 117000000
+          },
+          "name": "show Image",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771509269,
+            "nanoseconds": 912000000
+          },
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
+          "tags": [
+            "show Image",
+            "Output View"
+          ],
+          "lastPrompt": ""
+        },
+        {
+          "id": "EqR1uSyCMk59JYM86lSw",
+          "tags": [
+            "world",
+            "information"
+          ],
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "metadata": {
+            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
+            "image": "img_6996397284cb31.64842724.jpg"
+          },
+          "name": "xAI(Ram)",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218220,
+            "nanoseconds": 600000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771457802,
+            "nanoseconds": 351000000
+          },
+          "function": ""
+        },
+        {
+          "id": "0FnnIKiR0PxZlv4MT9nm",
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1"
+          },
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771882992,
+            "nanoseconds": 482000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770215450,
+            "nanoseconds": 531000000
+          },
+          "name": "OpenWeather",
+          "tags": [
+            "openweather"
+          ],
+          "lastPrompt": ""
+        },
+        {
+          "id": "rACQtq73fn2l4o7LHcQW",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539114,
+            "nanoseconds": 225000000
+          },
+          "name": "Mission Check",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770213924,
+            "nanoseconds": 893000000
+          },
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "tags": [
+            "missioncheck"
+          ]
+        },
+        {
+          "id": "jJjkD9yPzcKD21Jljtqg",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770212884,
+            "nanoseconds": 535000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218230,
+            "nanoseconds": 106000000
+          },
+          "name": "xAI",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}"
+        }
+      ],
+      "stepDelay": 1000
+    },
+    {
+      "projectId": "rule_1771926252531_56yjbx",
+      "nodes": [
+        {
+          "id": "api_1771926306270",
+          "position": {
+            "x": 362.8571428571428,
+            "y": 26.857142857142833
+          },
+          "type": "api",
+          "data": {
+            "labelText": "API: VisionAI",
+            "description": "external api",
+            "label": "API: VisionAI",
+            "actions": [],
+            "metadata": {
+              "apiId": "UsWhf6pyCDQW1nvcnHxa",
+              "apiName": "VisionAI",
+              "apiUrl": null,
+              "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg",
+              "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "image to label"
+              ]
+            },
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          }
+        },
+        {
+          "id": "api_1771926377629",
+          "position": {
+            "x": -63.714285714285765,
+            "y": 6.857142857142776
+          },
+          "type": "api",
+          "data": {
+            "labelText": "API: CameraInput",
+            "description": "external api",
+            "label": "API: CameraInput",
+            "actions": [],
+            "metadata": {
+              "apiId": "eJ2AB3vSxgbwoNinjMnD",
+              "apiName": "CameraInput",
+              "apiUrl": null,
+              "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
+              "function": "async function processRequest(input = {}, ctx) {\n  try {\n    const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const data = await res.json();          // 假設回傳 { imageUrl, ... }\n    const { imageUrl } = data;\n\n    if (ctx && typeof ctx.setVar === 'function' && imageUrl) {\n      ctx.setVar('imageUrl', imageUrl);\n      console.log('imageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from snapshot endpoint',\n      input,\n      timestamp: new Date().toISOString(),\n      output: data,                         // 直接回傳整個 result\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+              "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+              "size": "2:1",
+              "tags": [
+                "Get Image"
+              ]
+            },
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          }
+        },
+        {
+          "id": "api_1771927445374",
+          "position": {
+            "x": 841.1428571428571,
+            "y": -98.57142857142861
+          },
+          "type": "api",
+          "data": {
+            "labelText": "Waiting",
+            "description": "external api",
+            "label": "Waiting",
+            "actions": [],
+            "metadata": {
+              "apiId": "CKrZDm2g9Vt1gNId0Gt1",
+              "apiName": "Waiting",
+              "apiUrl": null,
+              "image": "https://maxsolo.co.uk/images/uploads/img_699d77b1625ed2.70755447.jpg",
+              "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "waiting component"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "reactflow__edge-api_1771926377629right-api_1771926306270left",
+          "source": "api_1771926377629",
+          "target": "api_1771926306270",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-api_1771926306270right-api_1771927445374left",
+          "source": "api_1771926306270",
+          "target": "api_1771927445374",
+          "label": ""
+        },
+        {
+          "id": "reactflow__edge-api_1771927445374right-api_1771926377629left",
+          "source": "api_1771927445374",
+          "target": "api_1771926377629",
+          "label": ""
+        }
+      ],
+      "status": "running",
+      "storeVars": {
+        "node_api_1771926306270_error": "waitResolvers is not defined",
+        "waiting_wait": true,
+        "node_api_1771926377629_error": "await is only valid in async functions and the top level bodies of modules",
+        "node_api_1771927445374_error": "await is only valid in async functions and the top level bodies of modules",
+        "node_api_1771926306270_status": "waiting_user_input",
+        "node_api_1771926306270_wait_start": 1771938291931
+      },
+      "activeNodeId": "api_1771927445374",
+      "activeEdgeId": null,
+      "apis": [
+        {
+          "id": "CKrZDm2g9Vt1gNId0Gt1",
+          "name": "Waiting",
+          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 5.0\")\n  await new Promise(resolve => setTimeout(resolve, 5000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 5000 }\n  };\n}",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771926544,
+            "nanoseconds": 739000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "tags": [
+            "waiting component"
+          ],
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d77b1625ed2.70755447.jpg",
+            "size": "1:1",
+            "cssStyle": ""
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771937714,
+            "nanoseconds": 625000000
+          }
+        },
+        {
+          "id": "eJ2AB3vSxgbwoNinjMnD",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771932176,
+            "nanoseconds": 30000000
+          },
+          "url": "",
+          "tags": [
+            "Get Image"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840604,
+            "nanoseconds": 972000000
+          },
+          "lastPrompt": "",
+          "function": "async function processRequest(input = {}, ctx) {\n  try {\n    const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n\n    if (!res.ok) {\n      const text = await res.text();\n      return {\n        status: 'error',\n        message: `snapshot error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const data = await res.json();          // 假設回傳 { imageUrl, ... }\n    const { imageUrl } = data;\n\n    if (ctx && typeof ctx.setVar === 'function' && imageUrl) {\n      ctx.setVar('imageUrl', imageUrl);\n      console.log('imageUrl', imageUrl);\n    }\n\n    return {\n      status: 'success',\n      message: 'Image captured from snapshot endpoint',\n      input,\n      timestamp: new Date().toISOString(),\n      output: data,                         // 直接回傳整個 result\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "name": "CameraInput"
+        },
+        {
+          "id": "UsWhf6pyCDQW1nvcnHxa",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771923309,
+            "nanoseconds": 18000000
+          },
+          "tags": [
+            "image to label"
+          ],
+          "url": "",
+          "lastPrompt": "",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840006,
+            "nanoseconds": 714000000
+          },
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "name": "VisionAI"
+        },
+        {
+          "id": "E5tInoIhMDck4CQq8Idt",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495135,
+            "nanoseconds": 814000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "tags": [
+            "Show Button",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771923264,
+            "nanoseconds": 263000000
+          },
+          "name": "show Button",
+          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n"
+        },
+        {
+          "id": "zJoNOauAnOf2nlglnlkf",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495123,
+            "nanoseconds": 317000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "tags": [
+            "Show Text",
+            "Output View"
+          ],
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771923408,
+            "nanoseconds": 261000000
+          },
+          "name": "show Text",
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}"
+        },
+        {
+          "id": "UNqCOI0lbGdZagC0kra5",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771923280,
+            "nanoseconds": 9000000
+          },
+          "tags": [
+            "show Image",
+            "Output View"
+          ],
+          "url": "",
+          "lastPrompt": "",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495005,
+            "nanoseconds": 117000000
+          },
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
+          "name": "show Image"
+        },
+        {
+          "id": "EqR1uSyCMk59JYM86lSw",
+          "name": "xAI(Ram)",
+          "function": "",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "tags": [
+            "world",
+            "information"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218220,
+            "nanoseconds": 600000000
+          },
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771457802,
+            "nanoseconds": 351000000
+          },
+          "metadata": {
+            "cssStyle": "/* Node CSS template */\n.api-node {\n  background: linear-gradient(90deg,#06b6d4,#6366f1);\n  color: green;\n  border-radius:0px;\n  padding:6px;\n}",
+            "image": "img_6996397284cb31.64842724.jpg"
+          }
+        },
+        {
+          "id": "0FnnIKiR0PxZlv4MT9nm",
+          "name": "OpenWeather",
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770215450,
+            "nanoseconds": 531000000
+          },
+          "lastPrompt": "",
+          "tags": [
+            "openweather"
+          ],
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "metadata": {
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771882992,
+            "nanoseconds": 482000000
+          }
+        },
+        {
+          "id": "rACQtq73fn2l4o7LHcQW",
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
+          "name": "Mission Check",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771539114,
+            "nanoseconds": 225000000
+          },
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770213924,
+            "nanoseconds": 893000000
+          },
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
+          "tags": [
+            "missioncheck"
+          ]
+        },
+        {
+          "id": "jJjkD9yPzcKD21Jljtqg",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218230,
+            "nanoseconds": 106000000
+          },
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770212884,
+            "nanoseconds": 535000000
+          },
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
           "name": "xAI"
         }
       ],

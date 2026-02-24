@@ -401,37 +401,6 @@ export const patternConditionalFetch = {
 // MIGRATION NOTES
 // ==============================================================================
 
-/**
- * If you have existing traditional API nodes, you can migrate them to fnString:
- *
- * BEFORE (traditional API node):
- * {
- *   type: 'api',
- *   data: {
- *     labelText: 'API: MyService',
- *     url: 'https://api.example.com/data',
- *     varName: 'api_result',
- *   },
- * }
- *
- * AFTER (fnString node):
- * {
- *   type: 'action',
- *   data: {
- *     labelText: 'API: MyService',
- *     fnString: `
- *       const { fetch, setVar } = ctx;
- *       const response = await fetch('https://api.example.com/data');
- *       const data = await response.json();
- *       setVar('api_result', data);
- *     `,
- *   },
- * }
- *
- * The middleware will detect that fnString exists and skip the legacy API logic,
- * executing only the custom function.
- */
-
 export const migrationExample = {
   before: {
     type: 'api',

@@ -161,15 +161,15 @@ export default function ApiNodesFloating({ apis = [], onInsert = () => {}, onClo
           }
 
           return (
-            <div key={a.id || apiId} className={`ms-apinodes-item ${apiClass}`} onClick={() => { onInsert(a); onClose(); }}>
-              <div className="ms-apinodes-thumb">
-                {a.metadata?.image || a.image ? (<img src={a.metadata?.image || a.image} alt={a.name} onError={(e) => { e.target.style.display='none'; }} />) : (
-                  <div className="ms-apinodes-placeholder">API</div>
-                )}
-              </div>
+            <div key={a.id || apiId} className={`ms-apinodes-item ${apiClass}`} onClick={() => { onInsert(a); onClose(); }} style={{
+              backgroundImage: a.metadata?.image || a.image ? `url('${a.metadata?.image || a.image}')` : 'none',
+              backgroundSize: '100% 100%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}>
               <div className="ms-apinodes-info">
                 <div className="ms-apinodes-name">{a.name || a.label}</div>
-                <div className="ms-apinodes-desc">{a.url || (a.metadata && a.metadata.apiUrl) || ''}</div>
+                <div className="ms-apinodes-desc"></div>
               </div>
             </div>
           );

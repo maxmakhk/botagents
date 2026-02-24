@@ -5,7 +5,8 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
   const nodeRef = useRef(null);
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
   const [pos, setPos] = useState(null);
-  const [visible, setVisible] = useState(true);
+  // start collapsed/hidden by default so it doesn't cover the workflow
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const handleMove = (e) => {

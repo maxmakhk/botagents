@@ -47,7 +47,7 @@ function App() {
             <div className="menu-buttons">
               
               <button onClick={() => setActivePage(PAGES.VARIABLE_MANAGER)}>
-                Variable Manager
+                Bot Agents
               </button>
               
               <button onClick={() => setIsOutputOpen(true)}>

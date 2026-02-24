@@ -1408,8 +1408,8 @@ const VariableManager = ({ onBack }) => {
       position: { x: 200 + (rfNodes.length * 20), y: 200 },
       type: 'api',
       data: {
-        labelText: `API: ${label}`,
-        label: `API: ${label}`,
+        labelText: `${label}`,
+        label: `${label}`,
         description: 'external api',
         actions: [],
         width: nodeWidth,
@@ -1594,6 +1594,47 @@ const VariableManager = ({ onBack }) => {
     setRuleRelatedFields([...ruleRelatedFields, '']);
     setRuleCategoryIds([...ruleCategoryIds, nextCategoryId || '']);
     setRuleNames([...ruleNames, '']);
+  };
+
+  // Create a new workflow (rule) with an optional name
+  const addNewWorkflow = async (name) => {
+    const nextCategoryId = (selectedRuleCategoryId && selectedRuleCategoryId !== 'all')
+      ? selectedRuleCategoryId
+      : resolveDefaultCategoryId(ruleCategories);
+
+    // create a new rule id and local placeholders
+    const newRuleId = createRuleId();
+    setRuleSource([...ruleSource, '']);
+    setRulePrompts([...rulePrompts, '']);
+    setRuleTypes([...ruleTypes, 'Rule Checker']);
+    setRuleSystemPrompts([...ruleSystemPrompts, '']);
+    setRuleDetectPrompts([...ruleDetectPrompts, '']);
+    setRuleRelatedFields([...ruleRelatedFields, '']);
+    setRuleCategoryIds([...ruleCategoryIds, nextCategoryId || '']);
+    setRuleNames([...ruleNames, name || 'New Workflow']);
+
+    // keep functionsList in sync so the UI can reference the new rule
+    try {
+      const newFn = { id: newRuleId, ruleId: newRuleId, type: 'Rule Checker', name: name || 'New Workflow', expr: '', systemPrompt: '', workflowObject: '' };
+      setFunctionsList((f) => Array.isArray(f) ? [...f, newFn] : [newFn]);
+
+      // Persist the new rule to the server
+      const payLoad = {
+        id: newRuleId,
+        name: name || 'New Workflow',
+        categoryId: nextCategoryId || '',
+        expr: '',
+        type: 'Rule Checker',
+        workflowObject: ''
+      };
+      await saveRuleToFirebase(db, payLoad);
+      setAiWarning('New workflow saved');
+      setTimeout(() => setAiWarning(''), 2000);
+    } catch (err) {
+      console.error('Failed to save new workflow:', err);
+      setAiWarning('Failed to save new workflow');
+      setTimeout(() => setAiWarning(''), 2000);
+    }
   };
 
   // Action link state
@@ -2843,6 +2884,7 @@ const VariableManager = ({ onBack }) => {
             rulePrompts={rulePrompts}
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
+            addNewWorkflow={addNewWorkflow}
             allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
             printRules={printRules}

@@ -16,7 +16,7 @@ export async function loadRuleCategories() {
 export async function saveRuleCategory(_dbPlaceholder, { categoryId, name }) {
   try {
     const body = { id: categoryId, name };
-    const resp = await fetch('/api/rule-categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const resp = await fetch(`${API_BASE}/api/rule-categories`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!resp.ok) throw new Error(`Failed to save category: ${resp.status}`);
     return await resp.json();
   } catch (err) {
@@ -27,7 +27,7 @@ export async function saveRuleCategory(_dbPlaceholder, { categoryId, name }) {
 
 export async function deleteRuleCategory(_dbPlaceholder, id) {
   try {
-    const resp = await fetch(`/api/rule-categories/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const resp = await fetch(`${API_BASE}/api/rule-categories/${encodeURIComponent(id)}`, { method: 'DELETE' });
     if (!resp.ok) throw new Error(`Failed to delete category: ${resp.status}`);
     return await resp.json();
   } catch (err) {

@@ -18,9 +18,10 @@ const RuleCategoryPanel = ({
           placeholder="Category name"
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') saveRuleCategory(newCategoryName); }}
           style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#020617', color:'#e5e7eb', minWidth:260}}
         />
-        <button className="btn-primary" onClick={saveRuleCategory}>
+        <button className="btn-primary" onClick={() => saveRuleCategory(newCategoryName)}>
           {editingCategoryId ? 'Update' : 'Add'}
         </button>
         <button

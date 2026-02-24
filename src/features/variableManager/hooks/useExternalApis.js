@@ -107,28 +107,22 @@ export default function useExternalApis(db) {
 
         // Call Firebase test function
         const result = await firebaseTestApi(api, prompt);
-
-        // Log the attempt
+        // Log the attempt (use data returned from tester)
         const entry = {
           prompt,
           endpoint: api.url,
-          rawResponse: result.text,
-          parsed: result.parsed,
-          parseError: result.parseError,
+          rawResponse: result && result.text ? result.text : '',
+          parsed: result && result.parsed ? result.parsed : null,
+          parseError: result && result.parseError ? result.parseError : null,
           action: 'xAI-test',
-          warning: result.ok ? null : `HTTP ${result.status}`,
-          createdAt: new Date(),
-          endpoint: api.url,
-          rawResponse: '',
-          parsed: null,
-          parseError: err.message,
-          action: 'xAI-test',
-          warning: 'request-error',
+          warning: result && result.ok === false ? `HTTP ${result.status || 'error'}` : null,
           createdAt: new Date(),
         };
-        await appendLogToBackend(entry);
+        try { await appendLogToBackend(entry); } catch (e) { console.error('Failed to append test log', e); }
 
-        setTestResult({ ok: false, error: err.message });
+        // Return result to UI
+        setTestResult(result || { ok: false, error: 'No result' });
+        return result;
       } finally {
         setTesting(false);
       }

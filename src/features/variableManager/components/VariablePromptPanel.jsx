@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import WorkflowGraph from './WorkflowGraph';
 import { formatDate } from '../utils/dateUtils';
 
@@ -12,6 +12,7 @@ const VariablePromptPanel = ({
   rulePrompts,
   visibleRuleIndices,
   functionsList,
+  addNewWorkflow,
   allProjectStatuses,
   saveSynthFunctionToRule,
   printRules,
@@ -62,10 +63,11 @@ const VariablePromptPanel = ({
   pendingActions,
   cancelPreview
 }) => {
+  const [newWorkflowName, setNewWorkflowName] = useState('');
   return (
     <div className="ai-prompt-form" style={{padding: 16, background: '#111827', borderRadius:'0 0 8px 8px'}}>
       <div style={{display:'flex', gap:8, alignItems:'center', marginBottom:10, flexWrap:'wrap'}}>
-        <label style={{fontWeight:'bold'}}>Rule Category</label>
+        <label style={{fontWeight:'bold'}}>Project</label>
         <select
           value={selectedRuleCategoryId || 'all'}
           onChange={e => setSelectedRuleCategoryId(e.target.value)}
@@ -77,7 +79,7 @@ const VariablePromptPanel = ({
           ))}
         </select>
         
-        <label style={{fontWeight:'bold'}}>Rule</label>
+        <label style={{fontWeight:'bold'}}>Workflow</label>
         <select
           value={selectedRuleIndex}
           onChange={e => setSelectedRuleIndex(parseInt(e.target.value))}
@@ -87,6 +89,12 @@ const VariablePromptPanel = ({
             <option key={idx} value={idx}>{(ruleNames[idx] !== undefined && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || 'No name')}</option>
           ))}
         </select>
+
+        {/* Add New Workflow input/button */}
+        <div style={{display:'flex', gap:6, alignItems:'center', marginLeft:8}}>
+          <input value={newWorkflowName} onChange={e => setNewWorkflowName(e.target.value)} placeholder="New workflow name" style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#021827', color:'#e5e7eb', width:180}} onKeyDown={(e) => { if (e.key === 'Enter') { if (typeof addNewWorkflow === 'function') addNewWorkflow(newWorkflowName || 'New Workflow'); setNewWorkflowName(''); } }} />
+          <button className="btn-primary" onClick={() => { if (typeof addNewWorkflow === 'function') addNewWorkflow(newWorkflowName || 'New Workflow'); setNewWorkflowName(''); }} style={{padding:'8px 10px'}}>Add New Workflow</button>
+        </div>
 
         {/* Quick rule tabs for easier switching */}
         <div id="quickRuleTabs" style={{display:'flex', gap:6, overflowX:'auto', padding:'4px 6px', maxWidth:'100%'}}>
@@ -142,7 +150,6 @@ const VariablePromptPanel = ({
 
       {typeof selectedRuleIndex !== 'undefined' && selectedRuleIndex !== null && (
         <div id="projectTitle" style={{marginBottom:10, padding:10, borderRadius:6, background:'#021827', border:'1px solid #13353b', color:'#e5f6ff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12}}>
-          <div style={{fontSize:'0.85rem', color:'#9dd3ff', fontWeight:700}}>Editing Rule: {(ruleNames && ruleNames[selectedRuleIndex]) ? ruleNames[selectedRuleIndex] : (rulePrompts && rulePrompts[selectedRuleIndex]) || `Rule ${Number(selectedRuleIndex)+1}`}</div>
           <div style={{display: 'flex', gap: 8}}>
             <button className="btn-secondary" onClick={saveSynthFunctionToRule} disabled={aiLoading} title="Save Project to Rule Checker">
               Save → Firebase
@@ -150,6 +157,8 @@ const VariablePromptPanel = ({
             <button className="btn-secondary" onClick={printRules} style={{padding: '6px 10px'}}>Print Rules</button>
             {/* Run moved to floating Node Tools panel */}
           </div>
+          <div style={{fontSize:'0.85rem', color:'#9dd3ff', fontWeight:700}}>Editing Rule: {(ruleNames && ruleNames[selectedRuleIndex]) ? ruleNames[selectedRuleIndex] : (rulePrompts && rulePrompts[selectedRuleIndex]) || `Rule ${Number(selectedRuleIndex)+1}`}</div>
+          
         </div>
       )}
 

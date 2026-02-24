@@ -27,6 +27,12 @@ class ProjectManager {
     
     // Execution loop interval
     this.executionInterval = null;
+    // Verbose logging toggle (set env PROJECT_MANAGER_VERBOSE=true to enable)
+    this.verbose = (process.env.PROJECT_MANAGER_VERBOSE === 'true');
+  }
+
+  log(...args) {
+    if (this.verbose) console.log('[ProjectManager]', ...args);
   }
 
   /**
@@ -52,13 +58,13 @@ class ProjectManager {
           });
         }
       }
-      console.log(`[ProjectManager] Loaded ${this.projects.size} projects from ${filePath || 'runs_store.json'}`);
+      //console.log(`[ProjectManager] Loaded ${this.projects.size} projects from ${filePath || 'runs_store.json'}`);
     } catch (e) {
       if (e.code === 'ENOENT') {
-        console.log('[ProjectManager] No runs_store.json found, starting fresh');
+        //console.log('[ProjectManager] No runs_store.json found, starting fresh');
         return;
       }
-      console.error('[ProjectManager] Error loading runs_store.json:', e);
+      //console.error('[ProjectManager] Error loading runs_store.json:', e);
     }
   }
 
@@ -84,9 +90,9 @@ class ProjectManager {
       }
       const out = { savedAt: new Date().toISOString(), projects };
       await fs.writeFile(fp, JSON.stringify(out, null, 2), 'utf8');
-      console.log(`[ProjectManager] Saved ${projects.length} projects to ${fp}`);
+      this.log(`Saved ${projects.length} projects to ${fp}`);
     } catch (e) {
-      console.error('[ProjectManager] Error saving runs_store.json:', e);
+      //console.error('[ProjectManager] Error saving runs_store.json:', e);
     }
   }
 
@@ -96,7 +102,7 @@ class ProjectManager {
   init(io) {
     this.io = io;
     this.startExecutionLoop();
-    console.log('[ProjectManager] Initialized with execution loop');
+    this.log('Initialized with execution loop');
   }
 
   /**
@@ -104,7 +110,7 @@ class ProjectManager {
    */
   registerClient(clientId, socket) {
     this.clients.set(clientId, { socket, projectId: null });
-    console.log(`[ProjectManager] Client registered: ${clientId}`);
+    //console.log(`[ProjectManager] Client registered: ${clientId}`);
   }
 
   /**
@@ -116,7 +122,7 @@ class ProjectManager {
       this.unwatchProject(clientId, client.projectId);
     }
     this.clients.delete(clientId);
-    console.log(`[ProjectManager] Client unregistered: ${clientId}`);
+    //console.log(`[ProjectManager] Client unregistered: ${clientId}`);
   }
 
   /**
@@ -139,7 +145,7 @@ class ProjectManager {
     }
     this.projectWatchers.get(projectId).add(clientId);
 
-    console.log(`[ProjectManager] Client ${clientId} watching project ${projectId}`);
+    this.log(`Client ${clientId} watching project ${projectId}`);
 
     // Send current project status to client (只發送 status，不包含執行細節)
     const project = this.projects.get(projectId);
@@ -149,7 +155,7 @@ class ProjectManager {
         projectId,
         status: project.status
       });
-      console.log(`[ProjectManager] Sent project status to ${clientId}: status=${project.status}`);
+      this.log(`Sent project status to ${clientId}: status=${project.status}`);
       
       // If running, also send current execution state
       if (project.status === 'running') {
@@ -159,7 +165,7 @@ class ProjectManager {
           activeEdgeId: project.activeEdgeId,
           storeVars: project.storeVars
         });
-        console.log(`[ProjectManager] Sent execution state to ${clientId}`);
+        //console.log(`[ProjectManager] Sent execution state to ${clientId}`);
       }
     } else {
       // Project doesn't exist yet, send default stopped status
@@ -167,7 +173,7 @@ class ProjectManager {
         projectId,
         status: 'stopped'
       });
-      console.log(`[ProjectManager] Sent default stopped status to ${clientId} for new project ${projectId}`);
+      this.log(`Sent default stopped status to ${clientId} for new project ${projectId}`);
     }
   }
 
@@ -182,7 +188,7 @@ class ProjectManager {
         this.projectWatchers.delete(projectId);
       }
     }
-    console.log(`[ProjectManager] Client ${clientId} unwatched project ${projectId}`);
+    this.log(`Client ${clientId} unwatched project ${projectId}`);
   }
 
   /**
@@ -200,7 +206,7 @@ class ProjectManager {
         apis: apis,
         stepDelay: stepDelay
       });
-      console.log(`[ProjectManager] Project loaded: ${projectId}`);
+      this.log(`Project loaded: ${projectId}`);
     } else {
       // Update nodes/edges if provided
       const project = this.projects.get(projectId);
@@ -218,7 +224,7 @@ class ProjectManager {
   updateProjectWorkflow(projectId, nodes, edges) {
     const project = this.projects.get(projectId);
     if (!project) {
-      console.warn(`[ProjectManager] Project not found: ${projectId}`);
+      //console.warn(`[ProjectManager] Project not found: ${projectId}`);
       return;
     }
 
@@ -240,7 +246,9 @@ class ProjectManager {
     const project = this.projects.get(projectId);
     if (!project) return;
 
+    const oldStatus = project.status;
     project.status = status;
+    //console.log(`[ProjectManager] setProjectStatus: ${projectId} ${oldStatus} -> ${status}`);
 
     // Broadcast to ALL clients, not just watchers
     this.broadcastToAllClients('project_status_change', {
@@ -270,7 +278,7 @@ class ProjectManager {
    * Broadcast event to ALL connected clients (regardless of what they're watching)
    */
   broadcastToAllClients(event, data) {
-    console.log(`[ProjectManager] Broadcasting ${event} to ALL ${this.clients.size} clients:`, data);
+    //console.log(`[ProjectManager] Broadcasting ${event} to ALL ${this.clients.size} clients:`, data);
 
     for (const [clientId, client] of this.clients.entries()) {
       if (client && client.socket) {
@@ -285,19 +293,19 @@ class ProjectManager {
   broadcastToProject(projectId, event, data) {
     const watchers = this.projectWatchers.get(projectId);
     if (!watchers) {
-      console.log(`[ProjectManager] No watchers for project ${projectId}, cannot broadcast ${event}`);
+      //console.log(`[ProjectManager] No watchers for project ${projectId}, cannot broadcast ${event}`);
       return;
     }
 
-    console.log(`[ProjectManager] Broadcasting ${event} to ${watchers.size} watchers of project ${projectId}:`, data);
+    //console.log(`[ProjectManager] Broadcasting ${event} to ${watchers.size} watchers of project ${projectId}:`, data);
 
     for (const clientId of watchers) {
       const client = this.clients.get(clientId);
       if (client && client.socket) {
         client.socket.emit(event, data);
-        console.log(`[ProjectManager] Sent ${event} to client ${clientId}`);
+        //console.log(`[ProjectManager] Sent ${event} to client ${clientId}`);
       } else {
-        console.log(`[ProjectManager] Client ${clientId} not found or socket missing`);
+        //console.log(`[ProjectManager] Client ${clientId} not found or socket missing`);
       }
     }
   }
@@ -333,7 +341,7 @@ class ProjectManager {
       this.checkAndExecuteProjects();
     }, 500);
 
-    console.log('[ProjectManager] Execution loop started');
+    //console.log('[ProjectManager] Execution loop started');
   }
 
   /**
@@ -352,9 +360,11 @@ class ProjectManager {
         // If project is stopped but still in runningProjects, abort it
         const runInfo = this.runningProjects.get(projectId);
         if (runInfo && runInfo.executing) {
+          //console.log(`[ProjectManager] checkAndExecuteProjects: marking abort for ${projectId}, runInfo before:`, runInfo);
           runInfo.abort = true;
           this.runningProjects.delete(projectId);
-          console.log(`[ProjectManager] Aborted project: ${projectId}`);
+          //console.log(`[ProjectManager] checkAndExecuteProjects: deleted runInfo for ${projectId}`);
+          this.log(`Aborted project: ${projectId}`);
         }
       }
     }
@@ -369,15 +379,16 @@ class ProjectManager {
 
     // Mark as executing
     this.runningProjects.set(projectId, { executing: true, abort: false });
-    
-    console.log(`[ProjectManager] Starting execution: ${projectId}`);
+    //console.log(`[ProjectManager] executeProject: created runInfo for ${projectId}`, this.runningProjects.get(projectId));
+    this.log(`Starting execution: ${projectId}`);
 
     try {
       // Execute workflow with broadcasting capability
       await executeWorkflow({
         projectId,
-        nodes: project.nodes,
-        edges: project.edges,
+        // pass getter functions so executeWorkflow can read latest nodes/edges during run
+        nodes: () => this.projects.get(projectId)?.nodes || [],
+        edges: () => this.projects.get(projectId)?.edges || [],
         apis: project.apis || [],
         stepDelay: project.stepDelay || 1000,
         initialStoreVars: project.storeVars || {},
@@ -389,13 +400,15 @@ class ProjectManager {
         },
         checkAbort: () => {
           const runInfo = this.runningProjects.get(projectId);
-          return runInfo ? runInfo.abort : true;
+          const val = runInfo ? runInfo.abort : true;
+          if (val) console.log(`[ProjectManager] checkAbort() => ${val} for ${projectId}`, runInfo);
+          return val;
         }
       });
 
-      console.log(`[ProjectManager] Completed execution: ${projectId}`);
+      //console.log(`[ProjectManager] Completed execution: ${projectId}`);
     } catch (err) {
-      console.error(`[ProjectManager] Execution error for ${projectId}:`, err);
+      //console.error(`[ProjectManager] Execution error for ${projectId}:`, err);
     } finally {
       // Clean up running state
       this.runningProjects.delete(projectId);
@@ -422,7 +435,7 @@ class ProjectManager {
     const project = this.loadProject(projectId, nodes, edges, apis, stepDelay);
     
     if (project.status === 'running') {
-      console.log(`[ProjectManager] Project ${projectId} already running, re-broadcasting status`);
+      //console.log(`[ProjectManager] Project ${projectId} already running, re-broadcasting status`);
       // Still broadcast to ensure all clients get the status
       this.setProjectStatus(projectId, 'running');
       return;
@@ -430,7 +443,7 @@ class ProjectManager {
 
     // Use setProjectStatus to broadcast to all clients
     this.setProjectStatus(projectId, 'running');
-    console.log(`[ProjectManager] Project ${projectId} status set to running and broadcasted to all clients`);
+    //console.log(`[ProjectManager] Project ${projectId} status set to running and broadcasted to all clients`);
   }
 
   /**
@@ -443,12 +456,14 @@ class ProjectManager {
     // Mark for abort
     const runInfo = this.runningProjects.get(projectId);
     if (runInfo) {
+      //console.log(`[ProjectManager] stopProject called: set runInfo.abort=true for ${projectId}, runInfo before:`, runInfo);
       runInfo.abort = true;
+      //console.log(`[ProjectManager] stopProject: runInfo after:`, runInfo);
     }
 
     // Use setProjectStatus to broadcast to all clients
     this.setProjectStatus(projectId, 'stopped');
-    console.log(`[ProjectManager] Project ${projectId} stopped and broadcasted to all clients`);
+    //console.log(`[ProjectManager] Project ${projectId} stopped and broadcasted to all clients`);
   }
 }
 

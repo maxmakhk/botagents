@@ -193,7 +193,7 @@ export default function fnToWorkflow(fnString) {
           if (stmt.kind === 'assign') { 
             label = `${stmt.varName} = ${stmt.value.replace(/["']/g, '')}`; 
           } else if (stmt.kind === 'requestAPI') { 
-            label = `API: ${stmt.apiName}`; 
+            label = `${stmt.apiName}`; 
             const id = newTempNode('api', label, { apiUrl: stmt.apiUrl }); 
             if (prevId) { 
               newTempEdge(prevId, id); 
@@ -247,7 +247,7 @@ export default function fnToWorkflow(fnString) {
             if (stmt.kind === 'assign') { 
               nodeLabel = `${stmt.varName} = ${stmt.value.replace(/["']/g, '')}`; 
             } else if (stmt.kind === 'requestAPI') { 
-              nodeLabel = `API: ${stmt.apiName}`; 
+              nodeLabel = `${stmt.apiName}`; 
               nodeType = 'api'; 
               const id = newTempNode(nodeType, nodeLabel, { apiUrl: stmt.apiUrl }); 
               
