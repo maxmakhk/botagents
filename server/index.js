@@ -10,12 +10,43 @@ import runManager from './runManager.js';
 import { processPrompt } from './workflowPromptProcessor.js';
 import projectManager from './projectManager.js';
 import path from 'path';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 app.use(express.json());
 app.use(cors());
+
+// Initialize Firebase for server-side Firestore operations (used by endpoints below)
+const firebaseConfig = {
+  apiKey: process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || '',
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID || '',
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID || ''
+};
+
+console.log('[Firebase Init] Config loaded. projectId:', firebaseConfig.projectId ? '(set)' : '(empty)');
+console.log('[Firebase Init] apiKey:', firebaseConfig.apiKey ? '(set)' : '(empty)');
+console.log('[Firebase Init] authDomain:', firebaseConfig.authDomain ? '(set)' : '(empty)');
+
+let firebaseApp = null;
+let firestore = null;
+try {
+  if (firebaseConfig.projectId) {
+    firebaseApp = initializeApp(firebaseConfig);
+    firestore = getFirestore(firebaseApp);
+    console.log('[Firebase Init] ✓ Initialized Firebase successfully');
+  } else {
+    console.warn('[Firebase Init] ✗ Firebase not configured - missing projectId. Set VITE_FIREBASE_PROJECT_ID or FIREBASE_PROJECT_ID in .env');
+  }
+} catch (e) {
+  console.error('[Firebase Init] ✗ Failed to initialize Firebase:', e.message);
+}
 
 // -- Helpers ---------------------------------------------------------------
 function normalizeTs(val) {
@@ -146,6 +177,166 @@ app.post('/api/logs', (req, res) => {
     stmt.run(id, createdAt, JSON.stringify(payloadData));
     res.json({ success: true, id });
   } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// ------------------ External APIs (server-mediated) ----------------------
+// Add a new external API (server will persist to Firestore)
+app.post('/api/external-apis', async (req, res) => {
+  try {
+    if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
+    const { name, url, tags = [], function: fn = '', cssStyle = '' } = req.body || {};
+    if (!name) return res.status(400).json({ error: 'name_required' });
+    const docRef = await addDoc(collection(firestore, 'VariableManager-apis'), {
+      name,
+      url,
+      tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean),
+      function: fn || '',
+      metadata: { cssStyle: cssStyle || '' },
+      lastPrompt: '',
+      createdAt: new Date(),
+    });
+    const out = { id: docRef.id, name, url, tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean), function: fn || '', metadata: { cssStyle: cssStyle || '' }, lastPrompt: '', createdAt: new Date() };
+    // notify project manager / running runners (if projectId provided)
+    try {
+      const projectId = req.body?.projectId;
+      if (projectId) {
+        const proj = projectManager.getProject(projectId);
+        if (proj) {
+          proj.apis = proj.apis ? (proj.apis.concat([out])) : [out];
+          projectManager.broadcastToProject(projectId, 'workflow_updated', { projectId, apisCount: proj.apis.length, apis: proj.apis });
+        }
+      }
+    } catch (e) {}
+    res.json(out);
+  } catch (err) { console.error('POST /api/external-apis error', err); res.status(500).json({ error: String(err) }); }
+});
+
+// Update API metadata
+app.put('/api/external-apis/:id', async (req, res) => {
+  console.log('Received PUT /api/external-apis/:id with id=', req.params.id, 'body=', req.body);
+  try {
+    console.log('PUT /api/external-apis/:id called with id=', req.params.id, 'bodyKeys=', Object.keys(req.body || {}));
+    if (!firestore){
+      console.log('Firestore not configured, cannot update API metadata');
+      return res.status(500).json({ error: 'firebase_not_configured' });
+    }
+    const id = req.params.id;
+    console.log('Step 1: Extracting projectId and metadata from body');
+    const { projectId, ...metadata } = req.body || {};
+    console.log('Step 2: projectId=', projectId, 'metadata keys=', Object.keys(metadata));
+    const apiRef = doc(firestore, 'VariableManager-apis', id);
+    console.log('Step 3: Created apiRef');
+    const updateData = {};
+    // Only include fields that should be persisted to Firestore
+    if (metadata.name !== undefined) updateData.name = metadata.name;
+    if (metadata.url !== undefined) updateData.url = metadata.url;
+    if (metadata['function'] !== undefined) updateData.function = metadata['function'];
+    if (metadata.tags !== undefined) updateData.tags = Array.isArray(metadata.tags) ? metadata.tags : String(metadata.tags).split(',').map(t => t.trim()).filter(Boolean);
+    if (metadata.cssStyle !== undefined) {
+      updateData.metadata = { cssStyle: metadata.cssStyle };
+    }
+    updateData.updatedAt = serverTimestamp();
+    console.log('Step 4: Built updateData before filtering:', JSON.stringify(updateData, null, 2));
+    Object.keys(updateData).forEach(k => { if (updateData[k] === undefined) delete updateData[k]; });
+    console.log('Step 5: Final updateData for Firestore:', JSON.stringify(updateData, null, 2));
+    try {
+      console.log('Step 6: About to call updateDoc');
+      await updateDoc(apiRef, updateData);
+      console.log(`Step 7: Updated API ${id} in Firestore successfully`);
+    } catch (innerErr) {
+      console.error('Firestore updateDoc failed for API id=', id, 'Error:', innerErr);
+      return res.status(500).json({ error: 'firestore_update_failed', detail: String(innerErr && innerErr.message ? innerErr.message : innerErr) });
+    }
+    // notify running runners via projectManager
+    try {
+      if (projectId) {
+        const proj = projectManager.getProject(projectId);
+        if (proj) {
+          // update apis array in-memory if present
+          proj.apis = proj.apis ? proj.apis.map(a => (String(a.id) === String(id) ? { ...a, ...metadata } : a)) : proj.apis;
+          projectManager.broadcastToProject(projectId, 'workflow_updated', { projectId, apisCount: (proj.apis || []).length, apis: proj.apis });
+        }
+      } else {
+        // No projectId provided — update any loaded projects that include this api id
+        for (const [pid, proj] of projectManager.projects.entries()) {
+          try {
+            if (proj && Array.isArray(proj.apis) && proj.apis.find(a => String(a.id) === String(id))) {
+              proj.apis = proj.apis.map(a => (String(a.id) === String(id) ? { ...a, ...metadata } : a));
+              projectManager.broadcastToProject(pid, 'workflow_updated', { projectId: pid, apisCount: proj.apis.length, apis: proj.apis });
+              console.log(`Notified project ${pid} of API ${id} update`);
+            }
+          } catch (inner) {
+            console.error('Error updating project apis for pid=', pid, inner);
+          }
+        }
+      }
+    } catch (e) { console.error('projectManager notify failed', e); }
+    res.json({ success: true });
+  } catch (err) {
+    console.log('PUT ERROR /api/external-apis/:id outer catch error:', err);
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Delete API
+app.delete('/api/external-apis/:id', async (req, res) => {
+  try {
+    if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
+    const id = req.params.id;
+    await deleteDoc(doc(firestore, 'VariableManager-apis', id));
+    try {
+      const projectId = req.body?.projectId;
+      if (projectId) {
+        const proj = projectManager.getProject(projectId);
+        if (proj) {
+          proj.apis = proj.apis ? proj.apis.filter(a => String(a.id) !== String(id)) : proj.apis;
+          projectManager.broadcastToProject(projectId, 'workflow_updated', { projectId, apisCount: (proj.apis || []).length, apis: proj.apis });
+        }
+      }
+    } catch (e) {}
+    res.json({ success: true });
+  } catch (err) { console.error('DELETE /api/external-apis/:id error', err); res.status(500).json({ error: String(err) }); }
+});
+
+// Save API prompt (record last prompt)
+app.post('/api/external-apis/:id/prompt', async (req, res) => {
+  try {
+    console.log("firestore=", firestore);
+    if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
+    const id = req.params.id;
+    const prompt = req.body?.prompt || '';
+    const apiRef = doc(firestore, 'VariableManager-apis', id);
+    await updateDoc(apiRef, { lastPrompt: prompt, updatedAt: serverTimestamp() });
+    res.json({ success: true });
+  } catch (err) { console.error('POST /api/external-apis/:id/prompt error', err); res.status(500).json({ error: String(err) }); }
+});
+
+// ------------------ Project State API (debug) --------------------------
+// Return in-memory project state (nodes, edges, apis, storeVars, status)
+app.get('/api/projects/:projectId/state', (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    if (!projectId) return res.status(400).json({ error: 'projectId_required' });
+    const project = projectManager.getProject(projectId);
+    if (!project) return res.status(404).json({ error: 'not_found' });
+    // Return a shallow copy to avoid accidental mutation by callers
+    const out = {
+      projectId,
+      nodes: project.nodes || [],
+      edges: project.edges || [],
+      apis: project.apis || [],
+      storeVars: project.storeVars || {},
+      status: project.status || 'stopped',
+      activeNodeId: project.activeNodeId || null,
+      activeEdgeId: project.activeEdgeId || null,
+      stepDelay: project.stepDelay || 1000
+    };
+    console.log(`[API] GET /api/projects/${projectId}/state -> returning project state`);
+    res.json(out);
+  } catch (err) {
+    console.error('GET /api/projects/:projectId/state error', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 app.post('/api/rule-categories', (req, res) => {
