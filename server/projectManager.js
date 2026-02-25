@@ -44,7 +44,7 @@ class ProjectManager {
       if (!k) return;
       this.globalStoreVars[k] = value;
       // Always log global var updates for debugging
-      console.log(`[ProjectManager] setGlobalVar: projectGlobal ${k} =`, value);
+      //console.log(`[ProjectManager] setGlobalVar: projectGlobal ${k} =`, value);
       // Broadcast to all connected clients that global store changed
       this.broadcastToAllClients('global_store_vars_update', { globalStoreVars: this.globalStoreVars });
     } catch (e) { /* ignore */ }

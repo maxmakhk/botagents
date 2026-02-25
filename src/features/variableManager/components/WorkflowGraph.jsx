@@ -361,7 +361,6 @@ const WorkflowGraph = ({
   edgeEdit,
   onCommitEdgeLabel,
   cancelEdgeEdit,
-  onAddNode,
   onDeleteSelected,
   onGenerateFunction,
   onRun,
@@ -514,7 +513,6 @@ const WorkflowGraph = ({
 
       {/* Floating node tools panel */}
       <NodeToolsFloating
-        onAddNode={onAddNode}
         onAutoLayout={onAutoLayout}
         onDeleteSelected={onDeleteSelected}
         onGenerateFunction={onGenerateFunction}

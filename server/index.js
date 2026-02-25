@@ -223,6 +223,7 @@ app.put('/api/external-apis/:id', async (req, res) => {
     const id = req.params.id;
     console.log('Step 1: Extracting projectId and metadata from body');
     const { projectId, ...metadata } = req.body || {};
+    const metaFromBody = (metadata.metadata && typeof metadata.metadata === 'object') ? metadata.metadata : {};
     console.log('Step 2: projectId=', projectId, 'metadata keys=', Object.keys(metadata));
     const apiRef = doc(firestore, 'VariableManager-apis', id);
     console.log('Step 3: Created apiRef');
@@ -232,9 +233,12 @@ app.put('/api/external-apis/:id', async (req, res) => {
     if (metadata.url !== undefined) updateData.url = metadata.url;
     if (metadata['function'] !== undefined) updateData.function = metadata['function'];
     if (metadata.tags !== undefined) updateData.tags = Array.isArray(metadata.tags) ? metadata.tags : String(metadata.tags).split(',').map(t => t.trim()).filter(Boolean);
-    if (metadata.cssStyle !== undefined) {
-      updateData.metadata = { cssStyle: metadata.cssStyle };
-    }
+    const metaImage = metadata.image !== undefined ? metadata.image : metaFromBody.image;
+    const metaSize = metadata.size !== undefined ? metadata.size : metaFromBody.size;
+    const metaCss = metadata.cssStyle !== undefined ? metadata.cssStyle : metaFromBody.cssStyle;
+    if (metaImage !== undefined) updateData['metadata.image'] = metaImage;
+    if (metaSize !== undefined) updateData['metadata.size'] = metaSize;
+    if (metaCss !== undefined) updateData['metadata.cssStyle'] = metaCss;
     updateData.updatedAt = serverTimestamp();
     console.log('Step 4: Built updateData before filtering:', JSON.stringify(updateData, null, 2));
     Object.keys(updateData).forEach(k => { if (updateData[k] === undefined) delete updateData[k]; });
@@ -253,7 +257,17 @@ app.put('/api/external-apis/:id', async (req, res) => {
         const proj = projectManager.getProject(projectId);
         if (proj) {
           // update apis array in-memory if present
-          proj.apis = proj.apis ? proj.apis.map(a => (String(a.id) === String(id) ? { ...a, ...metadata } : a)) : proj.apis;
+          proj.apis = proj.apis ? proj.apis.map(a => {
+            if (String(a.id) !== String(id)) return a;
+            const mergedMetadata = { ...(a.metadata || {}) };
+            if (metaFromBody.image !== undefined) mergedMetadata.image = metaFromBody.image;
+            if (metaFromBody.size !== undefined) mergedMetadata.size = metaFromBody.size;
+            if (metaFromBody.cssStyle !== undefined) mergedMetadata.cssStyle = metaFromBody.cssStyle;
+            if (metadata.image !== undefined) mergedMetadata.image = metadata.image;
+            if (metadata.size !== undefined) mergedMetadata.size = metadata.size;
+            if (metadata.cssStyle !== undefined) mergedMetadata.cssStyle = metadata.cssStyle;
+            return { ...a, ...metadata, metadata: mergedMetadata };
+          }) : proj.apis;
           projectManager.broadcastToProject(projectId, 'workflow_updated', { projectId, apisCount: (proj.apis || []).length, apis: proj.apis });
         }
       } else {
@@ -261,7 +275,17 @@ app.put('/api/external-apis/:id', async (req, res) => {
         for (const [pid, proj] of projectManager.projects.entries()) {
           try {
             if (proj && Array.isArray(proj.apis) && proj.apis.find(a => String(a.id) === String(id))) {
-              proj.apis = proj.apis.map(a => (String(a.id) === String(id) ? { ...a, ...metadata } : a));
+              proj.apis = proj.apis.map(a => {
+                if (String(a.id) !== String(id)) return a;
+                const mergedMetadata = { ...(a.metadata || {}) };
+                if (metaFromBody.image !== undefined) mergedMetadata.image = metaFromBody.image;
+                if (metaFromBody.size !== undefined) mergedMetadata.size = metaFromBody.size;
+                if (metaFromBody.cssStyle !== undefined) mergedMetadata.cssStyle = metaFromBody.cssStyle;
+                if (metadata.image !== undefined) mergedMetadata.image = metadata.image;
+                if (metadata.size !== undefined) mergedMetadata.size = metadata.size;
+                if (metadata.cssStyle !== undefined) mergedMetadata.cssStyle = metadata.cssStyle;
+                return { ...a, ...metadata, metadata: mergedMetadata };
+              });
               projectManager.broadcastToProject(pid, 'workflow_updated', { projectId: pid, apisCount: proj.apis.length, apis: proj.apis });
               console.log(`Notified project ${pid} of API ${id} update`);
             }

@@ -35,7 +35,6 @@ const VariablePromptPanel = ({
   edgeEdit,
   onCommitEdgeLabel,
   onCancelEdgeEdit,
-  addRfNode,
   deleteSelected,
   generateFunctionFromFlow,
   setRfInstance,
@@ -214,7 +213,6 @@ const VariablePromptPanel = ({
         cancelEdgeEdit={onCancelEdgeEdit}
         onNodeDoubleClick={onNodeDoubleClick}
         onNodeClick={onNodeClick}
-        onAddNode={addRfNode}
         onDeleteSelected={deleteSelected}
         onGenerateFunction={generateFunctionFromFlow}
         onInitFlow={(inst) => setRfInstance(inst)}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 const ExternalAPIPanel = ({
   newApiName,
@@ -29,8 +29,19 @@ const ExternalAPIPanel = ({
   const [expandedApiId, setExpandedApiId] = useState(null);
   const [functionEditModal, setFunctionEditModal] = useState(null); // {apiId, tempFunction}
   const [uploadFiles, setUploadFiles] = useState({});
+  const [uploadPreviews, setUploadPreviews] = useState({});
   const [uploadingIds, setUploadingIds] = useState({});
   const [uploadStatus, setUploadStatus] = useState({}); // 'idle' | 'uploading' | 'success' | 'error'
+
+  useEffect(() => {
+    return () => {
+      Object.values(uploadPreviews).forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) { /* ignore */ }
+      });
+    };
+  }, [uploadPreviews]);
 
   const filteredApis = useMemo(() => {
     if (!searchTags.trim()) return apis;
@@ -290,6 +301,20 @@ const ExternalAPIPanel = ({
                               const file = e.target.files?.[0] || null;
                               setUploadFiles(s => ({ ...s, [a.id]: file }));
                               setUploadStatus(s => ({ ...s, [a.id]: 'idle' }));
+                              setUploadPreviews(s => {
+                                const next = { ...s };
+                                if (next[a.id]) {
+                                  try {
+                                    URL.revokeObjectURL(next[a.id]);
+                                  } catch (err) { /* ignore */ }
+                                }
+                                if (file) {
+                                  next[a.id] = URL.createObjectURL(file);
+                                } else {
+                                  delete next[a.id];
+                                }
+                                return next;
+                              });
                             }}
                             disabled={uploadStatus[a.id] === 'uploading' || uploadingIds[a.id]}
                           />
@@ -327,6 +352,16 @@ const ExternalAPIPanel = ({
                                   }
                                   setApis(s => s.map(item => item.id === a.id ? { ...item, metadata: { ...(item.metadata || {}), image: imageName } } : item));
                                   setUploadFiles(s => ({ ...s, [a.id]: null }));
+                                  setUploadPreviews(s => {
+                                    const next = { ...s };
+                                    if (next[a.id]) {
+                                      try {
+                                        URL.revokeObjectURL(next[a.id]);
+                                      } catch (err) { /* ignore */ }
+                                      delete next[a.id];
+                                    }
+                                    return next;
+                                  });
                                   setAiWarning('Image uploaded and saved');
                                   setTimeout(() => setAiWarning(''), 2000);
                                 } else {
@@ -357,6 +392,13 @@ const ExternalAPIPanel = ({
                               <span style={{ color: '#9ca3af' }}>Current: {a.metadata.image.split('/').pop()}</span>
                             )}
                           </div>
+                          {(uploadPreviews[a.id] || a.metadata?.image) && (
+                            <img
+                              src={uploadPreviews[a.id] || a.metadata?.image}
+                              alt="Component preview"
+                              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #334155' }}
+                            />
+                          )}
                         </div>
                       </div>
                     )}

@@ -198,7 +198,7 @@ async function runLoop({
 
     broadcastLog('node_start', { nodeId: currentNode.id });
     broadcastState({ activeNodeId: currentNode.id, activeEdgeId: null });
-    console.log(`Running node: ${currentNode.id}`);
+    //console.log(`Running node: ${currentNode.id}`);
 
     const resolveApiFnFromApis = (node) => {
       try {
@@ -208,14 +208,14 @@ async function runLoop({
         const rawLabel = String(node?.data?.label || node?.label || node?.data?.labelText || '').trim();
         const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
         if (!normalized){
-          console.warn(`Node ${node.id} has no label to resolve API function from`);
+          //console.warn(`Node ${node.id} has no label to resolve API function from`);
           return null;
         }
         for (const a of apiList) {
           const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
           if (!cand) continue;
           if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
-            console.log(`Resolved API function for node ${node.id} using label "${rawLabel}" to API "${a.name || a.label || a.displayName || a.id}"`);
+            //console.log(`Resolved API function for node ${node.id} using label "${rawLabel}" to API "${a.name || a.label || a.displayName || a.id}"`);
             return a?.function || a?.fnString || a?.functionBody || null;
           }
         }
@@ -259,7 +259,7 @@ async function runLoop({
         `);
 
         const startTs = Date.now();
-        console.log(`Node ${currentNode.id} fn start - ${new Date(startTs).toISOString()}`);
+        //console.log(`Node ${currentNode.id} fn start - ${new Date(startTs).toISOString()}`);
         broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn start', new Date(startTs).toISOString()] });
         // Log ctx snapshot before execution
         try {
@@ -278,7 +278,7 @@ async function runLoop({
         } catch (e) { /* ignore */ }
         const endTs = Date.now();
         const dur = endTs - startTs;
-        console.log(`Node ${currentNode.id} fn end - ${new Date(endTs).toISOString()} (duration ${dur}ms)`);
+        //console.log(`Node ${currentNode.id} fn end - ${new Date(endTs).toISOString()} (duration ${dur}ms)`);
         broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn end', new Date(endTs).toISOString(), dur] });
 
         // Check wait
@@ -477,7 +477,7 @@ export async function executeWorkflow({
         const s = String(k).toLowerCase();
         return s === 'waiting_wait' || s.startsWith('node_');
       };
-      const GLOBAL_KEYS = new Set(['imageurl','outputviewdialogue1','outputviewdialogue2','outputviewdialogue3','outputviewdialogue4']);
+      //don't filter any input, const GLOBAL_KEYS = new Set(['imageurl','outputviewdialogue1','outputviewdialogue2','outputviewdialogue3','outputviewdialogue4']);
 
       // transient keys (waiting/node_*) remain only in local storeVars
       if (projectId && isTransientKey(key)) {
@@ -489,7 +489,7 @@ export async function executeWorkflow({
       }
 
       // global keys -> write to projectManager.globalStoreVars and broadcast separately
-      if (GLOBAL_KEYS.has(key)) {
+      //if (GLOBAL_KEYS.has(key)) {
         try {
           if (projectId && typeof projectManager?.setGlobalVar === 'function') {
             projectManager.setGlobalVar(key, v);
@@ -497,8 +497,8 @@ export async function executeWorkflow({
             projectManager.setGlobalVar(key, v);
           }
         } catch (e) { /* ignore */ }
-        return;
-      }
+        //return;
+      //}
 
       // default: write into local storeVars
       storeVars[key] = v;

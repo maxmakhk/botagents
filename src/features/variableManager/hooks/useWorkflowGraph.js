@@ -104,6 +104,7 @@ export default function useWorkflowGraph() {
               id: String(n.id),
               position: { x: Number(n?.position?.x ?? 0), y: Number(n?.position?.y ?? 0) },
               type: n.type || 'workflowNode',
+              metadata, // Also store at root level for export consistency
               data: {
                 labelText: n.label || n.id,
                 description: n.description || n.type || '',

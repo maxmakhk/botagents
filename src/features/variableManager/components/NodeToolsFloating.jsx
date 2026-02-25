@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import './nodeToolsFloating.css';
 
 export default function NodeToolsFloating({ 
-  onAddNode, 
   onAutoLayout, 
   onDeleteSelected, 
   onGenerateFunction,
@@ -87,14 +86,6 @@ export default function NodeToolsFloating({
             >
               {runActive ? '■ Stop' : '▶ Run'}
             </button>
-            <button 
-              className="ms-nodetools-btn ms-nodetools-btn-add" 
-              onClick={onAddNode} 
-              disabled={aiLoading}
-              title="Add a new node to the flow"
-            >
-              + Add Node
-            </button>
             <button
               className="ms-nodetools-btn ms-nodetools-btn-api"
               onClick={() => {
@@ -110,9 +101,9 @@ export default function NodeToolsFloating({
                   try { if (window && typeof window.vm_toggleApiNodes === 'function') window.vm_toggleApiNodes(true); } catch(e){}
                 }
               }}
-              title="Browse API nodes"
+              title="Browse Components"
             >
-              API Nodes
+              Components
             </button>
           </div>
 
@@ -169,7 +160,7 @@ export default function NodeToolsFloating({
 
         {!hasNodes && (
           <div className="ms-nodetools-empty">
-            Canvas is blank — use "+ Add Node" to create a workflow.
+            Canvas is blank — use "Components" to create a workflow.
           </div>
         )}
       </div>

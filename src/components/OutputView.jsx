@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import DOMPurify from "dompurify";
 import "../App.css";
 import virtualspace from "../assets/virtualspace.png";
 
@@ -346,7 +347,10 @@ export default function OutputView({ onClose, socket, projectId }) {
             </div>
             <div className="dialogue-bubble">
               <div className="dialogue-bubble-line1">{icon.dialogueLine1 || (icon.name || "")}</div>
-              <div className="dialogue-bubble-line2">{icon.dialogueLine2 || ""}</div>
+              <div
+                className="dialogue-bubble-line2"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.dialogueLine2 || "") }}
+              />
             </div>
           </div>
         ))}

@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import WorkflowGraph from './variableManager/components/WorkflowGraph';
 import VariableTableContainer from './variableManager/components/VariableTableContainer';
-import RuntimeRuleCheckerPanel from './variableManager/components/RuntimeRuleCheckerPanel';
 import NodeDetailsModal from './variableManager/components/NodeDetailsModal';
 import TabNavigation from './variableManager/components/TabNavigation';
 import RuleCheckerPanel from './variableManager/components/RuleCheckerPanel';
@@ -222,6 +221,13 @@ const VariableManager = ({ onBack }) => {
     } catch (e) { }
     return () => { try { delete window.vm_toggleApiNodes; } catch (e) { } };
   }, []);
+
+  // Reload APIs when API nodes panel is opened
+  useEffect(() => {
+    if (showApiNodes) {
+      loadApis();
+    }
+  }, [showApiNodes, loadApis]);
 
   // Auto-layout handler using dagre helper
   const handleAutoLayout = useCallback((nodes, edges) => {
@@ -1375,24 +1381,6 @@ const VariableManager = ({ onBack }) => {
     }
   };
 
-  const addRfNode = useCallback(() => {
-    const id = `node_${Date.now()}`;
-    const newNode = {
-      id,
-      position: { x: 200 + (rfNodes.length * 20), y: 200 },
-      data: {
-        labelText: `New node ${rfNodes.length + 1}`,
-        description: 'Describe this step',
-        backgroundColor: getRandLightColor(),
-        textColor: '#0f172a'
-      },
-      style: { borderRadius: 10, padding: 8, minWidth: 170 }
-    };
-    setRfNodes((n) => [...n, newNode]);
-    // select the new node
-    setSelectedIds([id]);
-  }, [rfNodes.length, setRfNodes]);
-
   const addRfApiNode = useCallback((api) => {
     if (!api) return;
     const id = `api_${Date.now()}`;
@@ -1409,10 +1397,22 @@ const VariableManager = ({ onBack }) => {
     
     console.log(`[addRfApiNode] Creating node with size: ${size} (${nodeWidth}x${nodeHeight}px)`, api);
     
+    const metadata = {
+      apiId: api.id,
+      apiName: label,
+      apiUrl: api.url || api.apiUrl || null,
+      image: image,
+      function: api.function || api.fnString || null,
+      cssStyle: css,
+      size: size,
+      tags: Array.isArray(api.tags) ? api.tags : (api.tags ? String(api.tags).split(',').map(t => t.trim()) : [])
+    };
+    
     const newNode = {
       id,
       position: { x: 200 + (rfNodes.length * 20), y: 200 },
       type: 'api',
+      metadata, // Store at root level for export consistency
       data: {
         labelText: `${label}`,
         label: `${label}`,
@@ -1420,16 +1420,7 @@ const VariableManager = ({ onBack }) => {
         actions: [],
         width: nodeWidth,
         height: nodeHeight,
-        metadata: {
-          apiId: api.id,
-          apiName: label,
-          apiUrl: api.url || api.apiUrl || null,
-          image: image,
-          function: api.function || api.fnString || null,
-          cssStyle: css,
-          size: size,
-          tags: Array.isArray(api.tags) ? api.tags : (api.tags ? String(api.tags).split(',').map(t => t.trim()) : [])
-        }
+        metadata // Also store in data for component access
       },
       style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
     };
@@ -2417,56 +2408,6 @@ const VariableManager = ({ onBack }) => {
     loadSelectedRuleIntoPrompt(selectedRuleIndex);
   }, [activeTab, selectedRuleIndex, functionsList, ruleSource, ruleSystemPrompts]);
 
-  // Runtime rule checker state
-  const [ruleCheckerRunning, setRuleCheckerRunning] = useState(false);
-  const [ruleCheckerInterval, setRuleCheckerInterval] = useState(10000);
-  const [ruleCheckerResults, setRuleCheckerResults] = useState([]);
-  const [showRuleCheckerPopup, setShowRuleCheckerPopup] = useState(false);
-  const [ruleCheckerSnapshot, setRuleCheckerSnapshot] = useState(null);
-  const variablesRef = useRef(variables);
-
-  // Runtime rule checker interval
-  useEffect(() => {
-    // keep ref up-to-date so interval can read latest variables without recreating timer
-    variablesRef.current = variables;
-  }, [variables]);
-
-  useEffect(() => {
-    if (!ruleCheckerRunning) return;
-
-    // take a stable snapshot of rule functions at start time to avoid mid-run edits shifting indices
-    const snapshot = (functionsList && functionsList.length)
-      ? JSON.parse(JSON.stringify(functionsList.filter(f => f.type === 'Rule Checker')))
-      : (ruleSource || []).map((r, idx) => ({ type: 'Rule Checker', name: rulePrompts[idx] || `Rule ${idx + 1}`, expr: r }));
-    setRuleCheckerSnapshot(snapshot);
-
-    const timer = setInterval(() => {
-      const functionsToCheck = (ruleCheckerSnapshot && ruleCheckerSnapshot.length) ? ruleCheckerSnapshot : snapshot;
-
-      const results = functionsToCheck.map((fn, idx) => {
-        const matched = [];
-        const expr = fn.expr || fn;
-        for (const v of (variablesRef.current || [])) {
-          const ok = checking(v, expr);
-          if (ok) {
-            matched.push(`Variable "${v.name}" matched rule. qty=${v.qty}`);
-          }
-        }
-        return {
-          ruleIndex: idx,
-          rulePrompt: fn.name || '',
-          ruleExpression: expr,
-          matched
-        };
-      });
-      setRuleCheckerResults(results);
-    }, ruleCheckerInterval);
-
-    return () => {
-      clearInterval(timer);
-      setRuleCheckerSnapshot(null);
-    };
-  }, [ruleCheckerRunning, ruleCheckerInterval]);
 
   // Auto-sync workflow changes: whenever nodes/edges change in variablePrompt tab, update workflowObject
   useEffect(() => {
@@ -2686,7 +2627,7 @@ const VariableManager = ({ onBack }) => {
       <div className="variable-page-header">
 
           <button className="back-btn" onClick={onBack}>
-            ??Back to menu
+          Back to menu
           </button>
 
           <h2>Variable Manager</h2>
@@ -2696,15 +2637,6 @@ const VariableManager = ({ onBack }) => {
 
 
 
-        <RuntimeRuleCheckerPanel
-          ruleCheckerInterval={ruleCheckerInterval}
-          setRuleCheckerInterval={setRuleCheckerInterval}
-          ruleCheckerRunning={ruleCheckerRunning}
-          setRuleCheckerRunning={setRuleCheckerRunning}
-          ruleCheckerResults={ruleCheckerResults}
-          showRuleCheckerPopup={showRuleCheckerPopup}
-          setShowRuleCheckerPopup={setShowRuleCheckerPopup}
-        />
       </div>
 
       {/* Floating StoreVars Inspector */}
@@ -2961,7 +2893,6 @@ const VariableManager = ({ onBack }) => {
             onCancelEdgeEdit={cancelEdgeEdit}
             onNodeDoubleClick={onNodeDoubleClick}
             onNodeClick={onNodeClick}
-            addRfNode={addRfNode}
             deleteSelected={deleteSelected}
             generateFunctionFromFlow={generateFunctionFromFlow}
             setRfInstance={setRfInstance}
