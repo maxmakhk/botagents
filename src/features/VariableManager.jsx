@@ -1420,7 +1420,9 @@ const VariableManager = ({ onBack }) => {
         actions: [],
         width: nodeWidth,
         height: nodeHeight,
-        metadata // Also store in data for component access
+        metadata, // Also store in data for component access
+        // Snapshot the component's function into the node so it won't auto-update
+        fnString: (metadata.function || metadata.fnString) || null
       },
       style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
     };
@@ -2883,6 +2885,7 @@ const VariableManager = ({ onBack }) => {
             workflowError={workflowError}
             rfNodes={rfNodes}
             rfEdges={rfEdges}
+            setRfNodes={setRfNodes}
             onRfNodesChange={onRfNodesChange}
             onRfEdgesChange={onRfEdgesChange}
             onConnect={onConnect}

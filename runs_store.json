@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-02-25T12:05:06.554Z",
+  "savedAt": "2026-02-25T15:43:03.389Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -48,9 +48,7 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
-          },
-          "width": 192,
-          "height": 96
+          }
         },
         {
           "id": "api_1772015094047",
@@ -96,9 +94,7 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
-          },
-          "width": 192,
-          "height": 96
+          }
         },
         {
           "id": "api_1772016671394",
@@ -140,9 +136,7 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
-          },
-          "width": 192,
-          "height": 96
+          }
         },
         {
           "id": "api_1772019515796",
@@ -184,9 +178,7 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
-          },
-          "width": 192,
-          "height": 96
+          }
         }
       ],
       "edges": [
@@ -217,8 +209,8 @@
       ],
       "status": "running",
       "storeVars": {
-        "waiting_wait": false,
-        "imageurl": "https://aiagent.maxsolo.co.uk/images/snapshot_20260225_120503_6dc68c94.jpg",
+        "waiting_wait": true,
+        "imageurl": "https://aiagent.maxsolo.co.uk/images/snapshot_20260225_154256_3df6789f.jpg",
         "rule_1771926252531_56yjbx__node_api_1771926377629_error": "ctx.setVar is not a function",
         "takingphoto": false,
         "takingphotov2": "v2",
@@ -228,8 +220,8 @@
         "rule_1771926252531_56yjbx__node_api_1771926306270_wait_start": 1772020999089,
         "rule_1771926252531_56yjbx__node_api_1771926306270_error": "waitResolvers is not defined"
       },
-      "activeNodeId": "api_1772015094047",
-      "activeEdgeId": "reactflow__edge-api_1772015094047right-api_1771926306270left",
+      "activeNodeId": "api_1772019515796",
+      "activeEdgeId": null,
       "apis": [
         {
           "id": "dmWZ28QrPYOoWQ2pcOyU",
@@ -294,7 +286,7 @@
             "seconds": 1772018699,
             "nanoseconds": 361000000
           },
-          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(data4 > 50){\noutput4 = 'Operating normally';\n}else{\noutput4 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', output4);\n\n  return { status: 'success' };\n}"
+          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}"
         },
         {
           "id": "CKrZDm2g9Vt1gNId0Gt1",
@@ -549,7 +541,7 @@
             "apiName": "OutputView",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(data4 > 50){\noutput4 = 'Operating normally';\n}else{\noutput4 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', output4);\n\n  return { status: 'success' };\n}",
+            "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
             "cssStyle": null,
             "size": "2:1",
             "tags": []
@@ -564,7 +556,7 @@
               "apiName": "OutputView",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(data4 > 50){\noutput4 = 'Operating normally';\n}else{\noutput4 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', output4);\n\n  return { status: 'success' };\n}",
+              "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
               "cssStyle": null,
               "size": "2:1",
               "tags": []
@@ -641,10 +633,12 @@
             "apiName": "Dialogue Generator",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
-            "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\nconsole.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'engineer response';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\nconsole.log(\"Recieved Message\", dialogueContent );\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": []
+            "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1",
+            "tags": [
+              "AI"
+            ]
           },
           "data": {
             "labelText": "Dialogue Generator",
@@ -656,21 +650,23 @@
               "apiName": "Dialogue Generator",
               "apiUrl": null,
               "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
-              "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\nconsole.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'engineer response';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\nconsole.log(\"Recieved Message\", dialogueContent );\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": []
+              "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
+              "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+              "size": "3:1",
+              "tags": [
+                "AI"
+              ]
             },
-            "width": 192,
+            "width": 288,
             "height": 96,
-            "scale": "2:1"
+            "scale": "3:1"
           },
           "style": {
-            "width": 192,
+            "width": 288,
             "height": 96,
             "minHeight": 96
           },
-          "width": 192,
+          "width": 288,
           "height": 96
         }
       ],
@@ -698,31 +694,33 @@
       "storeVars": {
         "node_api_1771945109323_error": "result is not defined",
         "waiting_wait": false,
-        "outputviewdialogue2": "<img src='https://aiagent.maxsolo.co.uk/images/snapshot_20260225_120503_6dc68c94.jpg' height=32>",
+        "outputviewdialogue2": "<img src='https://aiagent.maxsolo.co.uk/images/snapshot_20260225_154256_3df6789f.jpg' height=32>",
         "outputviewdialogue3": "Operating normally",
-        "outputviewdialogue4": "Operating normally",
+        "outputviewdialogue4": "Systems are currently functioning within established parameters.",
         "rule_1771926282318_yi4mcr__node_api_1771945109323_error": "waitResolvers is not defined",
         "rule_1771926282318_yi4mcr__node_api_1771945315938_error": "proxiedMakeCtx is not defined",
         "outputviewdialogue1": "Taking Photo:false",
         "rule_1771926282318_yi4mcr__node_api_1771945109323_status": "waiting_user_input",
-        "rule_1771926282318_yi4mcr__node_api_1771945109323_wait_start": 1772020773643,
-        "dialoguegenerating": true,
-        "rule_1771926282318_yi4mcr__node_api_1772020581493_error": "Unexpected token '<', \"<!doctype \"... is not valid JSON"
+        "rule_1771926282318_yi4mcr__node_api_1771945109323_wait_start": 1772033888288,
+        "dialoguegenerating": false,
+        "rule_1771926282318_yi4mcr__node_api_1772020581493_error": "Unexpected token '<', \"<!doctype \"... is not valid JSON",
+        "dialoguecontent": "Systems are currently functioning within established parameters."
       },
       "activeNodeId": "api_1771945109323",
       "activeEdgeId": null,
       "apis": [
         {
           "id": "54N3ODFTqzcpqEnWGbnt",
-          "tags": [],
+          "tags": "AI",
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
-            "cssStyle": ""
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "size": "3:1"
           },
           "lastPrompt": "",
           "name": "Dialogue Generator",
           "url": "",
-          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\nconsole.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'engineer response';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\nconsole.log(\"Recieved Message\", dialogueContent );\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
+          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772021088,
@@ -790,7 +788,7 @@
             "seconds": 1772019740,
             "nanoseconds": 516000000
           },
-          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(data4 > 50){\noutput4 = 'Operating normally';\n}else{\noutput4 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', output4);\n\n  return { status: 'success' };\n}",
+          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
           "url": "",
           "name": "OutputView",
           "lastPrompt": "",

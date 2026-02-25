@@ -25,6 +25,7 @@ const VariablePromptPanel = ({
   workflowError,
   rfNodes,
   rfEdges,
+  setRfNodes,
   onRfNodesChange,
   onRfEdgesChange,
   onConnect,
@@ -203,6 +204,7 @@ const VariablePromptPanel = ({
         <WorkflowGraph
         rfNodes={rfNodes}
         rfEdges={rfEdges}
+        setRfNodes={setRfNodes}
         onNodesChange={onRfNodesChange}
         onEdgesChange={onRfEdgesChange}
         onConnect={onConnect}

@@ -28,8 +28,80 @@ git clone https://github.com/maxmakhk/botagents.git
 cd botagents
 npm install
 ```
+# Bot Agents
+
+Task-Based AI Collaboration Agents — currently in development.
+
+Bot Agents is an AI-assisted industrial process management prototype designed to turn natural language instructions into structured, multi-step workflows while providing precise, visual monitoring for management.
+
+Key capabilities:
+
+- Multi-user collaboration
+- Highly user-friendly visual interface
+- Comprehensive monitoring and visual output
+
+While the project is not yet publicly released, the goal is to make it free and open-source with one-click installation for easy deployment.
+
+---
+
+Continuing the Bot Agents demo: this project introduces an automated visual output screen tailored for equipment monitoring. Core highlights:
+
+- Visual components that enhance user experience and clarity
+- One-click deployment for quick setup
+- Collaborative workflows to facilitate teamwork
+- Ease of use to make the system accessible to non-technical users
+
+This system aims to differentiate itself from existing solutions by offering tight integration between task automation, monitoring, and extensibility.
+
+---
+
+Core progress and roadmap
+
+The task-control core is approaching functional maturity. Current capabilities include:
+
+- Generating workflows from prompts, with the ability to edit or extend each node
+- Each node can connect to an unlimited number of APIs or sensors via flexible variables
+- Planned integration of vision AI to detect items and trigger tasks automatically
+- Runtime-editable node functions (node-level `fnString`) for dynamic behavior
+
+Comparison & intent
+
+Open-source projects such as n8n and OpenClaw demonstrate the value of workflow automation. Bot Agents targets a complementary space — helping teams rapidly build highly integrated systems for monitoring and automation in industrial contexts.
+
+---
+
+## Features
+
+- Create tasks with natural language and break them into actionable workflows
+- Visual UI for browsing, editing, and executing tasks
+- Per-node editable functions (`fnString`) so each node can maintain its own behavior
+- Real-time visual output for monitoring equipment and processes
+- Integrations for APIs, sensors, and planned vision AI support
+
+## Tech Stack
+
+- React 18 + Vite
+- TypeScript-ready tooling (can be enabled later)
+- Tailwind CSS or plain CSS (update depending on your setup)
+- Firebase (for auth / data, if configured)
+
+## Getting Started
+
+### Prerequisites
+- Node.js (LTS)
+- npm or pnpm
+- (Optional) Firebase project for persistence/auth
+
+### Installation
+
+```bash
+git clone https://github.com/maxmakhk/botagents.git
+cd botagents
+npm install
+```
 
 ### Environment variables
+
 Copy `.env.example` to `.env.local` (or create a `.env`) and fill the values. Example keys used by this project:
 
 ```
@@ -49,18 +121,21 @@ Do NOT commit files containing secrets. `.env` and `.env.local` are included in 
 > Note: Frontend code (Vite) reads variables via `import.meta.env`. Node scripts in `scripts/` expect standard `process.env` values — you can export them in your shell or use a tool like `dotenv-cli` to load the same `.env` file for Node scripts.
 
 ### Run locally
+
 ```bash
 npm run dev
 ```
 Open the URL printed in the terminal (typically http://localhost:5173).
 
 ## Useful scripts
+
 - `npm run dev` — start Vite dev server
 - `npm run build` — build for production
 - `npm run preview` — preview production build
 - Node helper scripts: `node scripts/cleanup-duplicate-rules.js` (ensure required env vars are available to Node)
 
 ## Project structure (high level)
+
 ```
 src/
   features/            // feature areas (VariableManager, etc.)
@@ -71,36 +146,21 @@ public/
 scripts/               // small Node utilities (may require process.env)
 .env.example           // example env keys (no secret values)
 ```
-(Adjust as needed to match current repo layout.)
 
 ## Roadmap / Ideas
-- Connect to a real LLM / agent backend
-- Support saving and loading task graphs
-- Multi-user accounts and permissions
-- Better visualization for complex workflows
+
+- Integrate vision AI for automated detection + task triggers
+- One-click deployment and installer scripts
+- Persist node-level `fnString` and project data in project storage
+- Multi-user accounts, roles, and permissions
 
 ## Motivation
-This project explores agentic AI UIs: how non-technical users, developers, and AI agents can share the same task board and collaborate on work.
+
+Bot Agents explores how humans and AI agents can collaborate on tasks through a shared visual taskboard and runtime that connects sensors, APIs, and AI logic.
 
 ---
 
-If you want, I can:
-- Add a short CONTRIBUTING.md with how to run and test changes
-- Add a `dev` snippet that loads `.env` into Node scripts for convenience
-- Persist UI panel positions (e.g. API Nodes) in localStorage# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-"# BotAgents" 
+If you'd like, I can:
+- Add a short `CONTRIBUTING.md` with development and testing steps
+- Add an installer/dev convenience script that loads `.env` for Node scripts
+- Add a clickable thumbnail linking to your LinkedIn demo (images are supported in README)

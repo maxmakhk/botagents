@@ -23,6 +23,53 @@ const ensureInjectedCss = (cssText) => {
   }
 };
 
+// EditFnButton: opens a popup to view/edit node.data.fnString and save back to nodes
+const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {} }) => {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+
+  const handleClick = (ev) => {
+    ev.stopPropagation();
+    const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+    const current = (node && (node.data?.fnString || node.data?.metadata?.function || node.metadata?.function)) || '';
+    setText(current || '');
+    setOpen(true);
+  };
+
+  const handleCancel = () => { setOpen(false); setText(''); };
+
+  const handleSave = () => {
+    try {
+      const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+      if (!node) return;
+      const newData = { ...(node.data || {}), fnString: text };
+      const newMeta = { ...(node.metadata || {}), function: text };
+      const updates = { data: newData, metadata: newMeta };
+      if (typeof updateNodeData === 'function') {
+        updateNodeData(onNodeId, updates);
+      }
+    } catch (e) { console.error('EditFnButton save error:', e); }
+    setOpen(false);
+    setText('');
+  };
+
+  return (
+    <div>
+      <button title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
+      {open && (
+        <div style={{position:'absolute', left: '50px', top: '-220px', zIndex: 9999, background:'#021827', border:'1px solid #13353b', padding:8, borderRadius:6, minWidth:420}} onClick={(e) => e.stopPropagation()}>
+          <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6}}>Edit node function (fnString)</div>
+          <textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:6, borderRadius:4}} placeholder="Paste function body here" />
+          <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:6}}>
+            <button className="btn-cancel" onClick={handleCancel}>Close</button>
+            <button className="btn-primary" onClick={handleSave}>Save</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const defaultNodeCss = `.api-node {
   font-weight: 700;
   color: #ffffff;
@@ -206,6 +253,7 @@ const WorkflowNode = ({ id, data }) => {
           {data?.locked || data?.metadata?.locked ? '🔒' : '🔓'}
         </button>
         <PromptButton onNodeId={id} onSubmit={onNodePromptSubmit} onGetRelated={onGetRelated} rfNodes={rfNodes} rfEdges={rfEdges} />
+        <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} />
       </div>
       <Handle
         type="target"
@@ -351,6 +399,7 @@ const WorkflowGraph = ({
   rfEdges,
   apis = [],
   onAddApiNode,
+  setRfNodes,
   onNodesChange,
   onEdgesChange,
   onConnect,
@@ -389,6 +438,18 @@ const WorkflowGraph = ({
     else setLocalEdgeText('');
   }, [edgeEdit]);
 
+  // Create a handler to update a specific node's data
+  const updateNodeData = useCallback((nodeId, updates) => {
+    if (typeof setRfNodes === 'function') {
+      setRfNodes((prevNodes) => {
+        return prevNodes.map(n => {
+          if (String(n.id) !== String(nodeId)) return n;
+          return { ...n, ...updates };
+        });
+      });
+    }
+  }, [setRfNodes]);
+
   const nodesWithHandlers = useMemo(() => {
     return (rfNodes || []).map((n) => ({
       ...n,
@@ -409,6 +470,7 @@ const WorkflowGraph = ({
         onOpenActionRule,
         onToggleNodeLock,
         onNodePromptSubmit,
+        updateNodeData,
         rfNodes,
         rfEdges,
         activeNodeId,
