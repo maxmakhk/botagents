@@ -185,27 +185,17 @@ export default function OutputView({ onClose, socket, projectId }) {
       const overrideKey = `outputviewdialogue${ic.id}`;
       const hasOverride = Object.prototype.hasOwnProperty.call(normalizedVars, overrideKey);
       const overrideVal = hasOverride ? normalizedVars[overrideKey] : null;
-      let dialogTpl = overrideVal != null ? String(overrideVal) : (ic.dialogTemplate || ic.dialog || "");
 
       // Resolve new values
       const dialogueLine1 = resolveTemplate(labelTpl) || ic.name || "";
       let dialogueLine2 = "";
       
-      // If we have an override value, always use it
+      // Only update dialogueLine2 if we have an override value
+      // Otherwise preserve existing value (like StoreVarsFloating - keep latest value, no defaults)
       if (hasOverride && overrideVal != null) {
         dialogueLine2 = String(overrideVal);
-      } else if (dialogTpl) {
-        // Try to resolve the template
-        const resolved = resolveTemplate(dialogTpl);
-        // Only update if we got a non-empty value, otherwise keep existing value
-        if (resolved && resolved.trim() !== "") {
-          dialogueLine2 = resolved;
-        } else {
-          // Preserve existing dialogueLine2 if present
-          dialogueLine2 = ic.dialogueLine2 || "";
-        }
       } else {
-        // No template, preserve existing value
+        // Preserve existing dialogueLine2 if present
         dialogueLine2 = ic.dialogueLine2 || "";
       }
 

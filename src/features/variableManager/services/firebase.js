@@ -82,3 +82,18 @@ export async function loadRulesFromFirebaseService(opts = {}) {
   }
 }
 
+export async function deleteRuleFromServer(ruleId) {
+  try {
+    const resp = await fetch(`${API_BASE}/api/rules/${encodeURIComponent(ruleId)}`, { method: 'DELETE' });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      console.error('deleteRuleFromServer failed', resp.status, txt);
+      return { success: false, error: txt };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error('deleteRuleFromServer error', err);
+    return { success: false, error: err };
+  }
+}
+

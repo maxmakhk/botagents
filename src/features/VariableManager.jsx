@@ -33,7 +33,7 @@ import { getSingleFieldValue, renderSignalSummary } from './variableManager/util
 import useProjectsWorkflow from './variableManager/hooks/useProjectsWorkflow';
 import getLayoutedNodesAndEdges from './variableManager/utils/autoLayout';
 import { collection, getDocs } from 'firebase/firestore';
-import { loadRulesFromFirebaseService, saveRuleToFirebase } from './variableManager/services/firebase';
+import { loadRulesFromFirebaseService, saveRuleToFirebase, deleteRuleFromServer } from './variableManager/services/firebase';
 import './variableManager.css';
 import OutputView from '../components/OutputView.jsx';
 
@@ -2891,6 +2891,55 @@ const VariableManager = ({ onBack }) => {
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
             addNewWorkflow={addNewWorkflow}
+            deleteWorkflow={async () => {
+              try {
+                // Get the rule ID to delete
+                const ruleId = functionsList && functionsList[selectedRuleIndex] && functionsList[selectedRuleIndex].id;
+                if (!ruleId) {
+                  setAiWarning('Cannot delete: workflow not found');
+                  return;
+                }
+
+                // Delete from server/database
+                const result = await deleteRuleFromServer(ruleId);
+                if (!result.success) {
+                  setAiWarning('Failed to delete workflow: ' + (result.error || 'unknown error'));
+                  return;
+                }
+
+                // Only update state after successful delete
+                const nextRuleSource = ruleSource.filter((_, i) => i !== selectedRuleIndex);
+                const nextRulePrompts = rulePrompts.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleNames = ruleNames.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleTypes = ruleTypes.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleSystemPrompts = ruleSystemPrompts.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleDetectPrompts = ruleDetectPrompts.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleRelatedFields = ruleRelatedFields.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleCategoryIds = ruleCategoryIds.filter((_, i) => i !== selectedRuleIndex);
+                const nextRuleExpressions = ruleExpressions.filter((_, i) => i !== selectedRuleIndex);
+                const nextFunctionsList = (functionsList && functionsList.length)
+                  ? functionsList.filter((_, i) => i !== selectedRuleIndex)
+                  : functionsList;
+
+                setRuleSource(nextRuleSource);
+                setRulePrompts(nextRulePrompts);
+                setRuleNames(nextRuleNames);
+                setRuleTypes(nextRuleTypes);
+                setRuleSystemPrompts(nextRuleSystemPrompts);
+                setRuleDetectPrompts(nextRuleDetectPrompts);
+                setRuleRelatedFields(nextRuleRelatedFields);
+                setRuleCategoryIds(nextRuleCategoryIds);
+                setExpression(nextRuleExpressions);
+                if (nextFunctionsList) setFunctionsList(nextFunctionsList);
+                setSelectedRuleIndex(Math.max(0, selectedRuleIndex - 1));
+
+                setAiWarning('Workflow deleted successfully');
+                setTimeout(() => setAiWarning(''), 2000);
+              } catch (err) {
+                console.error('Delete workflow error:', err);
+                setAiWarning('Error deleting workflow: ' + (err.message || 'unknown'));
+              }
+            }}
             allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
             printRules={printRules}

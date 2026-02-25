@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-02-24T22:18:04.110Z",
+  "savedAt": "2026-02-25T09:31:34.847Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -139,8 +139,8 @@
         "imageurl": "https://aiagent.maxsolo.co.uk/images/snapshot_20260224_155622_70f418dc.jpg",
         "rule_1771926252531_56yjbx__node_api_1771926377629_error": "ctx.setVar is not a function"
       },
-      "activeNodeId": "api_1771926377629",
-      "activeEdgeId": "reactflow__edge-api_1771926377629right-api_1771926306270left",
+      "activeNodeId": "api_1771927445374",
+      "activeEdgeId": null,
       "apis": [
         {
           "id": "SzbbJVSYrntOHUF9boDU",

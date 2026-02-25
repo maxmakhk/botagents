@@ -13,6 +13,7 @@ const VariablePromptPanel = ({
   visibleRuleIndices,
   functionsList,
   addNewWorkflow,
+  deleteWorkflow,
   allProjectStatuses,
   saveSynthFunctionToRule,
   printRules,
@@ -174,6 +175,14 @@ const VariablePromptPanel = ({
                 disabled={String(newWorkflowName || '').trim() === ''}
               >
                 Add New Workflow
+              </button>
+              <button
+                className="btn-danger"
+                onClick={() => { if (typeof deleteWorkflow === 'function' && window.confirm('Delete this workflow? This cannot be undone.')) { deleteWorkflow(); } }}
+                style={{padding:'8px 10px', background:'#dc2626', color:'#fff'}}
+                title="Delete current workflow"
+              >
+                Delete Workflow
               </button>
             </div>
             <button className="btn-secondary" onClick={() => { try { if (typeof openOutputView === 'function') openOutputView(); } catch (e) {} }} style={{padding: '6px 10px'}}>Open Output View</button>
