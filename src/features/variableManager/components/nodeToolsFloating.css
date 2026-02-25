@@ -143,6 +143,26 @@
   background: rgba(168,85,247,0.18);
 }
 
+.ms-nodetools-btn-join {
+  background: rgba(59,130,246,0.12);
+  color: #bfdbfe;
+}
+
+.ms-nodetools-btn-join:hover:not(:disabled) {
+  background: rgba(59,130,246,0.20);
+}
+
+.ms-nodetools-btn-active {
+  background: rgba(34,197,94,0.25);
+  color: #86efac;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(34,197,94,0.3);
+}
+
+.ms-nodetools-btn-active:hover:not(:disabled) {
+  background: rgba(34,197,94,0.35);
+}
+
 .ms-nodetools-empty {
   color: rgba(255,255,255,0.6);
   font-size: 11px;

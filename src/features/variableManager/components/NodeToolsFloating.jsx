@@ -14,9 +14,11 @@ export default function NodeToolsFloating({
   hasNodes = false,
   aiLoading = false,
   rfNodes = [],
-  rfEdges = []
-  ,
-  onAddApiNode
+  rfEdges = [],
+  onAddApiNode,
+  joinEdgeMode = false,
+  setJoinEdgeMode = () => {},
+  selectedIds = []
 }) {
   const nodeRef = useRef(null);
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
@@ -146,6 +148,21 @@ export default function NodeToolsFloating({
             title="Delete selected node(s) or edge(s)"
           >
             Delete Selected
+          </button>
+
+          <button 
+            className={`ms-nodetools-btn ${joinEdgeMode ? 'ms-nodetools-btn-active' : 'ms-nodetools-btn-join'}`}
+            onClick={() => {
+              if (!selectedIds || !selectedIds.length) {
+                alert('Select a node first.');
+                return;
+              }
+              setJoinEdgeMode(!joinEdgeMode);
+            }}
+            disabled={aiLoading || !selectedIds || !selectedIds.length}
+            title="Join selected node into an edge (click an edge to insert node)"
+          >
+            {joinEdgeMode ? '⚡ Join Mode' : 'Join Edge'}
           </button>
 
           <button 

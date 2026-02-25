@@ -26,8 +26,10 @@ const VariablePromptPanel = ({
   rfNodes,
   rfEdges,
   setRfNodes,
+  setRfEdges,
   onRfNodesChange,
   onRfEdgesChange,
+  selectedIds,
   onConnect,
   onSelectionChange,
   onEdgeDoubleClick,
@@ -43,7 +45,6 @@ const VariablePromptPanel = ({
   onAutoLayout,
   onNodePromptSubmit,
   layoutDirection,
-  selectedIds,
   handleAiSubmit,
   aiPrompt,
   setAiPrompt,
@@ -205,6 +206,7 @@ const VariablePromptPanel = ({
         rfNodes={rfNodes}
         rfEdges={rfEdges}
         setRfNodes={setRfNodes}
+        setRfEdges={setRfEdges}
         onNodesChange={onRfNodesChange}
         onEdgesChange={onRfEdgesChange}
         onConnect={onConnect}
@@ -225,6 +227,7 @@ const VariablePromptPanel = ({
           }}
         onAutoLayout={onAutoLayout}
         onNodePromptSubmit={onNodePromptSubmit}
+        selectedIds={selectedIds}
         layoutDirection={layoutDirection}
         selectedCount={selectedIds.length}
         activeNodeId={activeNodeId}

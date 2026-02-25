@@ -24,7 +24,7 @@ const ensureInjectedCss = (cssText) => {
 };
 
 // EditFnButton: opens a popup to view/edit node.data.fnString and save back to nodes
-const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {} }) => {
+const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [] }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
 
@@ -37,6 +37,33 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {} }) => 
   };
 
   const handleCancel = () => { setOpen(false); setText(''); };
+
+  const handleLoadDefault = () => {
+    const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+    if (!node) {
+      alert('Node not found');
+      return;
+    }
+    // First try to get from node.metadata.function (stored when node was created)
+    // Then try node.data.metadata.function
+    // Then try to find in apis array if available
+    let defaultFn = node.metadata?.function || node.data?.metadata?.function || '';
+    
+    // If not found and apis available, try to look up by apiId
+    if (!defaultFn && Array.isArray(apis) && apis.length > 0) {
+      const apiId = node.metadata?.apiId || node.data?.metadata?.apiId;
+      if (apiId) {
+        const api = apis.find(a => String(a.id) === String(apiId));
+        defaultFn = api ? (api.function || api.fnString) : '';
+      }
+    }
+    
+    if (defaultFn) {
+      setText(String(defaultFn));
+    } else {
+      alert('No default function found for this component.');
+    }
+  };
 
   const handleSave = () => {
     try {
@@ -62,6 +89,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {} }) => 
           <textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:6, borderRadius:4}} placeholder="Paste function body here" />
           <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:6}}>
             <button className="btn-cancel" onClick={handleCancel}>Close</button>
+            <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function">Default Function</button>
             <button className="btn-primary" onClick={handleSave}>Save</button>
           </div>
         </div>
@@ -253,7 +281,7 @@ const WorkflowNode = ({ id, data }) => {
           {data?.locked || data?.metadata?.locked ? '🔒' : '🔓'}
         </button>
         <PromptButton onNodeId={id} onSubmit={onNodePromptSubmit} onGetRelated={onGetRelated} rfNodes={rfNodes} rfEdges={rfEdges} />
-        <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} />
+        <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} apis={data?.apis} />
       </div>
       <Handle
         type="target"
@@ -400,6 +428,7 @@ const WorkflowGraph = ({
   apis = [],
   onAddApiNode,
   setRfNodes,
+  setRfEdges,
   onNodesChange,
   onEdgesChange,
   onConnect,
@@ -428,11 +457,13 @@ const WorkflowGraph = ({
   activeEdgeId,
   aiLoading,
   storeVars,
-  setStoreVars
+  setStoreVars,
+  selectedIds = []
 }) => {
   const hasNodes = rfNodes && rfNodes.length > 0;
 
   const [localEdgeText, setLocalEdgeText] = useState('');
+  const [joinEdgeMode, setJoinEdgeMode] = useState(false);
   useEffect(() => {
     if (edgeEdit && edgeEdit.label !== undefined) setLocalEdgeText(edgeEdit.label);
     else setLocalEdgeText('');
@@ -449,6 +480,42 @@ const WorkflowGraph = ({
       });
     }
   }, [setRfNodes]);
+
+  // Join edge: insert selected node into an edge, splitting it into two edges
+  const handleJoinEdge = useCallback((edge) => {
+    if (!edge || !setRfEdges || !setRfNodes) return;
+    const selectedNode = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(selectedIds[0])) : null;
+    if (!selectedNode) {
+      alert('Select a node first.');
+      setJoinEdgeMode(false);
+      return;
+    }
+
+    const sourceNode = rfNodes.find(n => String(n.id) === String(edge.source));
+    const targetNode = rfNodes.find(n => String(n.id) === String(edge.target));
+    if (!sourceNode || !targetNode) {
+      alert('Edge endpoints not found.');
+      setJoinEdgeMode(false);
+      return;
+    }
+
+    // Position selected node at midpoint
+    const midX = (sourceNode.position.x + targetNode.position.x) / 2;
+    const midY = (sourceNode.position.y + targetNode.position.y) / 2;
+
+    setRfNodes((prev) =>
+      prev.map(n => (String(n.id) === String(selectedNode.id) ? { ...n, position: { x: midX, y: midY } } : n))
+    );
+
+    // Split edge: remove original, add two new edges
+    const idA = `${edge.id}__a_${Date.now()}`;
+    const idB = `${edge.id}__b_${Date.now()}`;
+    const newEdgeA = { ...edge, id: idA, source: edge.source, target: selectedNode.id };
+    const newEdgeB = { ...edge, id: idB, source: selectedNode.id, target: edge.target };
+
+    setRfEdges((prev) => [...prev.filter(e => String(e.id) !== String(edge.id)), newEdgeA, newEdgeB]);
+    setJoinEdgeMode(false);
+  }, [rfNodes, selectedIds, setRfNodes, setRfEdges]);
 
   const nodesWithHandlers = useMemo(() => {
     return (rfNodes || []).map((n) => ({
@@ -473,6 +540,7 @@ const WorkflowGraph = ({
         updateNodeData,
         rfNodes,
         rfEdges,
+        apis,
         activeNodeId,
         activeEdgeId,
         storeVars,
@@ -546,6 +614,7 @@ const WorkflowGraph = ({
           onEdgeDoubleClick={onEdgeDoubleClick}
           onNodeDoubleClick={onNodeDoubleClick}
           onNodeClick={onNodeClick}
+          onEdgeClick={(evt, edge) => { if (joinEdgeMode) { evt?.preventDefault?.(); handleJoinEdge(edge); } }}
           onInit={handleInit}
           zoomOnScroll={false}
           panOnScroll={false}
@@ -590,6 +659,9 @@ const WorkflowGraph = ({
         rfEdges={rfEdges}
         apis={apis}
         onAddApiNode={onAddApiNode}
+        joinEdgeMode={joinEdgeMode}
+        setJoinEdgeMode={setJoinEdgeMode}
+        selectedIds={selectedIds}
       />
     </div>
   );

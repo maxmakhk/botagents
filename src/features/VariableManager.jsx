@@ -2886,6 +2886,7 @@ const VariableManager = ({ onBack }) => {
             rfNodes={rfNodes}
             rfEdges={rfEdges}
             setRfNodes={setRfNodes}
+            setRfEdges={setRfEdges}
             onRfNodesChange={onRfNodesChange}
             onRfEdgesChange={onRfEdgesChange}
             onConnect={onConnect}
