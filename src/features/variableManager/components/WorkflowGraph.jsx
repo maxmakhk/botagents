@@ -464,6 +464,7 @@ const WorkflowGraph = ({
 
   const [localEdgeText, setLocalEdgeText] = useState('');
   const [joinEdgeMode, setJoinEdgeMode] = useState(false);
+  const [joinEdgeNodeId, setJoinEdgeNodeId] = useState(null);
   useEffect(() => {
     if (edgeEdit && edgeEdit.label !== undefined) setLocalEdgeText(edgeEdit.label);
     else setLocalEdgeText('');
@@ -484,10 +485,13 @@ const WorkflowGraph = ({
   // Join edge: insert selected node into an edge, splitting it into two edges
   const handleJoinEdge = useCallback((edge) => {
     if (!edge || !setRfEdges || !setRfNodes) return;
-    const selectedNode = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(selectedIds[0])) : null;
+    // Use joinEdgeNodeId if available (preserved when entering mode), fallback to selectedIds
+    const nodeId = joinEdgeNodeId || selectedIds[0];
+    const selectedNode = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(nodeId)) : null;
     if (!selectedNode) {
       alert('Select a node first.');
       setJoinEdgeMode(false);
+      setJoinEdgeNodeId(null);
       return;
     }
 
@@ -496,6 +500,7 @@ const WorkflowGraph = ({
     if (!sourceNode || !targetNode) {
       alert('Edge endpoints not found.');
       setJoinEdgeMode(false);
+      setJoinEdgeNodeId(null);
       return;
     }
 
@@ -515,7 +520,8 @@ const WorkflowGraph = ({
 
     setRfEdges((prev) => [...prev.filter(e => String(e.id) !== String(edge.id)), newEdgeA, newEdgeB]);
     setJoinEdgeMode(false);
-  }, [rfNodes, selectedIds, setRfNodes, setRfEdges]);
+    setJoinEdgeNodeId(null); // Clear stored node ID after inserting
+  }, [rfNodes, selectedIds, joinEdgeNodeId, setRfNodes, setRfEdges, setJoinEdgeMode, setJoinEdgeNodeId]);
 
   const nodesWithHandlers = useMemo(() => {
     return (rfNodes || []).map((n) => ({
@@ -662,6 +668,7 @@ const WorkflowGraph = ({
         joinEdgeMode={joinEdgeMode}
         setJoinEdgeMode={setJoinEdgeMode}
         selectedIds={selectedIds}
+        setJoinEdgeNodeId={setJoinEdgeNodeId}
       />
     </div>
   );

@@ -42,7 +42,8 @@ async function runLoop({
   broadcastState,
   checkAbort,
   makeCtx,
-  projectId = null
+  projectId = null,
+  waitResolvers
 }) {
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
@@ -269,7 +270,13 @@ async function runLoop({
           //console.log(`[Runner] ctx.globalStoreVars keys:`, Object.keys(baseCtx.globalStoreVars || {}));
         } catch (e) { /* ignore logging errors */ }
 
-        await wrapper(proxiedMakeCtx(currentNode));
+        const result = await wrapper(proxiedMakeCtx(currentNode));
+
+        // Check if result contains clientJS and broadcast it
+        if (result && typeof result === 'object' && result.clientJS && typeof result.clientJS === 'string') {
+          console.log(`clientJS:`, result.clientJS.length, currentNode.id);
+          broadcastLog('client_js_exec', { nodeId: currentNode.id, clientJS: result.clientJS });
+        }
 
         // Log store snapshots after execution
         try {
@@ -433,7 +440,8 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     broadcastLog, broadcastState,
     checkAbort: () => abort,
     makeCtx,
-    projectId
+    projectId,
+    waitResolvers
   });
 
   broadcastLog('workflow_complete', {});

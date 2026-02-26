@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import DOMPurify from "dompurify";
 import "../App.css";
-import virtualspace from "../assets/virtualspace.png";
 
 export default function OutputView({ onClose, socket, projectId }) {
   // create 4 default dialogue icons positioned around the 512x512 canvas
   const createIcons = () => {
     return [
+      /*
       {
         id: 1,
         x: 130,
@@ -51,6 +51,7 @@ export default function OutputView({ onClose, socket, projectId }) {
         labelTemplate: "{{status}}",
         dialogTemplate: "EngineerA: {{message}}",
       },
+      */
     ];
   };
 
@@ -252,6 +253,23 @@ export default function OutputView({ onClose, socket, projectId }) {
           handleStoreVarsPayload(payload);
         } catch (e) { /* ignore */ }
       });
+      // listen for client_js_exec event and execute the clientJS
+
+      socket.on('client_js_exec', (data) => {
+        //console.log('[OutputView] Received client_js_exec event with data:', data);
+        try {
+          if (data && data.clientJS && typeof data.clientJS === 'string') {
+            console.log(`[OutputView] Executing clientJS from node ${data.nodeId}`, data.clientJS);
+            // Execute the client-side JS code
+            const script = document.createElement('script');
+            script.textContent = data.clientJS;
+            document.body.appendChild(script);
+            document.body.removeChild(script);
+          }
+        } catch (e) {
+          console.error('[OutputView] clientJS execution error:', e);
+        }
+      });
     } else if (projectId) {
       // poll for state every 5s
       const fetchOnce = async () => {
@@ -272,6 +290,7 @@ export default function OutputView({ onClose, socket, projectId }) {
         socket.off('store_vars_update', handleStoreVarsPayload);
         socket.off('execution_state', handleStoreVarsPayload);
         socket.off('global_store_vars_update');
+        socket.off('client_js_exec');
       }
       if (pollInterval) clearInterval(pollInterval);
     };
@@ -315,9 +334,9 @@ export default function OutputView({ onClose, socket, projectId }) {
         </button>
 
       <div
+        id="output-body"
         className="output-body"
         style={{
-          backgroundImage: `url(${virtualspace})`,
           backgroundSize: "512px 512px",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

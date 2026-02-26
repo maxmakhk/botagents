@@ -44,13 +44,13 @@ export default function useExternalApis(db) {
 
   // Add API
   const addApi = useCallback(
-    async (name, url, tags = '', fn = '', cssStyle = '') => {
+    async (name, url, tags = '', fn = '', cssStyle = '', description = '') => {
       try {
         const projectId = window?.currentProjectId || null;
         const resp = await fetch(`${API_BASE}/api/external-apis`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ projectId, name, url, tags, function: fn, cssStyle })
+          body: JSON.stringify({ projectId, name, url, tags, function: fn, cssStyle, description })
         });
         if (!resp.ok) throw new Error('Failed to create API');
         const newApi = await resp.json();

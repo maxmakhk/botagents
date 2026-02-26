@@ -28,11 +28,12 @@ export async function loadApis(db) {
 /**
  * Add a new external API
  */
-export async function addApi(db, { name, url, tags = [], function: fn = '', cssStyle = '' }) {
+export async function addApi(db, { name, url, tags = [], function: fn = '', cssStyle = '', description = '' }) {
   try {
     const docRef = await addDoc(collection(db, 'VariableManager-apis'), {
       name,
       url,
+      description: description || '',
       tags: Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim()).filter(Boolean),
       function: fn || '',
       metadata: { cssStyle: cssStyle || '' },
@@ -43,6 +44,7 @@ export async function addApi(db, { name, url, tags = [], function: fn = '', cssS
       id: docRef.id,
       name,
       url,
+      description: description || '',
       tags: Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim()).filter(Boolean),
       function: fn || '',
       metadata: { cssStyle: cssStyle || '' },

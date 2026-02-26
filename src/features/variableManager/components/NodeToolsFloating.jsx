@@ -18,7 +18,8 @@ export default function NodeToolsFloating({
   onAddApiNode,
   joinEdgeMode = false,
   setJoinEdgeMode = () => {},
-  selectedIds = []
+  selectedIds = [],
+  setJoinEdgeNodeId = () => {}
 }) {
   const nodeRef = useRef(null);
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
@@ -156,6 +157,13 @@ export default function NodeToolsFloating({
               if (!selectedIds || !selectedIds.length) {
                 alert('Select a node first.');
                 return;
+              }
+              if (!joinEdgeMode) {
+                // Entering join edge mode: store the selected node ID
+                setJoinEdgeNodeId(selectedIds[0]);
+              } else {
+                // Exiting join edge mode: clear stored ID
+                setJoinEdgeNodeId(null);
               }
               setJoinEdgeMode(!joinEdgeMode);
             }}

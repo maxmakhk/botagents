@@ -4,16 +4,15 @@ import './storeVarsFloating.css';
 /**
  * StoreVarsFloating - Global Variables Inspector
  * 
- * ⚠️ STABLE - DO NOT MODIFY SHORT TERM ⚠️
- * This component displays only globalStoreVars (server-side shared variables).
+ * This component displays globalStoreVars (server-side shared variables).
  * Updates in real-time via socket subscription in parent (VariableManager).
- * All displayed variables are read-only.
+ * Global variables can be edited and updated to the server.
  * 
- * Last stable: 2026-02-24
+ * Last updated: 2026-02-26
  */
-export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null }) {
+export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null, onUpdateGlobalVar = null }) {
   // Expand `globalStoreVars` (if present) so each key appears individually in the UI.
-  // Global keys are displayed but treated as read-only (no edit/remove).
+  // Global keys can be edited and will be synced to the server.
   
   const entries = React.useMemo(() => {
     const global = {};
@@ -71,10 +70,10 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
   };
 
   const startEdit = (key, isGlobal) => {
-    if (isGlobal) return; // do not allow editing global vars here
-    const val = storeVars?.[key];
+    // Allow editing global vars
+    const val = isGlobal ? (storeVars?.globalStoreVars?.[key]) : storeVars?.[key];
     const display = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val === undefined ? '' : val);
-    setEditing({ key, draftKey: key, draftVal: display });
+    setEditing({ key, draftKey: key, draftVal: display, isGlobal });
     setAddingNew(false);
   };
 
@@ -93,18 +92,37 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
     try { return JSON.parse(trimmed); } catch (e) { return s; }
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editing) return;
-    const { key: origKey, draftKey, draftVal } = editing;
+    const { key: origKey, draftKey, draftVal, isGlobal } = editing;
     const parsedVal = tryParseValue(draftVal);
-    safeSetStoreVars((prev = {}) => {
-      const next = { ...prev };
-      if (origKey && origKey !== draftKey) {
-        delete next[origKey];
+    
+    if (isGlobal) {
+      // Update global variable on server
+      if (typeof onUpdateGlobalVar === 'function') {
+        try {
+          // If key changed, delete the old key first
+          if (origKey && origKey !== draftKey) {
+            await onUpdateGlobalVar(origKey, undefined); // delete old key
+          }
+          // Set new/updated key
+          await onUpdateGlobalVar(draftKey, parsedVal);
+        } catch (err) {
+          console.error('Failed to update global variable:', err);
+        }
       }
-      next[draftKey] = parsedVal;
-      return next;
-    });
+    } else {
+      // Update local variable
+      safeSetStoreVars((prev = {}) => {
+        const next = { ...prev };
+        if (origKey && origKey !== draftKey) {
+          delete next[origKey];
+        }
+        next[draftKey] = parsedVal;
+        return next;
+      });
+    }
+    
     setEditing(null);
     setAddingNew(false);
   };
@@ -141,7 +159,7 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
             <input className="ms-storevars-input-key" value={editing.draftKey} onChange={(e) => setEditing((s) => ({ ...s, draftKey: e.target.value }))} placeholder="name" />
             <textarea className="ms-storevars-input-val" value={editing.draftVal} onChange={(e) => setEditing((s) => ({ ...s, draftVal: e.target.value }))} placeholder="value (JSON or plain)" />
             <div className="ms-storevars-edit-actions">
-              <button className="ms-btn ms-btn-save" onClick={saveEdit}>Save</button>
+              <button className="ms-btn ms-btn-update" onClick={saveEdit}>Update</button>
               <button className="ms-btn ms-btn-cancel" onClick={cancelEdit}>Cancel</button>
             </div>
           </div>
@@ -159,19 +177,22 @@ export default function StoreVarsFloating({ storeVars = {}, setStoreVars = null 
                   <input className="ms-storevars-input-key" value={editing.draftKey} onChange={(e) => setEditing((s) => ({ ...s, draftKey: e.target.value }))} />
                   <textarea className="ms-storevars-input-val" value={editing.draftVal} onChange={(e) => setEditing((s) => ({ ...s, draftVal: e.target.value }))} />
                   <div className="ms-storevars-edit-actions">
-                    <button className="ms-btn ms-btn-save" onClick={saveEdit}>Save</button>
+                    <button className="ms-btn ms-btn-update" onClick={saveEdit}>Update</button>
                     <button className="ms-btn ms-btn-cancel" onClick={cancelEdit}>Cancel</button>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="ms-storevars-key" title={isGlobal ? 'Global (read-only)' : ''}>{key}{isGlobal ? ' (global)' : ''}</div>
+                  <div className="ms-storevars-key" title={isGlobal ? 'Global variable (synced to server)' : ''}>{key}{isGlobal ? ' (global)' : ''}</div>
                   <div className="ms-storevars-val">
                     <pre className="ms-storevars-pre">{expandedFlag ? displayed : short}</pre>
                   </div>
                   <div className="ms-storevars-row-actions">
                     {isGlobal ? (
-                      <div className="ms-storevars-global-badge">Global</div>
+                      <>
+                        <div className="ms-storevars-global-badge">Global</div>
+                        <button className="ms-btn ms-btn-edit" onClick={() => startEdit(key, true)}>Edit</button>
+                      </>
                     ) : (
                       <>
                         <button className="ms-btn ms-btn-edit" onClick={() => startEdit(key, false)}>Edit</button>

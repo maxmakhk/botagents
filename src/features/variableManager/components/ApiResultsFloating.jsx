@@ -41,8 +41,13 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
   }, [setContent]);
 
   if (!visible) return (
-    <div className="ms-apiresults-floating ms-apiresults-collapsed" style={pos ? { left: pos.left + 'px', top: pos.top + 'px' } : {}}>
-      <div className="ms-apiresults-header" onMouseDown={onHeaderDown}>
+    <div
+      ref={nodeRef}
+      className="ms-apiresults-floating ms-apiresults-collapsed"
+      style={pos ? { left: pos.left + 'px', top: pos.top + 'px', right: 'auto', bottom: 'auto' } : { right: '50px', bottom: '12px', top: 'auto' }}
+      onMouseDown={onHeaderDown}
+    >
+      <div className="ms-apiresults-header">
         <span>{title}</span>
         <div style={{display:'flex', gap:6}}>
           <button className="ms-apiresults-toggle" onClick={() => setVisible(true)}>▸</button>
@@ -52,8 +57,13 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
   );
 
   return (
-    <div ref={nodeRef} className="ms-apiresults-floating" style={pos ? { left: pos.left + 'px', top: pos.top + 'px', right: 'auto', bottom: 'auto' } : {}}>
-      <div className="ms-apiresults-header" onMouseDown={onHeaderDown}>
+    <div
+      ref={nodeRef}
+      className="ms-apiresults-floating"
+      style={pos ? { left: pos.left + 'px', top: pos.top + 'px', right: 'auto', bottom: 'auto' } : { right: '50px', bottom: '12px', top: 'auto' }}
+      onMouseDown={onHeaderDown}
+    >
+      <div className="ms-apiresults-header">
         <span>{title}</span>
         <div style={{display:'flex', gap:6}}>
           <button className="ms-apiresults-clear" onClick={() => { if (typeof setContent === 'function') setContent(null); }} title="Clear">✕</button>

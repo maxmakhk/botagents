@@ -23,6 +23,7 @@ const ExternalAPIPanel = ({
 }) => {
   const [newApiTags, setNewApiTags] = useState('');
   const [newApiFunction, setNewApiFunction] = useState('');
+  const [newApiDescription, setNewApiDescription] = useState('');
   const [newApiCss, setNewApiCss] = useState('');
   const [editingApiId, setEditingApiId] = useState(null);
   const [searchTags, setSearchTags] = useState('');
@@ -59,9 +60,10 @@ const ExternalAPIPanel = ({
       return;
     }
     // POST URL is optional; if empty pass an empty string
-    await addApi(newApiName.trim(), (newApiUrl || '').trim(), newApiTags, newApiFunction, newApiCss);
+    await addApi(newApiName.trim(), (newApiUrl || '').trim(), newApiTags, newApiFunction, newApiCss, newApiDescription);
     setNewApiTags('');
     setNewApiFunction('');
+    setNewApiDescription('');
     setNewApiCss('');
   };
 
@@ -72,9 +74,17 @@ const ExternalAPIPanel = ({
       const updatePayload = {
         name: api.name,
         url: api.url,
-        function: api.function || ''
+        function: api.function || '',
+        description: api.description || ''
       };
-      if (api.tags !== undefined) updatePayload.tags = api.tags;
+      // Convert tags to array if it's a string
+      if (api.tags !== undefined) {
+        if (typeof api.tags === 'string') {
+          updatePayload.tags = api.tags.split(',').map(t => t.trim()).filter(Boolean);
+        } else {
+          updatePayload.tags = api.tags;
+        }
+      }
       // include css style inside metadata
       const css = api.cssStyle !== undefined ? api.cssStyle : (api.metadata && api.metadata.cssStyle ? api.metadata.cssStyle : '');
       updatePayload.metadata = { ...(api.metadata || {}), cssStyle: css };
@@ -209,7 +219,14 @@ const ExternalAPIPanel = ({
           value={newApiFunction}
           onChange={(e) => setNewApiFunction(e.target.value)}
           rows={3}
-          style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #475569', background: '#020617', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem' }}
+          style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #475569', background: '#020617', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem', marginBottom: 8 }}
+        />
+        <textarea
+          placeholder="Component description (optional - describe what this component does)"
+          value={newApiDescription}
+          onChange={(e) => setNewApiDescription(e.target.value)}
+          rows={2}
+          style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #475569', background: '#020617', color: '#e5e7eb', fontFamily: 'inherit', fontSize: '0.85rem', marginBottom: 8 }}
         />
         <div style={{ marginTop: 8 }}>
           <label style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginBottom: 6 }}>CSS Style (applies to nodes representing this API)</label>
@@ -262,7 +279,24 @@ const ExternalAPIPanel = ({
                         />
                       ) : a.name}
                     </div>
-                    <div style={{ fontSize: '0.80rem', color: '#9ca3af', marginBottom: 4, wordBreak: 'break-all' }}>{a.url}</div>
+                    {/* Description */}
+                    <div style={{ marginBottom: 4 }}>
+                      {editingApiId === a.id ? (
+                        <textarea
+                          value={a.description || ''}
+                          onChange={(e) => handleEditField(a.id, 'description', e.target.value)}
+                          placeholder="Component description and purpose"
+                          rows={2}
+                          style={{ padding: 4, borderRadius: 4, border: '1px solid #475569', background: '#111827', color: '#e5e7eb', width: '100%', fontFamily: 'inherit', fontSize: '0.80rem', resize: 'vertical' }}
+                        />
+                      ) : (
+                        a.description && (
+                          <div style={{ fontSize: '0.80rem', color: '#d1d5db', fontStyle: 'italic', paddingLeft: 0 }}>
+                            📝 {a.description}
+                          </div>
+                        )
+                      )}
+                    </div>
 
                     {/* Tags Display and Edit */}
                     <div style={{ fontSize: '0.75rem', marginBottom: 4 }}>
@@ -544,6 +578,20 @@ const ExternalAPIPanel = ({
                 {/* Expanded Details */}
                 {expandedApiId === a.id && (
                   <div style={{ borderTop: '1px solid #475569', padding: 8, background: '#0f172a' }}>
+                    {/* Description in Expanded Details */}
+                    {editingApiId === a.id && (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 4 }}>Description (Component Purpose):</div>
+                        <textarea
+                          value={a.description || ''}
+                          onChange={(e) => handleEditField(a.id, 'description', e.target.value)}
+                          rows={2}
+                          placeholder="Describe what this component does"
+                          style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #475569', background: '#111827', color: '#e5e7eb', fontFamily: 'inherit', fontSize: '0.80rem', resize: 'vertical' }}
+                        />
+                      </div>
+                    )}
+
                     <div style={{ marginBottom: 8 }}>
                       <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 4 }}>Function Definition:</div>
                       {editingApiId === a.id ? (

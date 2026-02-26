@@ -184,18 +184,19 @@ app.post('/api/logs', (req, res) => {
 app.post('/api/external-apis', async (req, res) => {
   try {
     if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
-    const { name, url, tags = [], function: fn = '', cssStyle = '' } = req.body || {};
+    const { name, url, tags = [], function: fn = '', cssStyle = '', description = '' } = req.body || {};
     if (!name) return res.status(400).json({ error: 'name_required' });
     const docRef = await addDoc(collection(firestore, 'VariableManager-apis'), {
       name,
       url,
+      description: description || '',
       tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean),
       function: fn || '',
       metadata: { cssStyle: cssStyle || '' },
       lastPrompt: '',
       createdAt: new Date(),
     });
-    const out = { id: docRef.id, name, url, tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean), function: fn || '', metadata: { cssStyle: cssStyle || '' }, lastPrompt: '', createdAt: new Date() };
+    const out = { id: docRef.id, name, url, description: description || '', tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean), function: fn || '', metadata: { cssStyle: cssStyle || '' }, lastPrompt: '', createdAt: new Date() };
     // notify project manager / running runners (if projectId provided)
     try {
       const projectId = req.body?.projectId;
@@ -231,6 +232,7 @@ app.put('/api/external-apis/:id', async (req, res) => {
     // Only include fields that should be persisted to Firestore
     if (metadata.name !== undefined) updateData.name = metadata.name;
     if (metadata.url !== undefined) updateData.url = metadata.url;
+    if (metadata.description !== undefined) updateData.description = metadata.description;
     if (metadata['function'] !== undefined) updateData.function = metadata['function'];
     if (metadata.tags !== undefined) updateData.tags = Array.isArray(metadata.tags) ? metadata.tags : String(metadata.tags).split(',').map(t => t.trim()).filter(Boolean);
     const metaImage = metadata.image !== undefined ? metadata.image : metaFromBody.image;

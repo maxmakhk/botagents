@@ -2624,6 +2624,32 @@ const VariableManager = ({ onBack }) => {
 
   const visibleRuleIndices = getVisibleRuleIndices();
 
+  // Handler to update global variables on the server
+  const handleUpdateGlobalVar = useCallback(async (key, value) => {
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/global-store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update global variable');
+      }
+      
+      const result = await response.json();
+      console.log('Global variable updated:', result);
+      
+      // Server will broadcast the change to all clients via socket
+      // No need to update local state manually
+    } catch (err) {
+      console.error('Failed to update global variable:', err);
+      setAiWarning('Failed to update global variable');
+      setTimeout(() => setAiWarning(''), 2000);
+    }
+  }, [setAiWarning]);
+
   return (
     <div className="variable-page">
       <div className="variable-page-header">
@@ -2642,7 +2668,11 @@ const VariableManager = ({ onBack }) => {
       </div>
 
       {/* Floating StoreVars Inspector */}
-      <StoreVarsFloating storeVars={{ ...(storeVars || {}), globalStoreVars: (globalStoreVars || {}) }} setStoreVars={setStoreVars} />
+      <StoreVarsFloating 
+        storeVars={{ ...(storeVars || {}), globalStoreVars: (globalStoreVars || {}) }} 
+        setStoreVars={setStoreVars} 
+        onUpdateGlobalVar={handleUpdateGlobalVar}
+      />
       <ApiResultsFloating title="Output View" content={apiResultsContent} setContent={setApiResultsContent} />
       {showApiNodes && (
         <ApiNodesFloating
