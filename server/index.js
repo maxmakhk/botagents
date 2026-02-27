@@ -11,6 +11,9 @@ import { processPrompt } from './workflowPromptProcessor.js';
 import projectManager from './projectManager.js';
 import path from 'path';
 import { initializeApp } from 'firebase/app';
+
+// System prompt generator (moved out of client code)
+import { generateSystemPrompt } from './systemPromptGenerator.js';
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 const app = express();
@@ -387,6 +390,20 @@ app.post('/api/global-store', (req, res) => {
   } catch (err) {
     console.error('POST /api/global-store error', err && err.stack ? err.stack : err);
     res.status(500).json({ error: String(err) });
+  }
+});
+
+// POST generate system prompt server-side
+app.post('/api/generate-system-prompt', (req, res) => {
+  console.log('Received POST /api/generate-system-prompt with body:', req.body.userPrompt, req.body.functionsList.length);
+  try {
+    const { userPrompt, functionsList, apis } = req.body || {};
+    const result = generateSystemPrompt({ userPrompt, functionsList, apis });
+    console.log('Generated system prompt result:', result);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('POST /api/generate-system-prompt error', err && err.stack ? err.stack : err);
+    res.status(500).json({ success: false, error: String(err) });
   }
 });
 

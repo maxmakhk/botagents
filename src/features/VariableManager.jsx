@@ -1035,6 +1035,9 @@ const VariableManager = ({ onBack }) => {
   // SysPrompt modal state
   const [isSysPromptModalOpen, setIsSysPromptModalOpen] = useState(false);
   const [userPromptInput, setUserPromptInput] = useState('');
+  // store the latest generated prompts for display or copying
+  const [lastUserPrompt, setLastUserPrompt] = useState('');
+  const [lastSystemPrompt, setLastSystemPrompt] = useState('');
 
   useEffect(() => {
     // lazy load API list when component mounts
@@ -2556,7 +2559,32 @@ const VariableManager = ({ onBack }) => {
 
   const visibleRuleIndices = getVisibleRuleIndices();
 
-  const handleGenerateSystemPrompt = useCallback((userPrompt = '') => {
+  const handleGenerateSystemPrompt = useCallback(async (userPrompt = '') => {
+    console.log('handleGenerateSystemPrompt invoked with:', userPrompt);
+    // attempt to run server-side generator first
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const url = `${backendUrl}/api/generate-system-prompt`;
+      const payload = { userPrompt, functionsList, apis };
+
+      console.log('client -> server POST', url, 'payload:', payload);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('server generator response status', response.status);
+      const data = await response.json();
+      console.log('client <- server response', data);
+      if (data && data.success) {
+        return { userPrompt: userPrompt || '', systemPrompt: data.systemPrompt || '', physicalObjects: data.physicalObjects || [], actionComponents: data.actionComponents || [] };
+      }
+      console.warn('Server generator failed, falling back to local:', data.error || data);
+    } catch (err) {
+      console.warn('Server request error, using local generator instead', err);
+    }
+
+    // local fallback (original client logic)
     try {
       const physicalObjects = [];
       const seenObjectIds = new Set(); // To avoid duplicates across workflows
@@ -2726,8 +2754,8 @@ ${output}
 base on user prompt, to create a workflow, as a array format as below:
 const nodes = [
  {id: "node1", action:"CameraInput",value:""},
- {id: "node2", action:"worldPosition",value:""},
- {id: "node3", action:"wait",value:2000}
+ {id: "node2", action":"worldPosition",value:""},
+ {id: "node3", action":"wait",value:2000}
 ]
 const edges = [
   {source: "node1", target: "node2", label: "next"},
@@ -2755,16 +2783,40 @@ const edges = [
   }, []);
 
   const submitGeneratePrompt = useCallback(async () => {
+    console.log('submitGeneratePrompt clicked; userPromptInput=', userPromptInput);
+    debugger; // break here to confirm handler execution
     try {
-      const res = handleGenerateSystemPrompt(userPromptInput);
-      console.log({ userPrompt: userPromptInput, systemPrompt: res.systemPrompt });
+      console.log('submitGeneratePrompt starting; current output open:', isOutputOpenLocal);
+
+      const res = await handleGenerateSystemPrompt(userPromptInput);
+      console.log('handleGenerateSystemPrompt returned', res);
+
+      // save prompts locally so other parts of UI can access / display them
+      setLastUserPrompt(userPromptInput);
+      setLastSystemPrompt(res.systemPrompt);
+
+      // build the output string
+      const outputText = `User Prompt:\n${userPromptInput}\n\nSystem Prompt:\n${res.systemPrompt}`;
+
+      // if the floating panel is already open or content is the same, we still want
+      // to force a re-render so the user sees the latest result.  To guarantee this,
+      // clear and reopen the output view state briefly.
+      //setIsOutputOpenLocal(false);
+      setApiResultsContent(null);
+
+      // apply the new content and re-open after a microtask so state updates flush
+      setTimeout(() => {
+        setApiResultsContent(outputText);
+       // setIsOutputOpenLocal(true);
+      }, 10);
+
     } catch (e) {
       console.error('submitGeneratePrompt failed', e);
     } finally {
       setIsSysPromptModalOpen(false);
       setUserPromptInput('');
     }
-  }, [userPromptInput, handleGenerateSystemPrompt]);
+  }, [userPromptInput, handleGenerateSystemPrompt, isOutputOpenLocal]);
 
   // Handler to update global variables on the server
   const handleUpdateGlobalVar = useCallback(async (key, value) => {
@@ -3238,7 +3290,7 @@ const edges = [
             />
             <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => { setIsSysPromptModalOpen(false); setUserPromptInput(''); }} style={{ padding: '6px 12px', background: '#1e293b', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={submitGeneratePrompt} style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Submit</button>
+              <button onClick={() => { console.log('modal submit button clicked'); submitGeneratePrompt(); }} style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Submit</button>
             </div>
           </div>
         </div>
