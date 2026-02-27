@@ -1032,6 +1032,10 @@ const VariableManager = ({ onBack }) => {
   // Local state to open OutputView modal from Project page
   const [isOutputOpenLocal, setIsOutputOpenLocal] = useState(false);
 
+  // SysPrompt modal state
+  const [isSysPromptModalOpen, setIsSysPromptModalOpen] = useState(false);
+  const [userPromptInput, setUserPromptInput] = useState('');
+
   useEffect(() => {
     // lazy load API list when component mounts
     loadApis();
@@ -1451,6 +1455,17 @@ const VariableManager = ({ onBack }) => {
       try { delete window.vm_toggleNodeLock; } catch (e) { }
     };
   }, [toggleNodeLock]);
+
+  // Auto-load workflow when selectedRuleIndex changes
+  useEffect(() => {
+    if (selectedRuleIndex !== null && selectedRuleIndex !== undefined) {
+      try {
+        loadSelectedRuleIntoPrompt(selectedRuleIndex);
+      } catch (e) {
+        console.warn('Failed to load selected rule into prompt:', e);
+      }
+    }
+  }, [selectedRuleIndex, functionsList]);
 
   const deleteSelected = useCallback(() => {
     if (!selectedIds || !selectedIds.length) return;
@@ -2383,96 +2398,13 @@ const VariableManager = ({ onBack }) => {
       setTimeout(() => setAiWarning(''), 2000);
     }
   }
-
   const getVisibleRuleIndices = () => {
-    const all = (ruleSource || []).map((_, idx) => idx);
-    if (!selectedRuleCategoryId || selectedRuleCategoryId === 'all') return all;
-    return all.filter((idx) => (ruleCategoryIds[idx] || '') === selectedRuleCategoryId);
-  };
-
-  useEffect(() => {
-    const visible = getVisibleRuleIndices();
-    if (!visible.length) return;
-    // Don't change rule selection when showing all rules (default or 'all')
-    if (!selectedRuleCategoryId || selectedRuleCategoryId === 'all') return;
-    // Only jump to first visible rule if filtered by category and current rule is not visible
-    if (!visible.includes(selectedRuleIndex)) {
-      setSelectedRuleIndex(visible[0]);
+    try {
+      return (ruleSource || []).map((_, idx) => idx);
+    } catch (e) {
+      return [];
     }
-  }, [selectedRuleCategoryId, ruleCategoryIds, ruleSource.length]);
-
-  // Rule Group Checker state
-  const [groupTestResults, setGroupTestResults] = useState(null);
-
-  useEffect(() => {
-    if (activeTab !== 'variablePrompt') return;
-    if (selectedRuleIndex === undefined || selectedRuleIndex === null) return;
-    loadSelectedRuleIntoPrompt(selectedRuleIndex);
-  }, [activeTab, selectedRuleIndex, functionsList, ruleSource, ruleSystemPrompts]);
-
-
-  // Auto-sync workflow changes: whenever nodes/edges change in variablePrompt tab, update workflowObject
-  useEffect(() => {
-    if (activeTab !== 'variablePrompt') return;
-    if (selectedRuleIndex === undefined || selectedRuleIndex === null) return;
-    if (!rfNodes || !rfEdges) return;
-
-    // Debounce the sync to avoid excessive updates
-    const timer = setTimeout(() => {
-      try {
-        const idx = Number(selectedRuleIndex);
-        if (Number.isNaN(idx) || !functionsList || !functionsList[idx]) return;
-
-        // Export current nodes and edges
-        const exportNodes = (rfNodes || []).map((n) => ({
-          id: String(n.id),
-          type: n.type || 'action',
-          label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id),
-          description: (n.data && n.data.description) ? String(n.data.description) : '',
-          position: n.position || { x: 0, y: 0 },
-          metadata: n.metadata || n.data?.metadata || {},
-          actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
-          backgroundColor: (n.data && n.data.backgroundColor) ? String(n.data.backgroundColor) : undefined,
-          textColor: (n.data && n.data.textColor) ? String(n.data.textColor) : undefined
-        }));
-        const exportEdges = (rfEdges || []).map((e) => ({
-          id: String(e.id || ''),
-          source: String(e.source || e.from || ''),
-          target: String(e.target || e.to || ''),
-          label: e.label || ''
-        }));
-
-        // Update functionsList with new workflow object
-        const nextFunctions = JSON.parse(JSON.stringify(functionsList));
-        nextFunctions[idx] = {
-          ...(nextFunctions[idx] || {}),
-          workflowObject: JSON.stringify({ nodes: exportNodes, edges: exportEdges })
-        };
-        setFunctionsList(nextFunctions);
-
-        //console.log('Auto-synced workflow for rule idx', idx);
-      } catch (err) {
-        console.error('Failed to auto-sync workflow:', err);
-      }
-    }, 800); // 800ms debounce to avoid excessive updates while dragging/editing
-
-    return () => clearTimeout(timer);
-  }, [rfNodes, rfEdges, activeTab, selectedRuleIndex, functionsList]);
-
-
-  function printRules() {
-    console.log('Current rules:', {
-      ruleSource,
-      rulePrompts,
-      ruleNames,
-      ruleTypes,
-      ruleSystemPrompts,
-      ruleDetectPrompts,
-      ruleRelatedFields,
-      ruleCategoryIds,
-      functionsList
-    });
-  }
+  };
 
   // Build functionsList from legacy arrays (used for migration)
   const buildFunctionsListFromLegacy = () => {
@@ -2624,31 +2556,331 @@ const VariableManager = ({ onBack }) => {
 
   const visibleRuleIndices = getVisibleRuleIndices();
 
+  const handleGenerateSystemPrompt = useCallback((userPrompt = '') => {
+    try {
+      const physicalObjects = [];
+      const seenObjectIds = new Set(); // To avoid duplicates across workflows
+      
+      // Scan ALL workflows in this project category (functionsList), not just current rfNodes
+      if (Array.isArray(functionsList)) {
+        functionsList.forEach(rule => {
+          try {
+            let wf = rule.workflowObject;
+            console.log('wf', wf, rule);
+            if (!wf) return; // Skip if no workflow
+            
+            // Parse workflowObject if it's a string
+            if (typeof wf === 'string') {
+              try {
+                wf = JSON.parse(wf);
+              } catch (e) {
+                console.warn('Failed to parse workflowObject:', e);
+                return;
+              }
+            }
+            
+            if (!Array.isArray(wf.nodes)) return;
+            
+            // Collect physical objects from this workflow
+            wf.nodes.forEach(node => {
+              // Get apiName from node metadata
+              const apiName = node.metadata?.apiName;
+              if (!apiName) return; // Skip nodes without apiName
+              
+              // Immediately fetch latest component data using apiName
+              let latestComponent = null;
+              if (Array.isArray(apis)) {
+                const apiNameLower = String(apiName).toLowerCase();
+                latestComponent = apis.find(api => (api.name || '').toLowerCase() === apiNameLower);
+              }
+              
+              // Use latest component tags if available, otherwise fall back to node tags
+              let tags = [];
+              if (latestComponent && latestComponent.tags) {
+                const compTags = latestComponent.tags;
+                tags = Array.isArray(compTags) ? compTags : (typeof compTags === 'string' ? compTags.split(',').map(t => t.trim()) : []);
+              } else {
+                // Fallback to node tags if no latest component found
+                const nodeTags = node.metadata?.tags || [];
+                tags = Array.isArray(nodeTags) ? nodeTags : (typeof nodeTags === 'string' ? nodeTags.split(',').map(t => t.trim()) : []);
+              }
+              
+              console.log('check physical object node:', apiName, 'latestComponent:', latestComponent, 'tags:', tags);
+              
+              // Check if this is a physical object using latest tags
+              if (tags.some(tag => tag.toLowerCase() === 'object')) {
+                console.log('Found physical object node:', apiName, 'with latest metadata');
+                
+                // Use node ID + API Name combo to avoid duplicate entries
+                const uniqueKey = `${String(node.id)}_${String(apiName)}`;
+                
+                // Skip only if exact same node+apiName combination was already added
+                if (!seenObjectIds.has(uniqueKey)) {
+                  seenObjectIds.add(uniqueKey);
+                  
+                  // Use latest component data (already fetched above) for name and description
+                  const finalName = latestComponent?.name || apiName;
+                  const finalDescription = latestComponent?.description || node.description || node.data?.description || '';
+                  
+                  // Use the tags we already determined above (latest component tags or fallback)
+                  const finalTags = tags;
+                  
+                  physicalObjects.push({
+                    name: finalName,
+                    id: node.id,
+                    apiName: apiName,
+                    description: finalDescription,
+                    tags: finalTags
+                  });
+                }
+              }
+            });
+          } catch (err) {
+            console.warn('Error processing workflow in rule:', rule, err);
+          }
+        });
+      }
+      
+      console.log('Physical Objects found across category (with latest metadata):', physicalObjects);
+      
+      const physicalObjectTags = new Set();
+      physicalObjects.forEach(obj => {
+        const tags = obj.tags || [];
+        tags.forEach(tag => {
+          if (tag.toLowerCase() !== 'object') {
+            physicalObjectTags.add(tag.toLowerCase());
+          }
+        });
+      });
+      
+      console.log('Physical Object Tags (excluding "object"):', Array.from(physicalObjectTags));
+      
+      const actionComponents = [];
+      if (Array.isArray(apis)) {
+        apis.forEach(api => {
+          const tags = api.tags || [];
+          const tagsArray = Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(t => t.trim()) : []);
+          
+          const lowerTags = tagsArray.map(t => String(t).toLowerCase());
+          
+          // Check if this component should be included:
+          // 1. If has 'open' tag -> include directly (free action)
+          // 2. If has 'action' tag AND has matching tags with object tags -> include
+          
+          const hasOpen = lowerTags.includes('open');
+          const hasAction = lowerTags.includes('action');
+          
+          // Compute matching tags between api tags and physical object tags
+          const matchingTags = tagsArray.filter(tag => 
+            physicalObjectTags.has(String(tag).toLowerCase()) && 
+            String(tag).toLowerCase() !== 'action' && 
+            String(tag).toLowerCase() !== 'open'
+          );
+          
+          // Include if: has 'open' tag OR (has 'action' tag AND has matching object tags)
+          const shouldInclude = hasOpen || (hasAction && matchingTags.length > 0);
+          
+          if (shouldInclude) {
+            actionComponents.push({
+              name: api.name || 'Unknown',
+              id: api.id || '',
+              description: api.description || '',
+              matchingTags: matchingTags,
+              isOpen: hasOpen,
+              isAction: hasAction
+            });
+          }
+        });
+      }
+      
+      console.log('Action Components found:', actionComponents);
+      
+      let output = '';
+      output += 'Physically Objects:\n';
+      physicalObjects.forEach(obj => {
+        output += `${obj.name}, ${obj.id}, ${obj.description}\n`;
+      });
+      output += '\nAction Components:\n';
+      actionComponents.forEach(comp => {
+        output += `${comp.name}, ${comp.id}, ${comp.description}`;
+        const tags = [];
+        if (Array.isArray(comp.matchingTags) && comp.matchingTags.length) {
+          tags.push(`matchingTags: ${comp.matchingTags.join('|')}`);
+        }
+        if (comp.isOpen) {
+          tags.push('open');
+        }
+        if (comp.isAction) {
+          tags.push('action');
+        }
+        if (tags.length > 0) {
+          output += `, [${tags.join(', ')}]`;
+        }
+        output += '\n';
+      });
+      
+      // Build complete systemPrompt including template
+      const systemPrompt = `it is a industry lab
+you have phycisly object here:
+${output}
+base on user prompt, to create a workflow, as a array format as below:
+const nodes = [
+ {id: "node1", action:"CameraInput",value:""},
+ {id: "node2", action:"worldPosition",value:""},
+ {id: "node3", action:"wait",value:2000}
+]
+const edges = [
+  {source: "node1", target: "node2", label: "next"},
+  {source: "node2", target: "node3", label: "next"},
+  {source: "node3", target: "node1", label: "repeat"},
+]`;
+
+      console.log('=== System Prompt Generated ===\n' + systemPrompt);
+
+      // Return structured result so caller can use systemPrompt alongside userPrompt
+      return { userPrompt: userPrompt || '', systemPrompt: systemPrompt, physicalObjects, actionComponents };
+      
+    } catch (err) {
+      console.error('Error generating system prompt:', err);
+      setAiWarning('Failed to generate system prompt');
+      setTimeout(() => setAiWarning(''), 2000);
+      return { userPrompt: userPrompt || '', systemPrompt: '', physicalObjects: [], actionComponents: [] };
+    }
+  }, [functionsList, apis, setAiWarning]);
+
+  // Open modal to collect user prompt, then call generator on submit
+  const openGeneratePromptModal = useCallback(() => {
+    setIsSysPromptModalOpen(true);
+    setUserPromptInput('');
+  }, []);
+
+  const submitGeneratePrompt = useCallback(async () => {
+    try {
+      const res = handleGenerateSystemPrompt(userPromptInput);
+      console.log({ userPrompt: userPromptInput, systemPrompt: res.systemPrompt });
+    } catch (e) {
+      console.error('submitGeneratePrompt failed', e);
+    } finally {
+      setIsSysPromptModalOpen(false);
+      setUserPromptInput('');
+    }
+  }, [userPromptInput, handleGenerateSystemPrompt]);
+
   // Handler to update global variables on the server
   const handleUpdateGlobalVar = useCallback(async (key, value) => {
+    console.log('handleUpdateGlobalVar called with:', { key, value });
+    
     try {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log('Sending to:', `${backendUrl}/api/global-store`);
+      
+      const requestBody = { key, value };
+      console.log('Request body:', JSON.stringify(requestBody));
+      
       const response = await fetch(`${backendUrl}/api/global-store`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, value })
+        body: JSON.stringify(requestBody)
       });
       
+      console.log('Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
-        throw new Error('Failed to update global variable');
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`HTTP ${response.status}: Failed to update global variable`);
       }
       
       const result = await response.json();
-      console.log('Global variable updated:', result);
+      console.log('Global variable update response:', result);
+      
+      // Verify the value was actually saved
+      if (result.success || result.key === key) {
+        console.log('✅ Global variable persisted successfully');
+        setAiWarning('Global variable updated successfully');
+        setTimeout(() => setAiWarning(''), 2000);
+      } else {
+        console.warn('⚠️ Server response indicates update may have failed:', result);
+      }
       
       // Server will broadcast the change to all clients via socket
       // No need to update local state manually
     } catch (err) {
-      console.error('Failed to update global variable:', err);
-      setAiWarning('Failed to update global variable');
-      setTimeout(() => setAiWarning(''), 2000);
+      console.error('❌ Failed to update global variable:', err);
+      setAiWarning('Failed to update global variable: ' + (err.message || 'Unknown error'));
+      setTimeout(() => setAiWarning(''), 3000);
     }
   }, [setAiWarning]);
+
+  // Monitor socket updates to global store vars
+  // This ensures UI updates when server broadcasts changes
+  useEffect(() => {
+    if (!socketRef?.current) {
+      console.log('⚠️ socketRef not available yet');
+      return;
+    }
+
+    const handleGlobalVarsUpdate = (data) => {
+      console.log('📡 [VariableManager] Received global_store_vars_update event:', data);
+      // The globalStoreVars state from useRunDemo should update automatically
+      // This is just for logging/debugging to confirm we're getting the updates
+      if (data?.globalStoreVars) {
+        console.log('✅ Global store vars successfully updated from server:', Object.keys(data.globalStoreVars || {}));
+      }
+    };
+
+    socketRef.current.on('global_store_vars_update', handleGlobalVarsUpdate);
+
+    return () => {
+      socketRef.current?.off('global_store_vars_update', handleGlobalVarsUpdate);
+    };
+  }, [socketRef]);
+
+  // Expose diagnostic tools to window for debugging globalStoreVars issues
+  useEffect(() => {
+    window.globalStoreDiagnostics = {
+      // Test updating a global variable
+      testUpdate: async (key, value) => {
+        console.log('🧪 Testing global var update:', { key, value });
+        return handleUpdateGlobalVar(key, value);
+      },
+      
+      // Check current socket connection status
+      checkSocket: () => {
+        const connected = socketRef?.current?.connected;
+        console.log(`📡 Socket connected: ${connected}`);
+        return { connected };
+      },
+      
+      // Manually trigger a socket event listener
+      forceGlobalVarUpdate: (testVars) => {
+        console.log('🔨 Forcing global var update with:', testVars);
+        // Simulating what useRunDemo does when receiving socket event
+        const updated = { ...globalStoreVars, ...testVars };
+        console.log('Updated globalStoreVars would be:', updated);
+      },
+      
+      // Display current state
+      getCurrentState: () => {
+        return {
+          globalStoreVars,
+          storeVars,
+          socketConnected: socketRef?.current?.connected,
+        };
+      },
+    };
+    
+    console.log('✅ Global store diagnostics available at: window.globalStoreDiagnostics');
+    console.log('📖 Available methods:');
+    console.log('  - testUpdate(key, value) - Test updating a global variable');
+    console.log('  - checkSocket() - Check socket connection status');
+    console.log('  - getCurrentState() - Display current globalStoreVars state');
+    console.log('  - forceGlobalVarUpdate(vars) - Simulate a socket update');
+    
+    return () => {
+      delete window.globalStoreDiagnostics;
+    };
+  }, [globalStoreVars, storeVars, socketRef, handleUpdateGlobalVar]);
 
   return (
     <div className="variable-page">
@@ -2906,8 +3138,8 @@ const VariableManager = ({ onBack }) => {
             }}
             allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
-            printRules={printRules}
             openOutputView={() => setIsOutputOpenLocal(true)}
+            generateSystemPrompt={openGeneratePromptModal}
             confirmPreview={confirmPreview}
             aiLoading={aiLoading}
             taskFunctionText={taskFunctionText}
@@ -2990,6 +3222,26 @@ const VariableManager = ({ onBack }) => {
       />
       {isOutputOpenLocal && (
         <OutputView onClose={() => setIsOutputOpenLocal(false)} socket={socketRef && socketRef.current ? socketRef.current : null} projectId={projectIdForRun} />
+      )}
+      {isSysPromptModalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{ width: 520, background: '#071029', padding: 20, borderRadius: 8, boxShadow: '0 6px 30px rgba(0,0,0,0.6)' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#fff' }}>User Prompt</h3>
+            <textarea
+              value={userPromptInput}
+              onChange={(e) => setUserPromptInput(e.target.value)}
+              placeholder="Enter user prompt..."
+              style={{ width: '100%', height: 120, padding: 8, borderRadius: 6, background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => { setIsSysPromptModalOpen(false); setUserPromptInput(''); }} style={{ padding: '6px 12px', background: '#1e293b', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={submitGeneratePrompt} style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Submit</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

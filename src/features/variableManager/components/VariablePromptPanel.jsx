@@ -18,6 +18,7 @@ const VariablePromptPanel = ({
   saveSynthFunctionToRule,
   printRules,
   openOutputView,
+  generateSystemPrompt,
   confirmPreview,
   aiLoading,
   taskFunctionText,
@@ -187,6 +188,7 @@ const VariablePromptPanel = ({
               </button>
             </div>
             <button className="btn-secondary" onClick={() => { try { if (typeof openOutputView === 'function') openOutputView(); } catch (e) {} }} style={{padding: '6px 10px'}}>Open Output View</button>
+            <button className="btn-secondary" onClick={() => { try { if (typeof generateSystemPrompt === 'function') generateSystemPrompt(); } catch (e) {} }} style={{padding: '6px 10px'}}>Generate SystemPrompt</button>
             {/* Run moved to floating Node Tools panel */}
           </div>
           <div style={{fontSize:'0.85rem', color:'#9dd3ff', fontWeight:700}}>Editing Rule: {(ruleNames && ruleNames[selectedRuleIndex]) ? ruleNames[selectedRuleIndex] : (rulePrompts && rulePrompts[selectedRuleIndex]) || `Rule ${Number(selectedRuleIndex)+1}`}</div>

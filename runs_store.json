@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-02-26T13:52:36.120Z",
+  "savedAt": "2026-02-26T20:50:27.884Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -20,7 +20,7 @@
             "cssStyle": null,
             "size": "2:1",
             "tags": [
-              "image to label"
+              "action"
             ]
           },
           "data": {
@@ -37,7 +37,7 @@
               "cssStyle": null,
               "size": "2:1",
               "tags": [
-                "image to label"
+                "action"
               ]
             },
             "width": 192,
@@ -68,7 +68,8 @@
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
             "size": "2:1",
             "tags": [
-              "Get Image"
+              "ipcam",
+              "action"
             ]
           },
           "data": {
@@ -85,7 +86,8 @@
               "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
               "size": "2:1",
               "tags": [
-                "Get Image"
+                "ipcam",
+                "action"
               ]
             },
             "width": 192,
@@ -115,7 +117,9 @@
             "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
             "size": "2:1",
-            "tags": []
+            "tags": [
+              "action"
+            ]
           },
           "data": {
             "labelText": "Data Converter",
@@ -130,7 +134,9 @@
               "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
               "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
               "size": "2:1",
-              "tags": []
+              "tags": [
+                "action"
+              ]
             },
             "width": 192,
             "height": 96,
@@ -159,7 +165,11 @@
             "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
             "cssStyle": null,
             "size": "2:1",
-            "tags": []
+            "tags": [
+              "any",
+              "action",
+              "open"
+            ]
           },
           "data": {
             "labelText": "wait10s",
@@ -174,7 +184,11 @@
               "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
               "cssStyle": null,
               "size": "2:1",
-              "tags": []
+              "tags": [
+                "any",
+                "action",
+                "open"
+              ]
             },
             "width": 192,
             "height": 96,
@@ -215,10 +229,10 @@
           "label": ""
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {
         "waiting_wait": false,
-        "imageurl": "https://aiagent.maxsolo.co.uk/images/snapshot_20260226_135220_aacb2530.jpg",
+        "imageurl": "https://aiagent.maxsolo.co.uk/images/snapshot_20260226_141544_fca09167.jpg",
         "rule_1771926252531_56yjbx__node_api_1771926377629_error": "ctx.setVar is not a function",
         "takingphoto": false,
         "takingphotov2": "v2",
@@ -228,15 +242,15 @@
         "rule_1771926252531_56yjbx__node_api_1771926306270_wait_start": 1772106758985,
         "rule_1771926252531_56yjbx__node_api_1771926306270_error": "Cannot set properties of undefined (setting 'api_1771926306270')"
       },
-      "activeNodeId": "api_1772019515796",
-      "activeEdgeId": "reactflow__edge-api_1772019515796right-api_1772015094047",
+      "activeNodeId": null,
+      "activeEdgeId": null,
       "apis": [
         {
           "id": "dmWZ28QrPYOoWQ2pcOyU",
           "tags": [
             "any",
             "action",
-            "object"
+            "open"
           ],
           "name": "wait10s",
           "metadata": {
@@ -255,7 +269,7 @@
             "seconds": 1772019532,
             "nanoseconds": 382000000
           },
-          "description": ""
+          "description": "waiting by seconds"
         },
         {
           "id": "NUI7cFBcc3F59XbVBA2y",
@@ -281,7 +295,7 @@
           "tags": [
             "action"
           ],
-          "description": ""
+          "description": "clone variable to new variable"
         },
         {
           "id": "SzbbJVSYrntOHUF9boDU",
@@ -305,7 +319,7 @@
             "nanoseconds": 361000000
           },
           "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
-          "description": ""
+          "description": "physical environment"
         },
         {
           "id": "CKrZDm2g9Vt1gNId0Gt1",
@@ -317,8 +331,8 @@
           "url": "",
           "tags": [
             "action",
-            "object",
-            "any"
+            "any",
+            "open"
           ],
           "name": "Waiting",
           "createdAt": {
@@ -342,7 +356,10 @@
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
           },
           "url": "",
-          "tags": "ipcam, action",
+          "tags": [
+            "ipcam",
+            "action"
+          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840604,
@@ -356,7 +373,7 @@
             "seconds": 1772017787,
             "nanoseconds": 186000000
           },
-          "description": "select camera, take snapshot, and generate image labels"
+          "description": "pick a ipcam, take a snapshop and generate label"
         },
         {
           "id": "UsWhf6pyCDQW1nvcnHxa",
@@ -381,7 +398,7 @@
             "seconds": 1771923309,
             "nanoseconds": 18000000
           },
-          "description": ""
+          "description": "image to prompt"
         },
         {
           "id": "E5tInoIhMDck4CQq8Idt",
@@ -406,7 +423,7 @@
             "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png"
           },
           "url": "",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
@@ -431,7 +448,7 @@
             "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
           },
           "url": "",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
@@ -456,7 +473,7 @@
             "nanoseconds": 9000000
           },
           "lastPrompt": "",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
@@ -507,7 +524,7 @@
             "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg"
           },
           "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "description": "receive weather information via API"
+          "description": "get weather information via openweather api"
         },
         {
           "id": "rACQtq73fn2l4o7LHcQW",
@@ -555,7 +572,7 @@
             "cssStyle": ""
           },
           "function": "",
-          "description": "request AI prompt from xAI",
+          "description": "correct ai data",
           "tags": [
             "action"
           ]
@@ -786,7 +803,7 @@
           "tags": [
             "any",
             "action",
-            "object"
+            "open"
           ],
           "metadata": {
             "cssStyle": ""
@@ -803,7 +820,7 @@
           },
           "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
           "url": "",
-          "description": ""
+          "description": "waiting by seconds"
         },
         {
           "id": "NUI7cFBcc3F59XbVBA2y",
@@ -829,7 +846,7 @@
             "size": "2:1"
           },
           "name": "Data Converter",
-          "description": ""
+          "description": "clone variable to new variable"
         },
         {
           "id": "SzbbJVSYrntOHUF9boDU",
@@ -853,7 +870,7 @@
           "metadata": {
             "cssStyle": ""
           },
-          "description": ""
+          "description": "physical environment"
         },
         {
           "id": "CKrZDm2g9Vt1gNId0Gt1",
@@ -878,15 +895,18 @@
           },
           "tags": [
             "action",
-            "object",
-            "any"
+            "any",
+            "open"
           ],
           "description": ""
         },
         {
           "id": "eJ2AB3vSxgbwoNinjMnD",
           "name": "CameraInput",
-          "tags": "ipcam, action",
+          "tags": [
+            "ipcam",
+            "action"
+          ],
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
@@ -904,7 +924,7 @@
             "nanoseconds": 972000000
           },
           "url": "",
-          "description": "select camera, take snapshot, and generate image labels"
+          "description": "pick a ipcam, take a snapshop and generate label"
         },
         {
           "id": "UsWhf6pyCDQW1nvcnHxa",
@@ -929,7 +949,7 @@
             "nanoseconds": 18000000
           },
           "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "description": ""
+          "description": "image to prompt"
         },
         {
           "id": "E5tInoIhMDck4CQq8Idt",
@@ -954,7 +974,7 @@
             "nanoseconds": 814000000
           },
           "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
@@ -979,7 +999,7 @@
             "nanoseconds": 317000000
           },
           "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
@@ -1004,7 +1024,7 @@
           },
           "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
           "url": "",
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
@@ -1055,7 +1075,7 @@
           },
           "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "description": "receive weather information via API"
+          "description": "get weather information via openweather api"
         },
         {
           "id": "rACQtq73fn2l4o7LHcQW",
@@ -1103,7 +1123,7 @@
             "cssStyle": ""
           },
           "function": "",
-          "description": "request AI prompt from xAI",
+          "description": "correct ai data",
           "tags": [
             "action"
           ]
@@ -1126,7 +1146,7 @@
             "apiName": "OutputViewB",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg",
-            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n  // 示例：一個有長期對話文字的物件（之後可以由 AI 填）\n  let npc = worldA.find(m => m.id === \"npc_1\");\n  if (!npc) {\n    npc = {\n      id: \"npc_1\",\n      name: \"Technician\",\n      position: { x: 1, y: 1, z: 0 },\n      size: { w: 1, h: 1, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/npc_technician.png\",\n      zIndex: 10,\n      status: \"idle\",\n      dialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(npc);\n  }\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "2:2",
             "tags": [
@@ -1154,13 +1174,18 @@
             },
             "width": 192,
             "height": 192,
-            "scale": "2:2"
+            "scale": "2:2",
+            "fnString": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
           },
           "style": {
             "width": 192,
             "height": 192,
             "minHeight": 192
-          }
+          },
+          "width": 192,
+          "height": 192,
+          "selected": true,
+          "dragging": false
         },
         {
           "id": "api_1772054017599",
@@ -1174,7 +1199,7 @@
             "apiName": "MachineA",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg",
-            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }else{\n    machineA = {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1202,13 +1227,18 @@
             },
             "width": 192,
             "height": 96,
-            "scale": "2:1"
+            "scale": "2:1",
+            "fnString": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }else{\n    machineA = {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n"
           },
           "style": {
             "width": 192,
             "height": 96,
             "minHeight": 96
-          }
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "api_1772054028691",
@@ -1222,7 +1252,7 @@
             "apiName": "MachineA",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg",
-            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }else{\n    machineA = {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1250,13 +1280,18 @@
             },
             "width": 192,
             "height": 96,
-            "scale": "2:1"
+            "scale": "2:1",
+            "fnString": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }else{\n    machineA = {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n"
           },
           "style": {
             "width": 192,
             "height": 96,
             "minHeight": 96
-          }
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "api_1772055162257",
@@ -1270,7 +1305,7 @@
             "apiName": "ipcamA",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg",
-            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }else{\n    thisObj = {\n      id: \"ipcamA\",\n      name: \"ipcamA\",\n      imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\n  dialogue: {\n          text: \"歡迎來到這台工業設備的控制室。\"\n        },\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 1, h: 1, d: 1 },\n      status: 'idle'\n    }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1298,13 +1333,18 @@
             },
             "width": 192,
             "height": 96,
-            "scale": "2:1"
+            "scale": "2:1",
+            "fnString": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }else{\n    thisObj = {\n      id: \"ipcamA\",\n      name: \"ipcamA\",\n      imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\n  dialogue: {\n          text: \"歡迎來到這台工業設備的控制室。\"\n        },\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 1, h: 1, d: 1 },\n      status: 'idle'\n    }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n"
           },
           "style": {
             "width": 192,
             "height": 96,
             "minHeight": 96
-          }
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "api_1772055166442",
@@ -1318,7 +1358,7 @@
             "apiName": "engineerA",
             "apiUrl": null,
             "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg",
-            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }else{\n    thisObj = {\n      id: \"engineerA\",\n      name: \"engineerA\",\n      position: { x: 0, y: 0, z: 0 },\n      imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n      size: { w: 1, h: 2, d: 1 },\n      status: 'idle',\n  dialogue: {\n          text: \"歡迎來到這台工業設備的控制室。\"\n        }\n    }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1346,13 +1386,18 @@
             },
             "width": 192,
             "height": 96,
-            "scale": "2:1"
+            "scale": "2:1",
+            "fnString": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }else{\n    thisObj = {\n      id: \"engineerA\",\n      name: \"engineerA\",\n      position: { x: 0, y: 0, z: 0 },\n      imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n      size: { w: 1, h: 2, d: 1 },\n      status: 'idle',\n  dialogue: {\n          text: \"歡迎來到這台工業設備的控制室。\"\n        }\n    }\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n"
           },
           "style": {
             "width": 192,
             "height": 96,
             "minHeight": 96
-          }
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "api_1772055570758",
@@ -1372,7 +1417,7 @@
             "tags": [
               "any",
               "action",
-              "object"
+              "open"
             ]
           },
           "data": {
@@ -1391,7 +1436,7 @@
               "tags": [
                 "any",
                 "action",
-                "object"
+                "open"
               ]
             },
             "width": 192,
@@ -1402,13 +1447,15 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
-          }
+          },
+          "width": 192,
+          "height": 96
         },
         {
           "id": "api_1772105498246",
           "position": {
-            "x": 298.2142857142858,
-            "y": 302.5
+            "x": -94.64285714285708,
+            "y": 278.2142857142858
           },
           "type": "api",
           "metadata": {
@@ -1452,6 +1499,14 @@
             "width": 192,
             "height": 96,
             "minHeight": 96
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "dragging": false,
+          "positionAbsolute": {
+            "x": -94.64285714285708,
+            "y": 278.2142857142858
           }
         }
       ],
@@ -1499,7 +1554,7 @@
           "label": ""
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {
         "worlda": [
           {
@@ -1523,12 +1578,12 @@
             "id": "ipcamA",
             "name": "ipcamA",
             "position": {
-              "x": 0,
-              "y": 0
+              "x": 2,
+              "y": 2
             },
             "size": {
               "w": 1,
-              "h": 3,
+              "h": 2,
               "d": 1
             },
             "imageurl": "https://aiagent.maxsolo.co.uk/images/ipcam.png",
@@ -1538,12 +1593,12 @@
             "id": "engineerA",
             "name": "engineerA",
             "position": {
-              "x": 4,
-              "y": 4
+              "x": 0,
+              "y": 0
             },
             "size": {
               "w": 1,
-              "h": 3,
+              "h": 2,
               "d": 1
             },
             "imageurl": "https://aiagent.maxsolo.co.uk/images/engineerA.png",
@@ -1553,12 +1608,12 @@
             "id": "machineA",
             "name": "machineA",
             "position": {
-              "x": 4,
-              "y": 0
+              "x": 3,
+              "y": 3
             },
             "size": {
               "w": 1,
-              "h": 3,
+              "h": 2,
               "d": 1
             },
             "imageurl": "https://aiagent.maxsolo.co.uk/images/machineA.png",
@@ -1568,8 +1623,8 @@
             "id": "npc_1",
             "name": "Technician",
             "position": {
-              "x": 2,
-              "y": 2
+              "x": 1,
+              "y": 1
             },
             "size": {
               "w": 1,
@@ -1586,535 +1641,538 @@
         ],
         "rule_1772053974287_nepis1__node_api_1772055162257_error": "Cannot set properties of undefined (setting 'api_1772055162257')",
         "rule_1772053974287_nepis1__node_api_1772055166442_error": "Cannot set properties of undefined (setting 'api_1772055166442')",
-        "rule_1772053974287_nepis1__node_api_1772054028691_error": "Cannot set properties of undefined (setting 'api_1772054028691')",
-        "rule_1772053974287_nepis1__node_api_1772054017599_error": "Cannot set properties of undefined (setting 'api_1772054017599')",
-        "waiting_wait": true,
+        "rule_1772053974287_nepis1__node_api_1772054028691_error": "Assignment to constant variable.",
+        "rule_1772053974287_nepis1__node_api_1772054017599_error": "Assignment to constant variable.",
+        "waiting_wait": false,
         "rule_1772053974287_nepis1__node_api_1772053999921_error": "Cannot set properties of undefined (setting 'api_1772053999921')",
         "rule_1772053974287_nepis1__node_api_1772055162257_status": "waiting_user_input",
-        "rule_1772053974287_nepis1__node_api_1772055162257_wait_start": 1772106760879,
+        "rule_1772053974287_nepis1__node_api_1772055162257_wait_start": 1772113960165,
         "rule_1772053974287_nepis1__node_api_1772055166442_status": "waiting_user_input",
-        "rule_1772053974287_nepis1__node_api_1772055166442_wait_start": 1772106762749,
+        "rule_1772053974287_nepis1__node_api_1772055166442_wait_start": 1772113962042,
         "rule_1772053974287_nepis1__node_api_1772054028691_status": "waiting_user_input",
-        "rule_1772053974287_nepis1__node_api_1772054028691_wait_start": 1772106764619,
+        "rule_1772053974287_nepis1__node_api_1772054028691_wait_start": 1772113963919,
         "rule_1772053974287_nepis1__node_api_1772054017599_status": "waiting_user_input",
-        "rule_1772053974287_nepis1__node_api_1772054017599_wait_start": 1772106766488,
+        "rule_1772053974287_nepis1__node_api_1772054017599_wait_start": 1772113965792,
         "rule_1772053974287_nepis1__node_api_1772053999921_status": "waiting_user_input",
-        "rule_1772053974287_nepis1__node_api_1772053999921_wait_start": 1772106758986
+        "rule_1772053974287_nepis1__node_api_1772053999921_wait_start": 1772113958272
       },
-      "activeNodeId": "api_1772055570758",
+      "activeNodeId": null,
       "activeEdgeId": null,
       "apis": [
         {
           "id": "GvIRRETpmWWaNyHojFN7",
-          "tags": [
-            "human",
-            "engineer",
-            "action"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772107199,
-            "nanoseconds": 819000000
-          },
-          "url": "",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg"
-          },
-          "lastPrompt": "",
           "name": "worldPosition",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772058807,
             "nanoseconds": 924000000
           },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114048,
+            "nanoseconds": 163000000
+          },
           "function": "async function processRequest(input) {\n    let worlda = getVar(\"worlda\") || [];\n    \n    if (!worlda || worlda.length === 0) {\n        return {ok: false, error: \"No world data found\"};\n    }\n    \n    let worlddata = worlda.find(item => item.id === 'world');\n    if (!worlddata || !worlddata.size?.w || !worlddata.size?.h) {\n        return {ok: false, error: \"Invalid world size\"};\n    }\n    \n    let worldWidth = worlddata.size.w;\n    let worldHeight = worlddata.size.h;\n    \n    let objectsdata = worlda.filter(item => item.id !== 'world');\n    \n    if (objectsdata.length === 0) {\n        return {ok: true, message: \"No objects to layout\"};\n    }\n    \n    let objectsList = objectsdata.map(o => `${o.id} (${o.name || 'unnamed'})`).join(', ');\n    let userPrompt = `World size: ${worldWidth}x${worldHeight}. Objects: ${objectsList}. \n    Assign non-overlapping grid positions (x:0-${worldWidth-1}, y:0-${worldHeight-1}) to each object. \n    Logical layout: machines on edges, players center. \n    Respond ONLY with valid JSON array: [{\"id\":\"obj1\",\"position\":{\"x\":1,\"y\":2}},{\"id\":\"obj2\",\"position\":{\"x\":3,\"y\":0}}]`;\n    \n    let systemPrompt = 'You are a game level designer. Output only valid JSON array of positions, no other text.';\n    \n    try {\n        const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            body: JSON.stringify({ \n                role: 'user', \n                prompt: userPrompt, \n                system: systemPrompt \n            })\n        });\n        \n        const chatData = await resp.json();\n        let aiResponse = chatData.content.trim();\n        \n        console.log('AI Layout Response:', aiResponse);\n        \n        // Parse JSON (handle minor formatting issues)\n        let positions;\n        try {\n            positions = JSON.parse(aiResponse);\n        } catch (e) {\n            // Fallback: try extract JSON from text\n            let jsonMatch = aiResponse.match(/\\[.*\\]/s);\n            if (jsonMatch) {\n                positions = JSON.parse(jsonMatch[0]);\n            } else {\n                throw e;\n            }\n        }\n        \n        positions.forEach(pos => {\n            let obj = objectsdata.find(o => o.id === pos.id);\n            if (obj && pos.position) {\n                obj.position = { \n                    x: Math.max(0, Math.min(worldWidth - 1, pos.position.x)), \n                    y: Math.max(0, Math.min(worldHeight - 1, pos.position.y)) \n                };\n            }\n        });\n        \n        console.log('AI Positions Applied:', objectsdata.map(o => ({id: o.id, pos: o.position})));\n        \n    } catch (error) {\n        console.error('AI Layout failed:', error);\n        return {ok: false, error: 'AI layout failed, using manual'};\n    }\n    \n    let updatedWorld = [worlddata, ...objectsdata];\n    setVar(\"worlda\", updatedWorld);\n    \n    return {\n        ok: true,\n        updated: objectsdata.length,\n        worldSize: {w: worldWidth, h: worldHeight},\n        layout: 'AI auto',\n        objectsMoved: objectsdata.map(o => ({id: o.id, newPos: o.position}))\n    };\n}\n",
-          "description": "test"
+          "description": "handle objects position",
+          "lastPrompt": "",
+          "tags": [
+            "human",
+            "engineer",
+            "action"
+          ],
+          "url": "",
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg"
+          }
         },
         {
           "id": "VONCn1km19SO3f3TPCKC",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "lastPrompt": "",
-          "url": "",
-          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
+          "name": "IsometricPosition",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772058520,
             "nanoseconds": 107000000
           },
-          "name": "IsometricPosition",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114072,
+            "nanoseconds": 445000000
+          },
+          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
+          "description": "convert 2d position X,Y to isometric position",
+          "lastPrompt": "",
           "tags": [
             "world",
             "action"
           ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772095795,
-            "nanoseconds": 593000000
-          },
-          "description": ""
+          "url": "",
+          "metadata": {
+            "cssStyle": ""
+          }
         },
         {
           "id": "KRw88k6UJ2m2X7YluTbK",
-          "name": "ipcamA",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg",
+            "cssStyle": ""
+          },
+          "url": "",
+          "tags": [
+            "ipcam",
+            "object"
+          ],
+          "lastPrompt": "",
+          "description": "a physical object",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114090,
+            "nanoseconds": 817000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772055154,
             "nanoseconds": 354000000
           },
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
-          "url": "",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg"
-          },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772107296,
-            "nanoseconds": 616000000
-          },
-          "tags": [
-            "ipcam",
-            "object"
-          ],
-          "description": ""
+          "name": "ipcamA"
         },
         {
           "id": "YgunsIWPkZbGaH80gIro",
+          "description": "a physical human",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772107302,
-            "nanoseconds": 608000000
+            "seconds": 1772114099,
+            "nanoseconds": 62000000
           },
-          "tags": [
-            "engineer",
-            "object"
-          ],
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+          "name": "engineerA",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772055149,
             "nanoseconds": 470000000
           },
-          "name": "engineerA",
-          "url": "",
           "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg"
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg",
+            "cssStyle": ""
           },
-          "lastPrompt": "",
-          "description": "a human engineer"
+          "tags": [
+            "engineer",
+            "object"
+          ],
+          "url": "",
+          "lastPrompt": ""
         },
         {
           "id": "UArt3hSXc7L0B0a05Uaa",
+          "description": "a physical environment",
           "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n  // 示例：一個有長期對話文字的物件（之後可以由 AI 填）\n  let npc = worldA.find(m => m.id === \"npc_1\");\n  if (!npc) {\n    npc = {\n      id: \"npc_1\",\n      name: \"Technician\",\n      position: { x: 1, y: 1, z: 0 },\n      size: { w: 1, h: 1, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/npc_technician.png\",\n      zIndex: 10,\n      status: \"idle\",\n      dialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(npc);\n  }\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "name": "OutputViewB",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114125,
+            "nanoseconds": 172000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772053163,
             "nanoseconds": 498000000
           },
-          "url": "",
+          "name": "OutputViewB",
           "metadata": {
             "cssStyle": "",
             "size": "2:2",
             "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg"
           },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772105118,
-            "nanoseconds": 328000000
-          },
+          "url": "",
           "tags": [
             "world",
             "object"
           ],
-          "description": ""
+          "lastPrompt": ""
         },
         {
           "id": "J5Iv8yiUDZm5KCl5w0rf",
-          "url": "",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg"
+          "description": "a physical environment",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114117,
+            "nanoseconds": 787000000
           },
-          "name": "MachineA",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772053081,
             "nanoseconds": 656000000
           },
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
-          "tags": "object, machine",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772107308,
-            "nanoseconds": 268000000
+          "name": "MachineA",
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg"
           },
-          "description": "create a machine physical object and data"
+          "url": "",
+          "tags": [
+            "object",
+            "machine"
+          ],
+          "lastPrompt": ""
         },
         {
           "id": "54N3ODFTqzcpqEnWGbnt",
-          "tags": [
-            "human",
-            "action"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772021809,
-            "nanoseconds": 852000000
-          },
-          "url": "",
-          "lastPrompt": "",
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
             "size": "3:1"
           },
+          "name": "Dialogue Generator",
+          "lastPrompt": "",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772019996,
             "nanoseconds": 969000000
           },
-          "name": "Dialogue Generator",
-          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
-          "description": ""
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772113512,
+            "nanoseconds": 786000000
+          },
+          "tags": [
+            "human",
+            "action"
+          ],
+          "url": "",
+          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n"
         },
         {
           "id": "dmWZ28QrPYOoWQ2pcOyU",
+          "tags": [
+            "any",
+            "action",
+            "open"
+          ],
           "url": "",
           "lastPrompt": "",
           "metadata": {
             "cssStyle": ""
           },
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-          "name": "wait10s",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772117718,
+            "nanoseconds": 171000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772019467,
             "nanoseconds": 427000000
           },
-          "tags": [
-            "any",
-            "action",
-            "object"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772019532,
-            "nanoseconds": 382000000
-          },
-          "description": ""
+          "name": "wait10s",
+          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
+          "description": "waiting by seconds"
         },
         {
           "id": "NUI7cFBcc3F59XbVBA2y",
-          "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
+          "lastPrompt": "",
+          "tags": [
+            "action"
+          ],
+          "url": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg",
+            "size": "2:1",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
+          },
           "name": "Data Converter",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772015462,
             "nanoseconds": 745000000
           },
-          "url": "",
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "size": "2:1"
-          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772018532,
-            "nanoseconds": 162000000
+            "seconds": 1772114160,
+            "nanoseconds": 228000000
           },
-          "tags": [
-            "action"
-          ],
-          "description": ""
+          "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
+          "description": "clone variable to new variable"
         },
         {
           "id": "SzbbJVSYrntOHUF9boDU",
-          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
           "name": "OutputView",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771945066,
             "nanoseconds": 303000000
           },
-          "url": "",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772021543,
-            "nanoseconds": 448000000
+            "seconds": 1772114185,
+            "nanoseconds": 519000000
           },
+          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
+          "description": "physical environment",
+          "lastPrompt": "",
           "tags": [
             "object"
           ],
-          "description": ""
+          "url": "",
+          "metadata": {
+            "cssStyle": ""
+          }
         },
         {
           "id": "CKrZDm2g9Vt1gNId0Gt1",
-          "url": "",
-          "lastPrompt": "",
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_699d77b1625ed2.70755447.jpg",
             "cssStyle": "",
             "size": "1:1"
           },
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 1000 }\n  };\n}",
+          "lastPrompt": "",
+          "tags": [
+            "action",
+            "any",
+            "open"
+          ],
+          "url": "",
+          "description": "",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771926544,
             "nanoseconds": 739000000
           },
           "name": "Waiting",
-          "tags": [
-            "action",
-            "object",
-            "any"
-          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771942586,
-            "nanoseconds": 661000000
+            "seconds": 1772117733,
+            "nanoseconds": 788000000
           },
-          "description": ""
+          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 1000 }\n  };\n}"
         },
         {
           "id": "eJ2AB3vSxgbwoNinjMnD",
-          "tags": "ipcam, action",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772017787,
-            "nanoseconds": 186000000
-          },
-          "url": "",
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
-          },
+          "name": "CameraInput",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840604,
             "nanoseconds": 972000000
           },
-          "name": "CameraInput",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114217,
+            "nanoseconds": 340000000
+          },
           "function": "async function processRequest() {\n  setVar('takingphoto', true);\nsetVar('takingphotoV2', 'v2');\nconsole.log(\"takingphoto\", true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}\n",
-          "description": "select camera, take snapshot, and generate image labels"
+          "description": "pick a ipcam, take a snapshop and generate label",
+          "lastPrompt": "",
+          "tags": [
+            "ipcam",
+            "action"
+          ],
+          "url": "",
+          "metadata": {
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png"
+          }
         },
         {
           "id": "UsWhf6pyCDQW1nvcnHxa",
+          "description": "image to prompt",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771923309,
-            "nanoseconds": 18000000
+            "seconds": 1772114249,
+            "nanoseconds": 546000000
           },
-          "tags": [
-            "action"
-          ],
-          "name": "VisionAI",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771840006,
             "nanoseconds": 714000000
           },
+          "name": "VisionAI",
           "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "lastPrompt": "",
           "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg",
-            "cssStyle": ""
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg"
           },
           "url": "",
-          "description": ""
+          "tags": [
+            "action"
+          ],
+          "lastPrompt": ""
         },
         {
           "id": "E5tInoIhMDck4CQq8Idt",
-          "name": "show Button",
+          "url": "",
+          "tags": [
+            "object"
+          ],
+          "lastPrompt": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png",
+            "cssStyle": ""
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114261,
+            "nanoseconds": 946000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495135,
             "nanoseconds": 814000000
           },
+          "name": "show Button",
           "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
-          "url": "",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png"
-          },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771923264,
-            "nanoseconds": 263000000
-          },
-          "tags": [
-            "object"
-          ],
-          "description": ""
+          "description": "physical component"
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg",
+            "cssStyle": ""
+          },
+          "lastPrompt": "",
+          "tags": [
+            "object"
+          ],
+          "url": "",
+          "description": "physical component",
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
           "name": "show Text",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495123,
             "nanoseconds": 317000000
           },
-          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
-          "url": "",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
-          },
-          "lastPrompt": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771923408,
-            "nanoseconds": 261000000
-          },
-          "tags": [
-            "object"
-          ],
-          "description": ""
+            "seconds": 1772114267,
+            "nanoseconds": 202000000
+          }
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png"
+          },
+          "lastPrompt": "",
+          "url": "",
+          "tags": [
+            "object"
+          ],
+          "description": "physical component",
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495005,
             "nanoseconds": 117000000
           },
           "name": "show Image",
-          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
-          "url": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png",
-            "cssStyle": ""
-          },
-          "lastPrompt": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771923280,
-            "nanoseconds": 9000000
-          },
-          "tags": [
-            "object"
-          ],
-          "description": ""
+            "seconds": 1772114272,
+            "nanoseconds": 595000000
+          }
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
-          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
           "metadata": {
             "cssStyle": "",
             "image": "https://maxsolo.co.uk/images/uploads/img_69a04ecea9a4f7.38771203.jpg"
           },
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "function": "",
-          "name": "xAI(Ram)",
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770218220,
             "nanoseconds": 600000000
           },
+          "name": "xAI(Ram)",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
           "tags": [
             "action"
           ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771457802,
-            "nanoseconds": 351000000
+            "seconds": 1772113617,
+            "nanoseconds": 68000000
           },
-          "description": "request prompt to xAI"
+          "function": ""
         },
         {
           "id": "0FnnIKiR0PxZlv4MT9nm",
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771882992,
-            "nanoseconds": 482000000
+            "seconds": 1772114296,
+            "nanoseconds": 774000000
           },
-          "tags": [
-            "action"
-          ],
-          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "name": "OpenWeather",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770215450,
             "nanoseconds": 531000000
           },
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
-            "size": "3:1",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
-          },
-          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "description": "receive weather information via API"
-        },
-        {
-          "id": "rACQtq73fn2l4o7LHcQW",
+          "description": "get weather information via openweather api",
           "tags": [
             "action"
           ],
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "lastPrompt": "",
+          "metadata": {
+            "size": "3:1",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg"
+          }
+        },
+        {
+          "id": "rACQtq73fn2l4o7LHcQW",
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1771539114,
-            "nanoseconds": 225000000
+            "seconds": 1772113659,
+            "nanoseconds": 748000000
           },
+          "tags": [
+            "action"
+          ],
           "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1"
-          },
-          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
-          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770213924,
             "nanoseconds": 893000000
           },
-          "name": "Mission Check",
-          "description": ""
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
+          "name": "Mission Check"
         },
         {
           "id": "jJjkD9yPzcKD21Jljtqg",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "name": "xAI",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770212884,
             "nanoseconds": 535000000
           },
-          "name": "xAI",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1770218230,
-            "nanoseconds": 106000000
+            "seconds": 1772114351,
+            "nanoseconds": 858000000
           },
+          "function": "",
+          "description": "correct ai data",
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "tags": [
+            "action"
+          ],
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
           "metadata": {
             "image": "https://maxsolo.co.uk/images/uploads/img_69a04eec6f6c74.11574150.png",
             "size": "2:1",
             "cssStyle": ""
-          },
-          "function": "",
-          "description": "request AI prompt from xAI",
-          "tags": [
-            "action"
-          ]
+          }
         }
       ],
       "stepDelay": 1000
