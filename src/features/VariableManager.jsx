@@ -2577,7 +2577,61 @@ const VariableManager = ({ onBack }) => {
       const data = await response.json();
       console.log('client <- server response', data);
       if (data && data.success) {
-        return { userPrompt: userPrompt || '', systemPrompt: data.systemPrompt || '', physicalObjects: data.physicalObjects || [], actionComponents: data.actionComponents || [] };
+        // if server didn't supply node/edge results, create dummy ones here
+        let nodesResult = data.nodesResult;
+        let edgesResult = data.edgesResult;
+        let newNodes = data.newNodes;
+        let newEdges = data.newEdges;
+        if (!nodesResult || !edgesResult) {
+          console.warn('Server generator did not return nodes/edges, using local dummy data instead');
+          // same dummy data as local fallback
+          nodesResult = [
+            { component: 'CameraInput', value: '', id: 'node1' },
+            { component: 'worldPosition', value: '', id: 'node2' },
+            { component: 'wait', value: 2000, id: 'node3' }
+          ];
+          edgesResult = [
+            { source: 'node1', target: 'node2', label: 'next' },
+            { source: 'node2', target: 'node3', label: 'next' },
+            { source: 'node3', target: 'node1', label: 'repeat' }
+          ];
+
+          newNodes = nodesResult.map(n => {
+            const apiMatch = apis.find(a => a.name === n.component) || {};
+            return {
+              ...n,
+              apiId: apiMatch.id || null,
+              metadata: apiMatch,
+              position: { x: 100 * (parseInt(n.id.replace('node',''), 10) || 0), y: 100 },
+              style: {}
+            };
+          });
+          newEdges = edgesResult.map(e => ({
+            ...e,
+            id: `${e.source}-${e.target}`,
+            style: {}
+          }));
+        }
+
+        //0228 replace new nodes and edges to current workflow
+        setRfNodes(newNodes || []);
+        setRfEdges(newEdges || []);
+
+        //run auto-layout to rearrange the new graph
+        setTimeout(() => {
+           handleAutoLayout(newNodes, newEdges);
+        }, 300);
+
+        return {
+          userPrompt: userPrompt || '',
+          systemPrompt: data.systemPrompt || '',
+          physicalObjects: data.physicalObjects || [],
+          actionComponents: data.actionComponents || [],
+          nodesResult,
+          edgesResult,
+          newNodes,
+          newEdges
+        };
       }
       console.warn('Server generator failed, falling back to local:', data.error || data);
     } catch (err) {
@@ -2594,7 +2648,7 @@ const VariableManager = ({ onBack }) => {
         functionsList.forEach(rule => {
           try {
             let wf = rule.workflowObject;
-            console.log('wf', wf, rule);
+            //console.log('wf', wf, rule);
             if (!wf) return; // Skip if no workflow
             
             // Parse workflowObject if it's a string
@@ -2765,14 +2819,66 @@ const edges = [
 
       console.log('=== System Prompt Generated ===\n' + systemPrompt);
 
-      // Return structured result so caller can use systemPrompt alongside userPrompt
-      return { userPrompt: userPrompt || '', systemPrompt: systemPrompt, physicalObjects, actionComponents };
+      // build dummy workflow data arrays
+      const nodesResult = [
+        { component: 'CameraInput', value: '', id: 'node1' },
+        { component: 'worldPosition', value: '', id: 'node2' },
+        { component: 'wait', value: 2000, id: 'node3' }
+      ];
+      const edgesResult = [
+        { source: 'node1', target: 'node2', label: 'next' },
+        { source: 'node2', target: 'node3', label: 'next' },
+        { source: 'node3', target: 'node1', label: 'repeat' }
+      ];
+
+      // optionally map to APIs, add metadata/position/style placeholders
+      const newNodes = nodesResult.map(n => {
+        const apiMatch = apis.find(a => a.name === n.component) || {};
+        return {
+          ...n,
+          apiId: apiMatch.id || null,
+          metadata: apiMatch,
+          position: { x: 100 * (parseInt(n.id.replace('node',''), 10) || 0), y: 100 },
+          style: {}
+        };
+      });
+      const newEdges = edgesResult.map(e => ({
+        ...e,
+        id: `${e.source}-${e.target}`,
+        style: {}
+      }));
+
+      //console.log('nodesResult', nodesResult);
+      //console.log('edgesResult', edgesResult);
+      console.log('newNodes', newNodes.length);
+      console.log('newEdges', newEdges.length);
+
+      // return full structure including dummy workflow
+      return {
+        userPrompt: userPrompt || '',
+        systemPrompt,
+        physicalObjects,
+        actionComponents,
+        nodesResult,
+        edgesResult,
+        newNodes,
+        newEdges
+      };
       
     } catch (err) {
       console.error('Error generating system prompt:', err);
       setAiWarning('Failed to generate system prompt');
       setTimeout(() => setAiWarning(''), 2000);
-      return { userPrompt: userPrompt || '', systemPrompt: '', physicalObjects: [], actionComponents: [] };
+      return {
+        userPrompt: userPrompt || '',
+        systemPrompt: '',
+        physicalObjects: [],
+        actionComponents: [],
+        nodesResult: [],
+        edgesResult: [],
+        newNodes: [],
+        newEdges: []
+      };
     }
   }, [functionsList, apis, setAiWarning]);
 
@@ -2783,13 +2889,27 @@ const edges = [
   }, []);
 
   const submitGeneratePrompt = useCallback(async () => {
-    console.log('submitGeneratePrompt clicked; userPromptInput=', userPromptInput);
-    debugger; // break here to confirm handler execution
+    console.log('[submitGeneratePrompt] clicked; userPromptInput=', userPromptInput);
+    //debugger; // break here to confirm handler execution
     try {
-      console.log('submitGeneratePrompt starting; current output open:', isOutputOpenLocal);
+      console.log('[submitGeneratePrompt] starting; current output open:', isOutputOpenLocal);
 
       const res = await handleGenerateSystemPrompt(userPromptInput);
-      console.log('handleGenerateSystemPrompt returned', res);
+      console.log('[submitGeneratePrompt] handleGenerateSystemPrompt returned ', res);
+      // log generated workflow structures (if any)
+      if (res) {
+        console.log('[submitGeneratePrompt] generate results:', {
+          nodesResult: res.nodesResult,
+          edgesResult: res.edgesResult,
+          newNodes: res.newNodes,
+          newEdges: res.newEdges
+        });
+      }
+      // apply the workflow data into the current graph
+      // NOTE: already applied via setRfNodes/setRfEdges above, no need to add again
+      //if (res && res.nodesResult && res.edgesResult) {
+      //  applyWorkflowFromPrompt(res.nodesResult, res.edgesResult);
+      //}
 
       // save prompts locally so other parts of UI can access / display them
       setLastUserPrompt(userPromptInput);
@@ -2817,6 +2937,50 @@ const edges = [
       setUserPromptInput('');
     }
   }, [userPromptInput, handleGenerateSystemPrompt, isOutputOpenLocal]);
+
+  // helper: interpret workflow data from prompt result and inject into current flow
+  const applyWorkflowFromPrompt = useCallback((nodesResult = [], edgesResult = []) => {
+    if (!Array.isArray(nodesResult) || !Array.isArray(edgesResult)) return;
+
+    const addedNodes = nodesResult.map(n => {
+      const api = apis.find(a => a.name === n.component) || {};
+      const metadata = { ...(api.metadata || {}), ...api };
+      const widthRatio = (metadata.size || '2:1').split(':')[0] || 1;
+      const heightRatio = (metadata.size || '2:1').split(':')[1] || 1;
+      const nodeWidth = Number(widthRatio) * 64;
+      const nodeHeight = Number(heightRatio) * 64;
+      return {
+        id: n.id,
+        position: { x: 200 + (parseInt(n.id.replace('node',''),10) || 0) * 100, y: 200 },
+        type: 'api',
+        metadata,
+        data: {
+          labelText: n.component,
+          label: n.component,
+          description: '',
+          actions: [],
+          width: nodeWidth,
+          height: nodeHeight,
+          metadata,
+          fnString: api.function || api.fnString || null
+        },
+        style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
+      };
+    });
+    setRfNodes(prev => [...(prev || []), ...addedNodes]);
+
+    const addedEdges = edgesResult.map(e => ({
+      id: `${e.source}-${e.target}`,
+      source: e.source,
+      target: e.target,
+      label: e.label || '',
+      type: 'smoothstep'
+    }));
+    setRfEdges(prev => [...(prev || []), ...addedEdges]);
+  }, [apis, setRfNodes, setRfEdges]);
+
+  // end of applyWorkflowFromPrompt helper
+
 
   // Handler to update global variables on the server
   const handleUpdateGlobalVar = useCallback(async (key, value) => {

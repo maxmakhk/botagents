@@ -14,6 +14,8 @@ import { initializeApp } from 'firebase/app';
 
 // System prompt generator (moved out of client code)
 import { generateSystemPrompt } from './systemPromptGenerator.js';
+import { requestNodesAndEdgesFromXai } from './xaiService.js';
+import { requestFromOllama } from './ollamaService.js';
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 const app = express();
@@ -394,11 +396,89 @@ app.post('/api/global-store', (req, res) => {
 });
 
 // POST generate system prompt server-side
-app.post('/api/generate-system-prompt', (req, res) => {
+app.post('/api/generate-system-prompt', async (req, res) => {
   console.log('Received POST /api/generate-system-prompt with body:', req.body.userPrompt, req.body.functionsList.length);
   try {
     const { userPrompt, functionsList, apis } = req.body || {};
     const result = generateSystemPrompt({ userPrompt, functionsList, apis });
+
+
+
+    // ============================================================================
+    // 02 28 REQUEST NODES AND EDGES FROM xAI
+    // ============================================================================
+    // This function calls xAI to generate nodes and edges from the user prompt
+    // and system prompt. The xAI_ENDPOINT, XAI_API_KEY, and XAI_MODEL should be
+    // configured in .env (e.g., XAI_ENDPOINT=https://api.x.ai/v1/chat/completions)
+    //
+    // To enable this: uncomment the code below and ensure .env is configured
+    // ============================================================================
+    
+    /* UNCOMMENT TO ENABLE XAI INTEGRATION:
+    try {
+      const { nodesResult, edgesResult } = await requestNodesAndEdgesFromXai({
+        systemPrompt: result.systemPrompt,
+        userPrompt: userPrompt,
+        xaiEndpoint: process.env.XAI_ENDPOINT,
+        xaiApiKey: process.env.XAI_API_KEY,
+        xaiModel: process.env.XAI_MODEL
+      });
+      
+      // Merge nodes and edges into result
+      result.nodes = nodesResult;
+      result.edges = edgesResult;
+      
+      console.log(`[xAI] Successfully generated ${nodesResult.length} nodes and ${edgesResult.length} edges`);
+    } catch (xaiErr) {
+      console.error('[xAI] Error generating nodes/edges:', xaiErr.message);
+      // Continue without xAI nodes/edges if request fails
+      result.nodes = [];
+      result.edges = [];
+    }
+    */
+
+    // ============================================================================
+    // REQUEST NODES AND EDGES FROM OLLAMA (LOCAL LLM)
+    // ============================================================================
+    // This function calls Ollama to generate nodes and edges from the user prompt
+    // and system prompt. OLLAMA_URL and OLLAMA_MODEL should be configured in .env
+    // (e.g., OLLAMA_URL=http://localhost:11434/api/chat, OLLAMA_MODEL=gemma3:4b)
+    //
+    // Ollama must be running locally before enabling this.
+    // To enable this: uncomment the code below and ensure Ollama is running
+    // ============================================================================
+    
+    try {
+      const { ollamaResult } = await requestFromOllama({
+        systemPrompt: result.systemPrompt,
+        userPrompt: userPrompt,
+        ollamaUrl: process.env.OLLAMA_URL,
+        ollamaModel: process.env.OLLAMA_MODEL
+      });
+      
+      // Return the complete Ollama result
+      result.ollamaResult = ollamaResult;
+      result.aimodel = process.env.OLLAMA_MODEL || 'gemma3:4b';
+      
+      // Extract nodes and edges from parsed workflow if available
+      if (ollamaResult?.parsedWorkflow) {
+        result.nodes = Array.isArray(ollamaResult.parsedWorkflow.nodes) ? ollamaResult.parsedWorkflow.nodes : [];
+        result.edges = Array.isArray(ollamaResult.parsedWorkflow.edges) ? ollamaResult.parsedWorkflow.edges : [];
+        console.log(`[Ollama] Successfully parsed ${result.nodes.length} nodes and ${result.edges.length} edges`);
+      } else {
+        result.nodes = [];
+        result.edges = [];
+        console.log('[Ollama] No parsed workflow available, but raw Ollama result available');
+      }
+      
+    } catch (ollamaErr) {
+      console.error('[Ollama] Error requesting from Ollama:', ollamaErr.message);
+      // Continue without Ollama result if request fails
+      result.ollamaResult = null;
+      result.nodes = [];
+      result.edges = [];
+    }
+
     console.log('Generated system prompt result:', result);
     res.json({ success: true, ...result });
   } catch (err) {

@@ -49,14 +49,6 @@ function App() {
               <button onClick={() => setActivePage(PAGES.VARIABLE_MANAGER)}>
                 Bot Agents
               </button>
-              
-              <button onClick={() => setIsOutputOpen(true)}>
-                Output View
-              </button>
-
-              <button onClick={() => setActivePage(PAGES.NODE_TEMPLATES)}>
-                Node Templates
-              </button>
             </div>
           </div>
         );
