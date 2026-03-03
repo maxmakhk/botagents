@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import ReactFlow, { Background, Controls, MiniMap, Handle, Position } from 'reactflow';
 import copperSquareBg from '../../../assets/copper_square_a.jpg';
 import badge2 from '../../../assets/badge_2.png';
@@ -27,12 +28,21 @@ const ensureInjectedCss = (cssText) => {
 const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [] }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
+  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef(null);
 
   const handleClick = (ev) => {
     ev.stopPropagation();
     const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
     const current = (node && (node.data?.fnString || node.data?.metadata?.function || node.metadata?.function)) || '';
     setText(current || '');
+    
+    // Get button position and calculate popup position
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopupPos({ x: rect.right + 10, y: rect.top });
+    }
+    
     setOpen(true);
   };
 
@@ -82,9 +92,9 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
 
   return (
     <div>
-      <button title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
-      {open && (
-        <div style={{position:'absolute', left: '50px', top: '-220px', zIndex: 9999, background:'#021827', border:'1px solid #13353b', padding:8, borderRadius:6, minWidth:420}} onClick={(e) => e.stopPropagation()}>
+      <button ref={buttonRef} title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
+      {open && ReactDOM.createPortal(
+        <div style={{position:'fixed', left: popupPos.x, top: popupPos.y, zIndex: 9999, background:'#021827', border:'1px solid #13353b', padding:8, borderRadius:6, minWidth:420}} onClick={(e) => e.stopPropagation()}>
           <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6}}>Edit node function (fnString)</div>
           <textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:6, borderRadius:4}} placeholder="Paste function body here" />
           <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:6}}>
@@ -92,7 +102,8 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
             <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function">Default Function</button>
             <button className="btn-primary" onClick={handleSave}>Save</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

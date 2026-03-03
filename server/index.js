@@ -16,7 +16,7 @@ import { initializeApp } from 'firebase/app';
 import { generateSystemPrompt } from './systemPromptGenerator.js';
 import { requestNodesAndEdgesFromXai } from './xaiService.js';
 import { requestFromOllama } from './ollamaService.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const app = express();
 const server = http.createServer(app);
@@ -388,6 +388,12 @@ app.post('/api/global-store', (req, res) => {
     const { key, value } = req.body || {};
     if (!key) return res.status(400).json({ error: 'key_required' });
     projectManager.setGlobalVar(key, value);
+    
+    // Broadcast update to all connected Socket.io clients
+    io.emit('global_store_vars_update', {
+      globalStoreVars: projectManager.getGlobalVars()
+    });
+    
     res.json({ success: true, key, value });
   } catch (err) {
     console.error('POST /api/global-store error', err && err.stack ? err.stack : err);
@@ -817,6 +823,90 @@ io.on('connection', (socket) => {
 
     console.log(`[Socket] Client ${socket.id} updated workflow for ${projectId}`);
     projectManager.updateProjectWorkflow(projectId, nodes, edges);
+  });
+
+  // Client requests workflow (nodes/edges)
+  socket.on('get_project_workflow', (data) => {
+    const { projectId } = data || {};
+    if (!projectId) return;
+
+    console.log(`[Socket] Client ${socket.id} requested workflow for ${projectId}`);
+    const workflow = projectManager.getProjectWorkflow(projectId);
+    socket.emit('project_workflow_response', {
+      projectId,
+      workflow: workflow
+    });
+  });
+
+  // Client requests to save workflow to Firebase from server memory
+  socket.on('save_workflow_to_firebase', async (data) => {
+    const { projectId, ruleData } = data || {};
+    if (!projectId) {
+      socket.emit('save_workflow_result', { success: false, error: 'projectId required' });
+      return;
+    }
+
+    try {
+      console.log(`[Socket] Client ${socket.id} requested save workflow ${projectId} to Firebase`);
+      
+      // Get workflow from server memory
+      const workflow = projectManager.getProjectWorkflow(projectId);
+      if (!workflow) {
+        socket.emit('save_workflow_result', { success: false, error: 'Workflow not found in server memory' });
+        return;
+      }
+
+        console.log(`[Socket] → Saving workflow with ${workflow.nodes?.length || 0} nodes, ${workflow.edges?.length || 0} edges`);
+
+      // Check if firestore is available
+      if (!firestore) {
+        socket.emit('save_workflow_result', { success: false, error: 'Firebase not configured on server' });
+        return;
+      }
+
+      // Prepare the document to save
+      const docData = {
+        ...ruleData,
+        workflowObject: JSON.stringify(workflow),
+        updatedAt: serverTimestamp()
+      };
+
+      // Save to Firestore (create if missing, update if existing)
+      const rulesRef = collection(firestore, 'rules');
+      const docRef = doc(rulesRef, projectId);
+      await setDoc(docRef, docData, { merge: true });
+
+      console.log(`[Socket] ✓ Saved workflow ${projectId} to Firebase`);
+      socket.emit('save_workflow_result', { success: true, projectId });
+      
+    } catch (error) {
+      console.error(`[Socket] ✗ Failed to save workflow ${projectId} to Firebase:`, error);
+      socket.emit('save_workflow_result', { success: false, error: error.message });
+    }
+  });
+
+  // Client updates global store variable
+  socket.on('set_global_var', (data) => {
+    const { key, value } = data || {};
+    if (!key) {
+      socket.emit('set_global_var_result', { success: false, error: 'key required' });
+      return;
+    }
+
+    try {
+      console.log(`[Socket] Client ${socket.id} set global var: ${key} =`, value);
+      projectManager.setGlobalVar(key, value);
+      
+      // Broadcast to all clients and update them
+      io.emit('global_store_vars_update', {
+        globalStoreVars: projectManager.getGlobalVars()
+      });
+      
+      socket.emit('set_global_var_result', { success: true, key, value });
+    } catch (error) {
+      console.error(`[Socket] Failed to set global var ${key}:`, error);
+      socket.emit('set_global_var_result', { success: false, error: error.message });
+    }
   });
 
   // Allow clients to subscribe to run updates by runId

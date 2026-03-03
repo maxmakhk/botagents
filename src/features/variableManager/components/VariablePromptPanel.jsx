@@ -74,7 +74,8 @@ const VariablePromptPanel = ({
         <label style={{fontWeight:'bold'}}>Project</label>
         <select
           value={selectedRuleCategoryId || 'all'}
-          onChange={e => setSelectedRuleCategoryId(e.target.value)}
+          onChange={e => { setSelectedRuleCategoryId(e.target.value); try { console.log('[Projects] onChange - received workflows array:', functionsList); } catch (e) {} }}
+          onClick={() => { try { console.log('[Projects] onClick - current workflows array:', functionsList); } catch (e) {} }}
           style={{padding: 6, borderRadius: 4, border:'1px solid #475569', background:'#020617', color:'#e5e7eb'}}
         >
           <option value="all">All</option>
@@ -103,6 +104,21 @@ const VariablePromptPanel = ({
             const currentFunction = functionsList && functionsList[idx];
             const projectId = currentFunction?.id || currentFunction?.ruleId || `rule_${idx}`;
             const isRunning = allProjectStatuses && allProjectStatuses[projectId] === 'running';
+            
+            // Parse workflow to get node/edge counts
+            let nodeCount = 0;
+            let edgeCount = 0;
+            try {
+              if (currentFunction && currentFunction.workflowObject) {
+                const workflow = typeof currentFunction.workflowObject === 'string' 
+                  ? JSON.parse(currentFunction.workflowObject) 
+                  : currentFunction.workflowObject;
+                nodeCount = (workflow.nodes || []).length;
+                edgeCount = (workflow.edges || []).length;
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
             
             return (
               <button
@@ -141,6 +157,9 @@ const VariablePromptPanel = ({
                 <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                   <div style={{fontWeight:700}}>{((ruleNames[idx] !== undefined && ruleNames[idx] !== '') ? ruleNames[idx] : (rulePrompts[idx] || `Rule ${idx+1}`)).slice(0, 28)}</div>
                   <div style={{fontSize:'0.7rem', color:'#9ca3af', marginTop:4}}>{functionsList && functionsList[idx] && (functionsList[idx].ruleId || functionsList[idx].id) ? (functionsList[idx].ruleId || functionsList[idx].id) : ''}</div>
+                  <div style={{fontSize:'0.65rem', color: nodeCount > 0 ? '#22c55e' : '#ef4444', marginTop:2, fontWeight:600}}>
+                    N:{nodeCount} | E:{edgeCount}
+                  </div>
                 </div>
               </button>
             );

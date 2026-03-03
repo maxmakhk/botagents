@@ -196,6 +196,9 @@ const VariableManager = ({ onBack }) => {
     storeVars,
     setStoreVars,
     submitPrompt,
+    fetchLatestWorkflow,
+    pushWorkflowUpdate,
+    setGlobalVar,
     promptProcessing,
     promptStatus,
     setProjectId,
@@ -1236,42 +1239,52 @@ const VariableManager = ({ onBack }) => {
         setAiWarning('Saved locally (no rule id to persist).');
         setTimeout(() => setAiWarning(''), 2000);
       } else {
-        // Pass an override with empty ruleSource so the service uses the provided functionsList only
-
-        const payLoad = {
+        // Send request to server to save workflow from its memory to Firebase
+        const ruleData = {
           categoryId: functionsList[idx].categoryId,
-          expr: functionsList[idx].expr,
+          expr: functionsList[idx].expr || nextRuleSource[idx] || '',
           id: functionsList[idx].id,
           name: functionsList[idx].name,
           relatedFields: functionsList[idx].relatedFields,
-          systemPrompt: functionsList[idx].systemPrompt,
-          type: functionsList[idx].type,
-          workflowObject: functionsList[idx].workflowObject
+          systemPrompt: functionsList[idx].systemPrompt || nextRuleSystemPrompts[idx] || '',
+          type: functionsList[idx].type
+        };
+
+        console.log('[VariableManager] Requesting server to save workflow to Firebase:', ruleIdToUse, ruleData);
+        
+        // Send to server via socket
+        if (socketRef && socketRef.current) {
+          socketRef.current.emit('save_workflow_to_firebase', {
+            projectId: ruleIdToUse,
+            ruleData: ruleData
+          });
+
+          // Listen for result
+          socketRef.current.once('save_workflow_result', (result) => {
+            if (result.success) {
+              console.log('[VariableManager] ✓ Server saved workflow to Firebase');
+              setAiWarning('Saved to Firebase via server.');
+              setTimeout(() => setAiWarning(''), 2000);
+            } else {
+              console.error('[VariableManager] ✗ Server failed to save:', result.error);
+              setAiWarning(`Save failed: ${result.error}`);
+              setTimeout(() => setAiWarning(''), 3000);
+            }
+          });
+        } else {
+          console.warn('[VariableManager] Socket not available, cannot save to Firebase');
+          setAiWarning('Server connection unavailable.');
+          setTimeout(() => setAiWarning(''), 2000);
         }
-
-        console.log("saveRuleToFirebase", functionsList[idx], payLoad, functionsList)
-        await saveRuleToFirebase(db, payLoad);
-
-        //await saveRulesToFirebase({ override: { functionsList: [ruleToSave], ruleSource: [] } });
-        setAiWarning('Saved to Rule Checker.');
-        setTimeout(() => setAiWarning(''), 2000);
       }
     } catch (e) {
-      // fallback to saving everything if something goes wrong
-      console.error('saveSynthFunctionToRule save failed, falling back to full save', e);
-      /*
-      await saveRulesToFirebase({
-        ruleSource: nextRuleSource,
-        ruleSystemPrompts: nextRuleSystemPrompts,
-        functionsList: merged
-      });
-      */
-      setAiWarning('Saved (fallback).');
-      setTimeout(() => setAiWarning(''), 2000);
+      console.error('saveSynthFunctionToRule save failed', e);
+      setAiWarning('Save failed: ' + e.message);
+      setTimeout(() => setAiWarning(''), 3000);
     }
   };
 
-  const loadSelectedRuleIntoPrompt = (indexOverride = null) => {
+  const loadSelectedRuleIntoPrompt = async (indexOverride = null) => {
     const resolvedIndex = (indexOverride !== null && indexOverride !== undefined)
       ? Number(indexOverride)
       : (selectedRuleIndex === undefined || selectedRuleIndex === null ? null : Number(selectedRuleIndex));
@@ -1283,15 +1296,38 @@ const VariableManager = ({ onBack }) => {
     setAiPrompt(nextSystemPrompt);
     setTaskFunctionText(nextExpr);
 
-    const wfRaw = (functionsList && functionsList[idx] && functionsList[idx].workflowObject) ? functionsList[idx].workflowObject : null;
+    // Get project ID for this rule
+    const projectIdForRule = (functionsList && functionsList[idx] && (functionsList[idx].id || functionsList[idx].ruleId)) 
+      ? String(functionsList[idx].id || functionsList[idx].ruleId) 
+      : null;
+
     let parsed = null;
-    try {
-      if (!wfRaw) parsed = null;
-      else if (typeof wfRaw === 'string') parsed = JSON.parse(wfRaw);
-      else if (typeof wfRaw === 'object') parsed = wfRaw;
-    } catch (err) {
-      console.warn('Failed to parse workflowObject for rule idx=', idx, err);
-      parsed = null;
+
+    // Try to fetch latest workflow from server first
+    if (projectIdForRule && typeof fetchLatestWorkflow === 'function') {
+      try {
+        console.log('[VariableManager] Fetching latest workflow from server for project:', projectIdForRule);
+        const serverWorkflow = await fetchLatestWorkflow(projectIdForRule);
+        if (serverWorkflow && serverWorkflow.nodes && serverWorkflow.nodes.length > 0) {
+          console.log('[VariableManager] Using workflow from server (nodes:', serverWorkflow.nodes.length, ')');
+          parsed = serverWorkflow;
+        }
+      } catch (e) {
+        console.warn('[VariableManager] Failed to fetch from server, falling back to stored workflow:', e);
+      }
+    }
+
+    // Fallback to stored workflowObject if server fetch failed
+    if (!parsed) {
+      const wfRaw = (functionsList && functionsList[idx] && functionsList[idx].workflowObject) ? functionsList[idx].workflowObject : null;
+      try {
+        if (!wfRaw) parsed = null;
+        else if (typeof wfRaw === 'string') parsed = JSON.parse(wfRaw);
+        else if (typeof wfRaw === 'object') parsed = wfRaw;
+      } catch (err) {
+        console.warn('Failed to parse workflowObject for rule idx=', idx, err);
+        parsed = null;
+      }
     }
 
     if (!parsed) {
@@ -1433,9 +1469,15 @@ const VariableManager = ({ onBack }) => {
       },
       style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
     };
-    setRfNodes((n) => [...n, newNode]);
+    const newNodes = [...rfNodes, newNode];
+    setRfNodes(newNodes);
     setSelectedIds([id]);
-  }, [rfNodes.length, setRfNodes]);
+    
+    // Push workflow update to server
+    if (typeof pushWorkflowUpdate === 'function') {
+      pushWorkflowUpdate(newNodes, rfEdges);
+    }
+  }, [rfNodes, rfEdges, setRfNodes, pushWorkflowUpdate]);
 
   // Toggle lock state on a node (mark metadata.locked and data.locked)
   const toggleNodeLock = useCallback((nodeId) => {
@@ -1459,24 +1501,62 @@ const VariableManager = ({ onBack }) => {
     };
   }, [toggleNodeLock]);
 
+  // Track previous selectedRuleIndex and current workflow to save when switching rules
+  const previousRuleIndexRef = useRef(null);
+  const currentWorkflowRef = useRef({ nodes: [], edges: [] });
+
+  // Keep currentWorkflowRef in sync with rfNodes/rfEdges (no dependencies to avoid loops)
+  useEffect(() => {
+    currentWorkflowRef.current = { nodes: rfNodes, edges: rfEdges };
+  }, [rfNodes, rfEdges]);
+
   // Auto-load workflow when selectedRuleIndex changes
   useEffect(() => {
     if (selectedRuleIndex !== null && selectedRuleIndex !== undefined) {
+      // If switching from another rule, save the previous workflow first
+      const prevIdx = previousRuleIndexRef.current;
+      if (prevIdx !== null && prevIdx !== undefined && prevIdx !== selectedRuleIndex) {
+        console.log('[VariableManager] Saving workflow for rule index', prevIdx, 'before switching');
+        setFunctionsList((prevList) => {
+          if (!Array.isArray(prevList) || prevIdx < 0 || prevIdx >= prevList.length) return prevList;
+          const newList = [...prevList];
+          newList[prevIdx] = {
+            ...(newList[prevIdx] || {}),
+            workflowObject: JSON.stringify(currentWorkflowRef.current)
+          };
+          return newList;
+        });
+      }
+      
       try {
         loadSelectedRuleIntoPrompt(selectedRuleIndex);
       } catch (e) {
         console.warn('Failed to load selected rule into prompt:', e);
       }
+      
+      // Update ref after loading
+      previousRuleIndexRef.current = selectedRuleIndex;
     }
   }, [selectedRuleIndex, functionsList]);
 
   const deleteSelected = useCallback(() => {
     if (!selectedIds || !selectedIds.length) return;
     const sel = (selectedIds || []).map((s) => String(s));
-    setRfNodes((nodes) => (nodes || []).filter((n) => !sel.includes(String(n.id))));
-    setRfEdges((edges) => (edges || []).filter((e) => !sel.includes(String(e.id)) && !sel.includes(String(e.source)) && !sel.includes(String(e.target))));
+    
+    // Calculate new nodes/edges
+    const newNodes = (rfNodes || []).filter((n) => !sel.includes(String(n.id)));
+    const newEdges = (rfEdges || []).filter((e) => !sel.includes(String(e.id)) && !sel.includes(String(e.source)) && !sel.includes(String(e.target)));
+    
+    // Update state
+    setRfNodes(newNodes);
+    setRfEdges(newEdges);
     setSelectedIds([]);
-  }, [selectedIds, setRfNodes, setRfEdges, setSelectedIds]);
+    
+    // Push workflow update to server
+    if (typeof pushWorkflowUpdate === 'function') {
+      pushWorkflowUpdate(newNodes, newEdges);
+    }
+  }, [selectedIds, rfNodes, rfEdges, setRfNodes, setRfEdges, setSelectedIds, pushWorkflowUpdate]);
 
   // Node edit modal removed — edits are handled via Node Details now
 
@@ -2560,22 +2640,22 @@ const VariableManager = ({ onBack }) => {
   const visibleRuleIndices = getVisibleRuleIndices();
 
   const handleGenerateSystemPrompt = useCallback(async (userPrompt = '') => {
-    console.log('handleGenerateSystemPrompt invoked with:', userPrompt);
+    console.log('[handleGenerateSystemPrompt] invoked with:', userPrompt);
     // attempt to run server-side generator first
     try {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const url = `${backendUrl}/api/generate-system-prompt`;
       const payload = { userPrompt, functionsList, apis };
 
-      console.log('client -> server POST', url, 'payload:', payload);
+      console.log('[handleGenerateSystemPrompt]client -> server POST', url, 'payload:', payload);
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      console.log('server generator response status', response.status);
+      console.log('[handleGenerateSystemPrompt]server generator response status', response.status);
       const data = await response.json();
-      console.log('client <- server response', data);
+      console.log('[handleGenerateSystemPrompt]client <- server response', data);
       if (data && data.success) {
         // if server didn't supply node/edge results, create dummy ones here
         let nodesResult = data.nodesResult;
@@ -2583,7 +2663,7 @@ const VariableManager = ({ onBack }) => {
         let newNodes = data.newNodes;
         let newEdges = data.newEdges;
         if (!nodesResult || !edgesResult) {
-          console.warn('Server generator did not return nodes/edges, using local dummy data instead');
+          console.warn('[handleGenerateSystemPrompt]Server generator did not return nodes/edges, using local dummy data instead');
           // same dummy data as local fallback
           nodesResult = [
             { component: 'CameraInput', value: '', id: 'node1' },
@@ -2619,6 +2699,7 @@ const VariableManager = ({ onBack }) => {
 
         //run auto-layout to rearrange the new graph
         setTimeout(() => {
+          console.log('[handleGenerateSystemPrompt]Running auto-layout for generated workflow');
            handleAutoLayout(newNodes, newEdges);
         }, 300);
 

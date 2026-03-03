@@ -49,6 +49,19 @@ function App() {
               <button onClick={() => setActivePage(PAGES.VARIABLE_MANAGER)}>
                 Bot Agents
               </button>
+
+            <button onClick={() => window.open("https://fileai.maxsolo.co.uk/", "_blank")}>
+                File AI
+              </button>
+
+              <button onClick={() => window.open("https://visionai.maxsolo.co.uk/", "_blank")}>
+                Vision AI
+              </button>
+
+              <button onClick={() => window.open("https://aichat.maxsolo.co.uk/", "_blank")}>
+                AI Chat
+              </button>
+              
             </div>
           </div>
         );

@@ -31,6 +31,10 @@ class ProjectManager {
     this.executionInterval = null;
     // Verbose logging toggle (set env PROJECT_MANAGER_VERBOSE=true to enable)
     this.verbose = (process.env.PROJECT_MANAGER_VERBOSE === 'true');
+    
+    // Auto-save debounce timer
+    this.saveTimer = null;
+    this.diskSavePath = path.join(process.cwd(), 'runs_store.json');
   }
 
   // Global store var helpers
@@ -39,6 +43,7 @@ class ProjectManager {
   }
 
   setGlobalVar(key, value) {
+    console.log("setGlobalVar called with:", { key, value });
     try {
       const k = String(key || '').trim();
       if (!k) return;
@@ -246,17 +251,35 @@ class ProjectManager {
   }
 
   /**
+   * Schedule auto-save to runs_store.json (debounced 5 seconds)
+   */
+  scheduleSave() {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(async () => {
+      try {
+        await this.saveToDisk(this.diskSavePath);
+        console.log('[ProjectManager] ✓ Auto-saved to runs_store.json');
+      } catch (e) {
+        console.error('[ProjectManager] ✗ Auto-save failed:', e);
+      }
+    }, 5000);
+  }
+
+  /**
    * Update project workflow (nodes/edges)
    */
   updateProjectWorkflow(projectId, nodes, edges) {
-    const project = this.projects.get(projectId);
+    let project = this.projects.get(projectId);
     if (!project) {
-      //console.warn(`[ProjectManager] Project not found: ${projectId}`);
-      return;
+      // Create project lazily so brand-new workflows can sync before first run
+      this.loadProject(projectId, nodes || [], edges || [], [], 1000);
+      project = this.projects.get(projectId);
     }
 
-    project.nodes = nodes || project.nodes;
-    project.edges = edges || project.edges;
+    if (!project) return;
+
+    project.nodes = Array.isArray(nodes) ? nodes : (project.nodes || []);
+    project.edges = Array.isArray(edges) ? edges : (project.edges || []);
 
     // Broadcast to all watching clients
     this.broadcastToProject(projectId, 'workflow_updated', {
@@ -264,6 +287,23 @@ class ProjectManager {
       nodes: project.nodes,
       edges: project.edges
     });
+    
+    // Auto-save to disk after workflow changes
+    this.scheduleSave();
+  }
+
+  /**
+   * Get project workflow (nodes/edges)
+   */
+  getProjectWorkflow(projectId) {
+    const project = this.projects.get(projectId);
+    if (!project) {
+      return null;
+    }
+    return {
+      nodes: project.nodes || [],
+      edges: project.edges || []
+    };
   }
 
   /**

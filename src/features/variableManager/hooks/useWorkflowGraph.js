@@ -100,15 +100,20 @@ export default function useWorkflowGraph() {
             const width = Number(n?.data?.width) || fallbackWidth;
             const height = Number(n?.data?.height) || fallbackHeight;
             const baseStyle = (n.style && typeof n.style === 'object') ? n.style : {};
+            
+            // Restore labelText and label from n.data first, fallback to n.label or n.id
+            const restoredLabelText = n.data?.labelText || n.label || n.id;
+            const restoredLabel = n.data?.label || n.label || n.id;
+            
             return {
               id: String(n.id),
               position: { x: Number(n?.position?.x ?? 0), y: Number(n?.position?.y ?? 0) },
               type: n.type || 'workflowNode',
               metadata, // Also store at root level for export consistency
               data: {
-                labelText: n.label || n.id,
+                labelText: restoredLabelText,
                 description: n.description || n.type || '',
-                label: n.label || n.id,
+                label: restoredLabel,
                 actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
                 metadata,
                 backgroundColor: n.backgroundColor || (n.data && n.data.backgroundColor) || undefined,

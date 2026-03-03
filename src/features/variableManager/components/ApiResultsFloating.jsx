@@ -5,8 +5,7 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
   const nodeRef = useRef(null);
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
   const [pos, setPos] = useState(null);
-  // start collapsed/hidden by default so it doesn't cover the workflow
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const handleMove = (e) => {
@@ -45,9 +44,8 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
       ref={nodeRef}
       className="ms-apiresults-floating ms-apiresults-collapsed"
       style={pos ? { left: pos.left + 'px', top: pos.top + 'px', right: 'auto', bottom: 'auto' } : { right: '50px', bottom: '12px', top: 'auto' }}
-      onMouseDown={onHeaderDown}
     >
-      <div className="ms-apiresults-header">
+      <div className="ms-apiresults-header" onMouseDown={onHeaderDown}>
         <span>{title}</span>
         <div style={{display:'flex', gap:6}}>
           <button className="ms-apiresults-toggle" onClick={() => setVisible(true)}>▸</button>
@@ -61,16 +59,15 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
       ref={nodeRef}
       className="ms-apiresults-floating"
       style={pos ? { left: pos.left + 'px', top: pos.top + 'px', right: 'auto', bottom: 'auto' } : { right: '50px', bottom: '12px', top: 'auto' }}
-      onMouseDown={onHeaderDown}
     >
-      <div className="ms-apiresults-header">
+      <div className="ms-apiresults-header" onMouseDown={onHeaderDown}>
         <span>{title}</span>
         <div style={{display:'flex', gap:6}}>
           <button className="ms-apiresults-clear" onClick={() => { if (typeof setContent === 'function') setContent(null); }} title="Clear">✕</button>
           <button className="ms-apiresults-toggle" onClick={() => setVisible(false)} title="Collapse">▾</button>
         </div>
       </div>
-      <div className="ms-apiresults-body">
+      <div id="ms-apiresults-body" className="ms-apiresults-body">
         {content ? (
           // If content is a React node, render it directly; if string, render as HTML
           typeof content === 'string' ? (
