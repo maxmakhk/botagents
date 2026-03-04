@@ -294,6 +294,33 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       }
     });
 
+    // Receive node/edge deletion updates from server
+    socketRef.current.on('nodes_edges_deleted', (data) => {
+      try {
+        const { projectId: deletedProjectId, removedNodeIds, removedEdgeIds, orphanedEdgeCount, remainingNodes, remainingEdges } = data || {};
+        if (!deletedProjectId || String(deletedProjectId) !== String(currentProjectId)) return;
+
+        console.log('[CLIENT] Received nodes_edges_deleted:', {
+          removedNodeIds,
+          removedEdgeIds,
+          orphanedEdgeCount,
+          nodesCount: remainingNodes?.length,
+          edgesCount: remainingEdges?.length
+        });
+
+        document.dispatchEvent(new CustomEvent('workflowNodesEdgesDeleted', {
+          detail: {
+            projectId: deletedProjectId,
+            removedNodeIds,
+            removedEdgeIds,
+            orphanedEdgeCount,
+            remainingNodes,
+            remainingEdges
+          }
+        }));
+      } catch (e) { console.error('[CLIENT] nodes_edges_deleted handler error', e); }
+    });
+
     socketRef.current.on('workflow_complete', () => {
       setRunActive(false);
       setActiveNodeId(null);
@@ -360,7 +387,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     socketRef.current.on('client_js_exec', (data) => {
       try {
         if (data && data.clientJS && typeof data.clientJS === 'string') {
-          //console.log(`[useRunDemo] Executing clientJS from node ${data.nodeId}:`, data.clientJS);
+          console.log(`[useRunDemo] Executing clientJS from node ${data.nodeId}:`, data.clientJS);
 
           const getGlobalVar = (key) => {
             try {

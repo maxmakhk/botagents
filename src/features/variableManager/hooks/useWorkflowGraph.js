@@ -124,6 +124,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
             // Restore labelText and label from n.data first, fallback to n.label or n.id
             const restoredLabelText = n.data?.labelText || n.label || n.id;
             const restoredLabel = n.data?.label || n.label || n.id;
+            const restoredFnString = n.data?.fnString || '';
             
             return {
               id: String(n.id),
@@ -134,6 +135,8 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
                 labelText: restoredLabelText,
                 description: n.description || n.type || '',
                 label: restoredLabel,
+                nodeLabel: n.data?.nodeLabel || '', // Preserve node label from server
+                fnString: restoredFnString,
                 actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
                 metadata,
                 backgroundColor: n.backgroundColor || (n.data && n.data.backgroundColor) || undefined,
@@ -170,7 +173,10 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
               const rawTo = e?.to ?? e?.target ?? null;
               const source = rawFrom ? String(rawFrom?.id ?? rawFrom) : '';
               const target = rawTo ? String(rawTo?.id ?? rawTo) : '';
-              if (!source || !target || !nodeIds.has(source) || !nodeIds.has(target)) return null;
+              if (!source || !target || !nodeIds.has(source) || !nodeIds.has(target)) {
+                console.log(`[Cleanup] Removing orphaned edge during load: ${e.id || `edge_${idx}`} (source: ${source}, target: ${target})`);
+                return null;
+              }
 
               const edge = { id: String(e.id || `edge_${idx}`), source, target, label: e.label || '' };
               if (e.sourceHandle !== undefined && e.sourceHandle !== null && String(e.sourceHandle) !== 'undefined' && String(e.sourceHandle) !== '') {
@@ -224,14 +230,32 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
       position: n.position || { x: 0, y: 0 },
       metadata: n.metadata || n.data?.metadata || {},
       actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
+      data: {
+        nodeLabel: n.data?.nodeLabel || '',
+        fnString: n.data?.fnString || '' // Preserve node fnString when exporting
+      }
     }));
 
-    const exportEdges = (rfEdges || []).map((e) => ({
-      id: String(e.id || ''),
-      from: String(e.source || e.from || ''),
-      to: String(e.target || e.to || ''),
-      label: e.label || '',
-    }));
+    // Create nodeIds set for validation
+    const nodeIds = new Set(exportNodes.map(n => String(n.id)));
+    
+    // Clean up orphaned edges before exporting
+    const exportEdges = (rfEdges || [])
+      .filter((e) => {
+        const source = String(e.source || e.from || '');
+        const target = String(e.target || e.to || '');
+        const isValid = source && target && nodeIds.has(source) && nodeIds.has(target);
+        if (!isValid) {
+          console.log(`[Cleanup] Filtering orphaned edge from export: ${e.id} (source: ${source}, target: ${target})`);
+        }
+        return isValid;
+      })
+      .map((e) => ({
+        id: String(e.id || ''),
+        from: String(e.source || e.from || ''),
+        to: String(e.target || e.to || ''),
+        label: e.label || '',
+      }));
 
     return {
       nodes: exportNodes,

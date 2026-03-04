@@ -116,6 +116,127 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Workflow trigger URLs
+app.get('/trigger/:workflowName', async (req, res) => {
+  console.log('Received request to trigger workflow:', req.params.workflowName);
+
+  try {
+    const { workflowName } = req.params;
+    const result = projectManager.findWorkflowByName(workflowName);
+    
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+
+    const { projectId, project } = result;
+
+    // Check if already running
+    if (project.status === 'running') {
+      return res.status(409).json({ success: false, error: 'Workflow already running' });
+    }
+
+    // Start workflow from beginning
+    projectManager.startProject(projectId, project.nodes, project.edges, project.apis, project.stepDelay);
+    
+    res.json({ success: true, projectId });
+  } catch (error) {
+    console.error('[/trigger/:workflowName] Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
+  console.log('trigger & workflow & label', req.params.workflowName, req.params.nodeLabel);
+  
+  try {
+    const { workflowName, nodeLabel } = req.params;
+    const result = projectManager.findWorkflowByName(workflowName);
+    
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+
+    const { projectId, project } = result;
+
+    // Find node by label
+    const targetNode = projectManager.findNodeByLabel(projectId, nodeLabel);
+    if (!targetNode) {
+      return res.status(404).json({ success: false, error: `Node with label "${nodeLabel}" not found` });
+    }
+
+    const isRunning = project.status === 'running';
+
+    if (isRunning) {
+      // Force jump to node
+      const jumpResult = await projectManager.forceJumpToNode(projectId, targetNode.id);
+      return res.json({ success: jumpResult.success, projectId, jumped: true, nodeId: targetNode.id });
+    } else {
+      // Set customStartNodeId and start workflow
+      project.customStartNodeId = targetNode.id;
+      projectManager.startProject(projectId, project.nodes, project.edges, project.apis, project.stepDelay);
+      return res.json({ success: true, projectId, jumped: false, nodeId: targetNode.id });
+    }
+  } catch (error) {
+    console.error('[/trigger/:workflowName/:nodeLabel] Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/stop/:workflowName', (req, res) => {
+  try {
+    const { workflowName } = req.params;
+    const result = projectManager.findWorkflowByName(workflowName);
+    
+    if (!result) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+
+    const { projectId } = result;
+    projectManager.stopProject(projectId);
+    
+    res.json({ success: true, projectId });
+  } catch (error) {
+    console.error('[/stop/:workflowName] Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update workflow waiting state (supports both workflow name and ID)
+app.get('/wait/:workflowID/:status', (req, res) => {
+  try {
+    const { workflowID, status } = req.params;
+    console.log(`/wait/ ${workflowID} to ${status}`);
+    
+    // Parse status (true/false or 1/0)
+    const waitingState = (status === 'true' || status === '1');
+    
+    // Try to find by workflow name first
+    let result = projectManager.findWorkflowByName(workflowID);
+    let projectId = result ? result.projectId : workflowID;
+    
+    // If not found by name, try by ID
+    const project = result ? result.project : projectManager.getProject(workflowID);
+    
+    if (!project) {
+      console.warn(`Workflow ${workflowID} not found for /wait endpoint`);
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+
+    // Update waiting_wait state
+    projectManager.setWaitingState(projectId, waitingState);
+    
+    res.json({ 
+      success: true, 
+      projectId: projectId, 
+      waiting_wait: waitingState,
+      message: waitingState ? 'Workflow paused' : 'Workflow resumed'
+    });
+  } catch (error) {
+    console.error('[/wait/:workflowID/:status] Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Load persisted runs_store.json (if present) before initializing runtime
 (async () => {
   try {
@@ -873,14 +994,66 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Client requests deletion of selected nodes/edges
+  socket.on('delete_selected_items', (data) => {
+    try {
+      const { projectId, selectedIds } = data || {};
+      if (!projectId || !Array.isArray(selectedIds) || !selectedIds.length) {
+        socket.emit('delete_selected_result', { success: false, error: 'Missing projectId or selectedIds' });
+        return;
+      }
+
+      console.log(`[Socket] Client ${socket.id} requested delete_selected_items for ${projectId}:`, selectedIds);
+      const result = projectManager.deleteSelectedItems(projectId, selectedIds);
+      
+      if (result) {
+        projectManager.broadcastToProject(projectId, 'nodes_edges_deleted', {
+          projectId,
+          removedNodeIds: result.removedNodeIds,
+          removedEdgeIds: result.removedEdgeIds,
+          orphanedEdgeCount: result.orphanedEdgeCount,
+          remainingNodes: result.remainingNodes,
+          remainingEdges: result.remainingEdges
+        });
+        
+        socket.emit('delete_selected_result', { success: true, projectId });
+      } else {
+        socket.emit('delete_selected_result', { success: false, error: 'Project not found' });
+      }
+    } catch (e) {
+      console.error('delete_selected_items handler error', e);
+      socket.emit('delete_selected_result', { success: false, error: String(e) });
+    }
+  });
+
   // Client updates a single node's properties
-  socket.on('update_node', (data) => {
+  socket.on('update_node', async (data) => {
     try {
       const { projectId, nodeId, updates } = data || {};
       if (!projectId || !nodeId) return;
       console.log(`[Socket] Client ${socket.id} requested update_node for ${projectId}/${nodeId}:`, updates);
       const updated = projectManager.updateNode(projectId, nodeId, updates);
       socket.emit('update_node_result', { success: !!updated, projectId, nodeId, updates });
+      
+      // Also save the updated workflow to Firebase immediately
+      if (updated && firestore) {
+        try {
+          const workflow = projectManager.getProjectWorkflow(projectId);
+          if (workflow) {
+            console.log(`[Socket] Auto-saving updated workflow ${projectId} to Firebase after node update`);
+            const rulesRef = collection(firestore, 'rules');
+            const docRef = doc(rulesRef, projectId);
+            await setDoc(docRef, {
+              workflowObject: JSON.stringify(workflow),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            console.log(`[Socket] ✓ Auto-saved workflow ${projectId} to Firebase`);
+          }
+        } catch (saveErr) {
+          console.warn(`[Socket] Failed to auto-save workflow ${projectId} to Firebase:`, saveErr);
+          // Don't fail the whole operation if Firebase save fails
+        }
+      }
     } catch (e) {
       console.error('update_node handler error', e);
       socket.emit('update_node_result', { success: false, error: String(e) });

@@ -867,6 +867,23 @@ const VariableManager = ({ onBack }) => {
     return () => document.removeEventListener('workflowNodeUpdated', handler);
   }, [projectIdForRun, setRfNodes, setSelectedNodeDetails]);
 
+  // Listen for full workflow updates from server
+  useEffect(() => {
+    const handler = (ev) => {
+      try {
+        const pid = ev?.detail?.projectId;
+        const nodes = Array.isArray(ev?.detail?.nodes) ? ev.detail.nodes : [];
+        const edges = Array.isArray(ev?.detail?.edges) ? ev.detail.edges : [];
+        if (!pid || String(pid) !== String(projectIdForRun)) return;
+        setRfNodes(nodes);
+        setRfEdges(edges);
+      } catch (e) { console.error('workflowNodesUpdated handler error', e); }
+    };
+
+    document.addEventListener('workflowNodesUpdated', handler);
+    return () => document.removeEventListener('workflowNodesUpdated', handler);
+  }, [projectIdForRun, setRfNodes, setRfEdges]);
+
   const {
     taskFunctionText,
     setTaskFunctionText,
@@ -1266,10 +1283,24 @@ const VariableManager = ({ onBack }) => {
           const nodesFiltered = (rfNodes || []).filter((n) => !isInjectedEntryNode(n));
           console.log("HH nodesFiltered", nodesFiltered);
           const excludedIds = new Set((rfNodes || []).filter((n) => isInjectedEntryNode(n)).map((n) => String(n.id)));
+          
+          // First pass: filter out edges connected to entry nodes
           const edgesFiltered = (rfEdges || []).filter((e) => {
             const s = String(e.source || e.from || '');
             const t = String(e.target || e.to || '');
             return !excludedIds.has(s) && !excludedIds.has(t);
+          });
+          
+          // Second pass: validate edges have valid source/target nodes
+          const nodeIds = new Set(nodesFiltered.map(n => String(n.id)));
+          const edgesValid = edgesFiltered.filter((e) => {
+            const s = String(e.source || e.from || '');
+            const t = String(e.target || e.to || '');
+            const isValid = s && t && nodeIds.has(s) && nodeIds.has(t);
+            if (!isValid) {
+              console.log(`[Cleanup] Removing orphaned edge in saveSynthFunctionToRule: ${e.id} (source: ${s}, target: ${t})`);
+            }
+            return isValid;
           });
 
           return {
@@ -1280,9 +1311,13 @@ const VariableManager = ({ onBack }) => {
               description: n.data?.description || '',
               position: n.position || { x: 0, y: 0 },
               metadata: n.metadata || n.data?.metadata || {},
-              actions: Array.isArray(n.data?.actions) ? n.data.actions : []
+              actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
+              data: {
+                nodeLabel: n.data?.nodeLabel || '',
+                fnString: n.data?.fnString || ''
+              }
             })),
-            edges: edgesFiltered.map((e, i) => ({
+            edges: edgesValid.map((e, i) => ({
               id: String(e.id || `edge_${i}`),
               source: String(e.source || e.from || ''),
               target: String(e.target || e.to || ''),
@@ -1612,25 +1647,72 @@ const VariableManager = ({ onBack }) => {
     }
   }, [activeTab, selectedRuleIndex]);
 
+  // Clean up orphaned edges (edges where source or target node doesn't exist)
+  const cleanupOrphanedEdges = useCallback((nodes, edges) => {
+    const nodeIds = new Set((nodes || []).map(n => String(n.id)));
+    const cleaned = (edges || []).filter((e) => {
+      const source = String(e.source || e.from || '');
+      const target = String(e.target || e.to || '');
+      const isValid = source && target && nodeIds.has(source) && nodeIds.has(target);
+      if (!isValid) {
+        console.log(`[Cleanup] Removing orphaned edge: ${e.id} (source: ${source}, target: ${target})`);
+      }
+      return isValid;
+    });
+    return cleaned;
+  }, []);
+
   const deleteSelected = useCallback(() => {
     if (!selectedIds || !selectedIds.length) return;
-    const sel = (selectedIds || []).map((s) => String(s));
     
-    // Calculate new nodes/edges
-    const newNodes = (rfNodes || []).filter((n) => !sel.includes(String(n.id)));
-    const newEdges = (rfEdges || []).filter((e) => !sel.includes(String(e.id)) && !sel.includes(String(e.source)) && !sel.includes(String(e.target)));
+    console.log('[Delete] Sending delete_selected_items to server:', selectedIds);
     
-    // Update state
-    setRfNodes(newNodes);
-    setRfEdges(newEdges);
-    setSelectedIds([]);
-    
-    // Push workflow update to server
-    if (typeof pushWorkflowUpdate === 'function') {
-      pushWorkflowUpdate(newNodes, newEdges);
+    // Send delete request to server - server will handle deletion and broadcast to all watchers
+    if (socketRef && socketRef.current && socketRef.current.emit) {
+      socketRef.current.emit('delete_selected_items', { projectId: projectIdForRun, selectedIds });
+    } else {
+      console.warn('[Delete] Socket not available, using fallback local delete');
+      const sel = (selectedIds || []).map((s) => String(s));
+      const newNodes = (rfNodes || []).filter((n) => !sel.includes(String(n.id)));
+      const newEdges = (rfEdges || []).filter((e) => !sel.includes(String(e.id)) && !sel.includes(String(e.source)) && !sel.includes(String(e.target)));
+      const cleanedEdges = cleanupOrphanedEdges(newNodes, newEdges);
+      setRfNodes(newNodes);
+      setRfEdges(cleanedEdges);
+      setSelectedIds([]);
+      if (typeof pushWorkflowUpdate === 'function') {
+        pushWorkflowUpdate(newNodes, cleanedEdges);
+      }
     }
-  }, [selectedIds, rfNodes, rfEdges, setRfNodes, setRfEdges, setSelectedIds, pushWorkflowUpdate]);
 
+  }, [selectedIds, socketRef, projectIdForRun, rfNodes, setRfNodes, setRfEdges, setSelectedIds, cleanupOrphanedEdges, pushWorkflowUpdate]);
+
+  // Listen for nodes_edges_deleted events from server
+  useEffect(() => {
+    const handleNodesEdgesDeleted = (e) => {
+      try {
+        const { removedNodeIds, removedEdgeIds, orphanedEdgeCount, remainingNodes, remainingEdges } = e.detail || {};
+        console.log('[VariableManager] Received workflowNodesEdgesDeleted event:', {
+          removedNodeIds,
+          removedEdgeIds,
+          orphanedEdgeCount,
+          nodesCount: remainingNodes?.length,
+          edgesCount: remainingEdges?.length
+        });
+
+        // Update state with server-provided nodes and edges
+        setRfNodes(remainingNodes || []);
+        setRfEdges(remainingEdges || []);
+        
+        // Clear selection
+        setSelectedIds([]);
+      } catch (err) {
+        console.error('[VariableManager] Error handling workflowNodesEdgesDeleted:', err);
+      }
+    };
+
+    document.addEventListener('workflowNodesEdgesDeleted', handleNodesEdgesDeleted);
+    return () => document.removeEventListener('workflowNodesEdgesDeleted', handleNodesEdgesDeleted);
+  }, [setRfNodes, setRfEdges, setSelectedIds]);
   // Node edit modal removed — edits are handled via Node Details now
 
   // Rule sources and prompts state (editable)
@@ -2533,10 +2615,18 @@ const VariableManager = ({ onBack }) => {
       const updatedNodes = (rfNodes || []).map((n) => {
         if (String(n.id) !== String(nodeId)) return n;
         const data = { ...(n.data || {}) };
-        if (updates.labelText !== undefined) data.labelText = updates.labelText;
-        if (updates.description !== undefined) data.description = updates.description;
-        if (updates.label !== undefined) data.label = updates.label;
-        if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
+        // Merge generic updates.data (preferred) so fnString and runtime fields are applied immediately
+        if (updates && typeof updates === 'object' && updates.data && typeof updates.data === 'object') {
+          for (const [k, v] of Object.entries(updates.data)) {
+            if (v === undefined) continue;
+            data[k] = v;
+          }
+        } else {
+          if (updates.labelText !== undefined) data.labelText = updates.labelText;
+          if (updates.description !== undefined) data.description = updates.description;
+          if (updates.label !== undefined) data.label = updates.label;
+          if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
+        }
         return { ...n, data };
       });
       setRfNodes(updatedNodes);
@@ -3467,6 +3557,7 @@ const edges = [
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
             allWorkflows={allWorkflows}
+            updateNodeDetails={updateNodeDetails}
             addNewWorkflow={addNewWorkflow}
             deleteWorkflow={async () => {
               try {

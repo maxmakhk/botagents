@@ -473,6 +473,8 @@ const WorkflowGraph = ({
   storeVars,
   setStoreVars,
   selectedIds = []
+  ,
+  updateNodeDetails
 }) => {
   const hasNodes = rfNodes && rfNodes.length > 0;
 
@@ -490,11 +492,27 @@ const WorkflowGraph = ({
       setRfNodes((prevNodes) => {
         return prevNodes.map(n => {
           if (String(n.id) !== String(nodeId)) return n;
-          return { ...n, ...updates };
+          // Merge updates into node.data properly (preserve data structure)
+          if (updates && updates.data && typeof updates.data === 'object') {
+            const data = { ...(n.data || {}), ...updates.data };
+            return { ...n, data };
+          }
+          return { ...n, ...(updates || {}) };
         });
       });
     }
-  }, [setRfNodes]);
+
+    // If parent provided an updateNodeDetails handler (server-side update), call it.
+    // Pass updates object directly (preserves data wrapper format)
+    try {
+      if (typeof updateNodeDetails === 'function') {
+        updateNodeDetails(nodeId, updates || {});
+      }
+    } catch (e) {
+      // don't block UI on errors
+      console.warn('updateNodeData -> updateNodeDetails call failed', e);
+    }
+  }, [setRfNodes, updateNodeDetails]);
 
   // Join edge: insert selected node into an edge, splitting it into two edges
   const handleJoinEdge = useCallback((edge) => {

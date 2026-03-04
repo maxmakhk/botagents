@@ -67,6 +67,8 @@ const VariablePromptPanel = ({
   pendingActions,
   cancelPreview,
   allWorkflows = []
+  ,
+  updateNodeDetails
 }) => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   return (
@@ -269,6 +271,7 @@ const VariablePromptPanel = ({
           runActive={runActive}
           storeVars={storeVars}
           setStoreVars={setStoreVars}
+          updateNodeDetails={updateNodeDetails}
       />
 
       <form onSubmit={handleAiSubmit} style={{display:'flex', flexDirection:'column', gap:8}}>

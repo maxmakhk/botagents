@@ -258,9 +258,10 @@ class ProjectManager {
   }
 
   /**
-   * Schedule auto-save to runs_store.json (debounced 5 seconds)
+   * Schedule auto-save to runs_store.json (debounced, default 5 seconds)
+   * For critical updates like node labels, use shorter delay (500ms)
    */
-  scheduleSave() {
+  scheduleSave(delayMs = 5000) {
     if (this.saveTimer) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(async () => {
       try {
@@ -269,7 +270,7 @@ class ProjectManager {
       } catch (e) {
         console.error('[ProjectManager] ✗ Auto-save failed:', e);
       }
-    }, 5000);
+    }, delayMs);
   }
 
   /**
@@ -285,8 +286,23 @@ class ProjectManager {
 
     if (!project) return;
 
-    project.nodes = Array.isArray(nodes) ? nodes : (project.nodes || []);
-    project.edges = Array.isArray(edges) ? edges : (project.edges || []);
+    const validNodes = Array.isArray(nodes) ? nodes : (project.nodes || []);
+    const rawEdges = Array.isArray(edges) ? edges : (project.edges || []);
+    
+    // Clean up orphaned edges where source or target node doesn't exist
+    const nodeIds = new Set(validNodes.map(n => String(n.id || n.nodeId || '')).filter(Boolean));
+    const cleanedEdges = rawEdges.filter((e) => {
+      const source = String(e.source || e.from || '');
+      const target = String(e.target || e.to || '');
+      const isValid = source && target && nodeIds.has(source) && nodeIds.has(target);
+      if (!isValid && (source || target)) {
+        console.log(`[ProjectManager] Removing orphaned edge: ${e.id} (source: ${source}, target: ${target})`);
+      }
+      return isValid;
+    });
+
+    project.nodes = validNodes;
+    project.edges = cleanedEdges;
 
     this.sendNodes(projectId);
     
@@ -409,6 +425,83 @@ class ProjectManager {
   }
 
   /**
+   * Delete selected nodes and edges, clean up orphaned edges, and notify watchers
+   */
+  deleteSelectedItems(projectId, selectedIds) {
+    if (!projectId || !Array.isArray(selectedIds) || !selectedIds.length) return null;
+    const project = this.projects.get(projectId);
+    if (!project) return null;
+
+    const getNodeId = (n) => String(n?.id ?? n?.nodeId ?? '');
+    const getEdgeId = (e) => String(e?.id ?? '');
+    const getEndpointId = (value) => {
+      if (value && typeof value === 'object') return String(value.id ?? value.nodeId ?? '');
+      return String(value ?? '');
+    };
+
+    // Separate nodeIds by finding which selectedIds correspond to nodes
+    const nodeIds = new Set();
+    const edgeIds = new Set();
+    
+    for (const id of selectedIds) {
+      const idStr = String(id);
+      const isNode = (project.nodes || []).some(n => getNodeId(n) === idStr);
+      if (isNode) {
+        nodeIds.add(idStr);
+      } else {
+        edgeIds.add(idStr);
+      }
+    }
+
+    // Step 1: Remove selected nodes and edges
+    let newNodes = (project.nodes || []).filter(n => !nodeIds.has(getNodeId(n)));
+    let newEdges = (project.edges || []).filter(e => !edgeIds.has(getEdgeId(e)));
+
+    // Step 2: Remove edges connected to deleted nodes
+    const edgesBeforeNodeCascade = newEdges.length;
+    newEdges = newEdges.filter(e => {
+      const source = getEndpointId(e.source ?? e.from);
+      const target = getEndpointId(e.target ?? e.to);
+      const isConnected = nodeIds.has(source) || nodeIds.has(target);
+      if (isConnected) {
+        console.log(`[ProjectManager] Removing edge ${e.id} connected to deleted node`);
+      }
+      return !isConnected;
+    });
+
+    // Step 3: Clean up orphaned edges (edges with invalid source/target in this workflow)
+    const existingNodeIds = new Set(newNodes.map((n) => getNodeId(n)).filter(Boolean));
+    const originalEdgeCount = newEdges.length;
+    newEdges = newEdges.filter(e => {
+      const source = getEndpointId(e.source ?? e.from);
+      const target = getEndpointId(e.target ?? e.to);
+      const isValid = source && target && existingNodeIds.has(source) && existingNodeIds.has(target);
+      if (!isValid) {
+        console.log(`[ProjectManager] Removing orphaned edge ${e.id} (source: ${source}, target: ${target})`);
+      }
+      return isValid;
+    });
+
+    const cascadeEdgeCount = edgesBeforeNodeCascade - originalEdgeCount;
+    const orphanedCount = originalEdgeCount - newEdges.length;
+    project.nodes = newNodes;
+    project.edges = newEdges;
+
+    console.log(`[ProjectManager] Deleted ${nodeIds.size} nodes, ${edgeIds.size} selected edges, ${cascadeEdgeCount} connected edges, ${orphanedCount} orphaned edges`);
+
+    this.sendNodes(projectId, 0);
+    this.scheduleSave();
+    
+    return {
+      removedNodeIds: Array.from(nodeIds),
+      removedEdgeIds: Array.from(edgeIds),
+      orphanedEdgeCount: orphanedCount,
+      remainingNodes: newNodes,
+      remainingEdges: newEdges
+    };
+  }
+
+  /**
    * Add a single edge to a project's workflow and notify watchers with a lightweight event
    */
   addProjectEdge(projectId, edge) {
@@ -464,16 +557,31 @@ class ProjectManager {
     const node = project.nodes[nodeIndex];
     const data = { ...(node.data || {}) };
 
-    // Apply updates to node.data
+    console.log('[Update Label]', projectId, nodeId, updates );
+
+    // Apply updates to node.data (single source of truth)
+    // Handle both top-level updates (e.g., updates.fnString) and updates.data (e.g., updates.data.fnString)
+    
+    // Merge from top-level updates (backward compatibility)
     if (updates.labelText !== undefined) data.labelText = updates.labelText;
     if (updates.label !== undefined) data.label = updates.label;
     if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
     if (updates.description !== undefined) data.description = updates.description;
+    if (updates.fnString !== undefined) data.fnString = updates.fnString; // fnString is canonical in data only
+    
+    // Merge from updates.data if provided (preferred format, takes precedence)
+    if (updates.data && typeof updates.data === 'object') {
+      for (const [k, v] of Object.entries(updates.data)) {
+        // avoid overwriting with undefined
+        if (v === undefined) continue;
+        data[k] = v;
+      }
+    }
 
     project.nodes[nodeIndex] = { ...node, data };
 
-    // Persist changes
-    this.scheduleSave();
+    // Persist changes immediately (500ms delay for label/description updates)
+    this.scheduleSave(500);
 
     // Notify watchers with a lightweight node-update event
     this.broadcastToProject(projectId, 'node_updated', {
@@ -667,12 +775,19 @@ class ProjectManager {
     const project = this.projects.get(projectId);
     if (!project || project.status !== 'running') return;
 
-    // Mark as executing
-    this.runningProjects.set(projectId, { executing: true, abort: false });
+    // Mark as executing and store waitResolvers container
+    const waitResolvers = {};
+    this.runningProjects.set(projectId, { executing: true, abort: false, waitResolvers });
     //console.log(`[ProjectManager] executeProject: created runInfo for ${projectId}`, this.runningProjects.get(projectId));
     this.log(`Starting execution: ${projectId}`);
 
     try {
+      // Read customStartNodeId if set (for forced jump or initial node override)
+      const startNodeId = project.customStartNodeId || null;
+      if (startNodeId) {
+        console.log(`[ProjectManager] Starting workflow from custom node: ${startNodeId}`);
+      }
+
       // Execute workflow with broadcasting capability
       await executeWorkflow({
         projectId,
@@ -682,6 +797,8 @@ class ProjectManager {
         apis: () => this.projects.get(projectId)?.apis || [],
         stepDelay: project.stepDelay || 1000,
         initialStoreVars: project.storeVars || {},
+        startNodeId: startNodeId,
+        waitResolvers: waitResolvers,
         broadcastCallback: (event, data) => {
           this.broadcastToProject(projectId, event, { projectId, ...data });
         },
@@ -708,6 +825,8 @@ class ProjectManager {
       if (currentProject) {
         currentProject.activeNodeId = null;
         currentProject.activeEdgeId = null;
+        // Clear customStartNodeId after execution completes
+        delete currentProject.customStartNodeId;
         
         // Use setProjectStatus to broadcast to all clients
         this.setProjectStatus(projectId, 'stopped');
@@ -760,6 +879,160 @@ class ProjectManager {
     // Use setProjectStatus to broadcast to all clients
     this.setProjectStatus(projectId, 'stopped');
     //console.log(`[ProjectManager] Project ${projectId} stopped and broadcasted to all clients`);
+  }
+
+  /**
+   * Find workflow by name (case-insensitive)
+   * Returns { projectId, project } or null
+   */
+  findWorkflowByName(name) {
+    if (!name) return null;
+    const searchName = String(name).toLowerCase().trim();
+    
+    for (const [projectId, project] of this.projects.entries()) {
+      const projectName = String(project.name || '').toLowerCase().trim();
+      if (projectName === searchName) {
+        return { projectId, project };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find node by label within a project
+   * Returns node object or null
+   */
+  findNodeByLabel(projectId, label) {
+    const project = this.projects.get(projectId);
+    if (!project || !Array.isArray(project.nodes)) return null;
+    
+    const searchLabel = String(label).toLowerCase().trim();
+    return project.nodes.find(n => {
+      const nodeLabel = String(n.data?.nodeLabel || '').toLowerCase().trim();
+      return nodeLabel === searchLabel;
+    }) || null;
+  }
+
+  /**
+   * Set waiting_wait state for a workflow
+   * @param {string} projectId - The workflow/project ID
+   * @param {boolean} waitingState - true to pause, false to resume
+   */
+  setWaitingState(projectId, waitingState) {
+    console.log(`[ProjectManager] setWaitingState called for ${projectId} with state: ${waitingState}`);
+    const project = this.projects.get(projectId);
+    if (!project) {
+
+      console.error(`[ProjectManager] Project not found ${projectId} not found`);
+      return { 
+            success: false, error: 'Project not found' 
+          };
+
+    }else{
+      console.log(`[ProjectManager] Current project storeVars:`, project.storeVars);
+    }
+
+    
+    // Update storeVars with namespaced key
+    const waitKey = `${projectId}__waiting_wait`;
+    console.log(`[ProjectManager] setWaitingState: ${projectId}(${project.storeVars[waitKey]}) -> ${waitingState}`);
+    if (!project.storeVars) project.storeVars = {};
+    project.storeVars[waitKey] = waitingState;
+    
+    // Also set non-namespaced key for backward compatibility
+    project.storeVars['waiting_wait'] = waitingState;
+
+    // Broadcast state update to watchers
+    this.broadcastToProject(projectId, 'store_vars_update', {
+      projectId,
+      storeVars: project.storeVars
+    });
+
+    // If resuming (waitingState = false), trigger waitResolvers to resume execution
+    if (!waitingState) {
+      const runInfo = this.runningProjects.get(projectId);
+      if (runInfo && runInfo.waitResolvers) {
+        console.log(`[ProjectManager] Resuming workflow ${projectId}, waitResolvers keys:`, Object.keys(runInfo.waitResolvers));
+        // Resolve all waiting promises
+        for (const [nodeId, resolver] of Object.entries(runInfo.waitResolvers)) {
+          if (typeof resolver === 'function') {
+            try {
+              resolver();
+              console.log(`[ProjectManager] Resolved wait for node ${nodeId}`);
+            } catch (e) {
+              console.error(`[ProjectManager] Error resolving wait for node ${nodeId}:`, e);
+            }
+          }
+        }
+        // Clear resolvers after resuming
+        runInfo.waitResolvers = {};
+      } else {
+        console.log(`[ProjectManager] No active waitResolvers found for ${projectId}`);
+      }
+    }
+
+    return { success: true, waiting_wait: waitingState };
+  }
+
+  /**
+   * Force jump to a specific node (abort current execution, clear wait flags, restart from nodeId)
+   * Used for /trigger/:workflowName/:nodeLabel when workflow is already running
+   */
+  async forceJumpToNode(projectId, nodeId) {
+    const project = this.projects.get(projectId);
+    if (!project) return { success: false, error: 'Project not found' };
+
+    console.log(`[ProjectManager] Force jump: ${projectId} -> node ${nodeId}`);
+    // If the project is currently running, enqueue the desired jump
+    const runInfo = this.runningProjects.get(projectId);
+    if (runInfo && runInfo.executing) {
+      // Place queued node id into the shared waitResolvers object so the runner can see it
+      try {
+        if (!runInfo.waitResolvers) runInfo.waitResolvers = {};
+        runInfo.waitResolvers.__queued_next_node = String(nodeId);
+      } catch (e) { /* ignore */ }
+
+      // Also set it into project.storeVars (namespaced + non-namespaced) so clients can observe
+      const queuedKey = `${projectId}__queued_next_node`;
+      if (!project.storeVars) project.storeVars = {};
+      project.storeVars[queuedKey] = String(nodeId);
+      project.storeVars['queued_next_node'] = String(nodeId);
+
+      // Broadcast update to watchers
+      this.broadcastToProject(projectId, 'store_vars_update', { projectId, storeVars: project.storeVars });
+
+      // If runner is currently waiting, nudge it by resolving any wait resolvers so it can check the queue
+      if (runInfo.waitResolvers) {
+        for (const [nid, resolver] of Object.entries(runInfo.waitResolvers)) {
+          if (nid === '__queued_next_node') continue;
+          if (typeof resolver === 'function') {
+            try { resolver(); } catch (e) { /* ignore */ }
+          }
+        }
+      }
+
+      console.log(`[ProjectManager] Enqueued jump for ${projectId} -> ${nodeId}`);
+      return { success: true, queued: true, nodeId };
+    }
+
+    // If not running, fall back to previous behavior: set customStartNodeId and restart
+    // 1. Clear waiting_wait flag (namespaced key)
+    const waitKey = `${projectId}__waiting_wait`;
+    if (project.storeVars && project.storeVars[waitKey]) {
+      project.storeVars[waitKey] = false;
+      console.log(`[ProjectManager] Cleared ${waitKey}`);
+    }
+
+    // 2. Small delay to let any running tear-down proceed
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // 3. Set customStartNodeId and restart
+    project.customStartNodeId = nodeId;
+    this.setProjectStatus(projectId, 'stopped');
+    await new Promise(resolve => setTimeout(resolve, 50));
+    this.startProject(projectId, project.nodes, project.edges, project.apis, project.stepDelay);
+
+    return { success: true, queued: false, nodeId };
   }
 }
 

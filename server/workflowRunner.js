@@ -43,7 +43,8 @@ async function runLoop({
   checkAbort,
   makeCtx,
   projectId = null,
-  waitResolvers
+  waitResolvers,
+  startNodeId = null
 }) {
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
@@ -61,7 +62,21 @@ async function runLoop({
     return startNodes.length ? startNodes[0] : nodesArr[0];
   };
 
-  const startNode = findStartNode();
+  // Use provided startNodeId or fallback to findStartNode()
+  let startNode = null;
+  if (startNodeId) {
+    const nodesArr = getNodes();
+    startNode = nodesArr.find(n => String(n.id) === String(startNodeId));
+    if (!startNode) {
+      console.warn(`[executeWorkflow] startNodeId ${startNodeId} not found, falling back to findStartNode`);
+      startNode = findStartNode();
+    } else {
+      console.log(`[executeWorkflow] Starting from specified node: ${startNodeId}`);
+    }
+  } else {
+    startNode = findStartNode();
+  }
+
   if (!startNode) {
     broadcastLog('workflow_complete', {});
     return;
@@ -245,6 +260,9 @@ async function runLoop({
             const apis = ctx.apis;
             const fetch = ctx.fetch;
             const console = ctx.console;
+            // convenience aliases for waiting control (allow calling setWaiting(...) directly)
+            const setWaiting = async (flag) => { if (ctx && typeof ctx.setWaiting === 'function') return await ctx.setWaiting(flag); };
+            const waiting_wait = async (flag) => { if (ctx && typeof ctx.waiting_wait === 'function') return await ctx.waiting_wait(flag); };
 
             ${source}
 
@@ -312,6 +330,29 @@ async function runLoop({
 
     await sleep(stepDelay);
 
+    // Check for queued jump (shared via runInfo.waitResolvers or storeVars)
+    try {
+      const queuedFromResolvers = (waitResolvers && waitResolvers.__queued_next_node) ? String(waitResolvers.__queued_next_node) : null;
+      const queuedFromStore = getFromStoreNorm('queued_next_node');
+      const queuedNodeId = queuedFromResolvers || (queuedFromStore == null ? null : String(queuedFromStore));
+      if (queuedNodeId) {
+        // clear queued markers
+        try { if (waitResolvers && waitResolvers.__queued_next_node) delete waitResolvers.__queued_next_node; } catch (e) {}
+        try {
+          const k = 'queued_next_node';
+          const namespaced = projectId ? `${projectId}__${k}` : null;
+          if (namespaced && Object.prototype.hasOwnProperty.call(storeVars, namespaced)) delete storeVars[namespaced];
+          if (Object.prototype.hasOwnProperty.call(storeVars, k)) delete storeVars[k];
+        } catch (e) { /* ignore */ }
+        broadcastLog('store_vars_update', { storeVars });
+        broadcastState({ storeVars });
+
+        // Directly run the queued node next and skip normal outgoing-edge selection
+        await runNodeById(queuedNodeId);
+        return;
+      }
+    } catch (e) { /* ignore queued check errors */ }
+
     const outgoing = edgesArr.filter((e) => String(e.source || e.from || '') === String(currentNode.id));
     if (!outgoing || outgoing.length === 0) return;
 
@@ -360,7 +401,7 @@ async function runLoop({
   await runNodeById(startNode.id);
 }
 
-export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {} }) {
+export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null }) {
   // socket-run wrapper that uses runLoop
   const getNodes = (typeof nodes === 'function') ? nodes : () => (Array.isArray(nodes) ? nodes : []);
   const getEdges = (typeof edges === 'function') ? edges : () => (Array.isArray(edges) ? edges : []);
@@ -402,6 +443,31 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
         return undefined;
       } catch (e) { return undefined; }
     },
+    // helper to set waiting state from inside node code
+    setWaiting: async (flag) => {
+      try {
+        const waiting = !!flag;
+        // update the project store and notify watchers
+        projectManager.setWaitingState(projectId, waiting);
+
+        // If asking to wait, register a resolver that will be resolved by setWaitingState(false)
+        if (waiting) {
+          const runInfo = projectManager.runningProjects.get(projectId);
+          if (!runInfo) return;
+          runInfo.waitResolvers = runInfo.waitResolvers || {};
+          const rid = `ctx_wait_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          await new Promise((resolve) => {
+            runInfo.waitResolvers[rid] = resolve;
+          });
+        }
+      } catch (e) {
+        console.warn('[Runner] setWaiting error', e);
+      }
+    },
+    // alias to match older naming used in some node code
+    waiting_wait: async (flag) => {
+      return await (typeof this.setWaiting === 'function' ? this.setWaiting(flag) : (async () => { projectManager.setWaitingState(projectId, !!flag); })());
+    },
     config: currentNode.data?.config || {},
     apis
   });
@@ -441,7 +507,8 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     checkAbort: () => abort,
     makeCtx,
     projectId,
-    waitResolvers
+    waitResolvers,
+    startNodeId
   });
 
   broadcastLog('workflow_complete', {});
@@ -455,6 +522,8 @@ export async function executeWorkflow({
   apis = [],
   stepDelay = 1000,
   initialStoreVars = {},
+  startNodeId = null,
+  waitResolvers = {},
   broadcastCallback = () => {},
   updateStateCallback = () => {},
   checkAbort = () => false
@@ -532,6 +601,8 @@ export async function executeWorkflow({
     broadcastLog, broadcastState,
     checkAbort,
     makeCtx,
-    projectId
+    projectId,
+    waitResolvers,
+    startNodeId
   });
 }
