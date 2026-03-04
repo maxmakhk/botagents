@@ -873,6 +873,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Client updates a single node's properties
+  socket.on('update_node', (data) => {
+    try {
+      const { projectId, nodeId, updates } = data || {};
+      if (!projectId || !nodeId) return;
+      console.log(`[Socket] Client ${socket.id} requested update_node for ${projectId}/${nodeId}:`, updates);
+      const updated = projectManager.updateNode(projectId, nodeId, updates);
+      socket.emit('update_node_result', { success: !!updated, projectId, nodeId, updates });
+    } catch (e) {
+      console.error('update_node handler error', e);
+      socket.emit('update_node_result', { success: false, error: String(e) });
+    }
+  });
+
   // Client updates workflow style only (e.g. autolayout positions)
   socket.on('update_workflow_style', (data) => {
     const { projectId, workflowId, nodes, edges } = data || {};

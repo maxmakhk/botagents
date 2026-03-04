@@ -53,11 +53,22 @@ const NodeDetailsModal = ({
       >
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
           <div style={{flex:1, marginRight:12}}>
+            <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Name</div>
             <input
               type="text"
               value={selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), labelText: e.target.value, label: e.target.value } }))}
               onBlur={() => updateNodeDetails && updateNodeDetails(selectedNodeDetails.id, { labelText: selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || '', label: selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || '' })}
+              placeholder="Node Name"
+              style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
+            />
+            <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4, marginTop:8}}>Node Label (optional)</div>
+            <input
+              type="text"
+              value={selectedNodeDetails.data?.nodeLabel || ''}
+              onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), nodeLabel: e.target.value } }))}
+              onBlur={() => updateNodeDetails && updateNodeDetails(selectedNodeDetails.id, { nodeLabel: selectedNodeDetails.data?.nodeLabel || '' })}
+              placeholder="Short label (shown in workflow)"
               style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
             />
             <textarea

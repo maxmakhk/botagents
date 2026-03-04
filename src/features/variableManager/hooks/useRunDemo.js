@@ -216,6 +216,22 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       } catch (e) { console.error('[CLIENT] sendEdge handler error', e); }
     });
 
+    // Receive single-node updates from server (e.g., label changes)
+    socketRef.current.on('node_updated', (data) => {
+      try {
+        console.log('[CLIENT] Received node_updated:', data);
+        const targetProjectId = data?.projectId;
+        const nodeId = data?.nodeId;
+        const updates = data?.updates || {};
+        const updatedData = data?.updatedData || {};
+        if (!targetProjectId || targetProjectId !== currentProjectId) return;
+        if (!nodeId) return;
+        document.dispatchEvent(new CustomEvent('workflowNodeUpdated', {
+          detail: { projectId: targetProjectId, nodeId, updates, updatedData }
+        }));
+      } catch (e) { console.error('[CLIENT] node_updated handler error', e); }
+    });
+
     // Log workflow data responses (new and legacy)
     socketRef.current.on('workflow_data_response', (data) => {
       try {

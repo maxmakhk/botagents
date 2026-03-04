@@ -338,7 +338,9 @@ const WorkflowNode = ({ id, data }) => {
         <div style={{textAlign: 'center', flex: 1, padding: 8}}>
           {(() => {
             const rawLabel = String(data?.labelText || data?.label || 'Step').split('\n')[0] || '';
-            const displayLabel = rawLabel.replace(/^API:\s*/i, '').trim();
+            const displayName = rawLabel.replace(/^API:\s*/i, '').trim();
+            const nodeLabel = data?.nodeLabel ? String(data.nodeLabel).trim() : '';
+            const displayLabel = nodeLabel ? `${displayName}(${nodeLabel})` : displayName;
             return <div style={{fontWeight:700, fontSize:'1rem'}}>{displayLabel}</div>;
           })()}
         {((String(data?.labelText || data?.label || '').split('\n').slice(1).join(' ') || data?.metadata?.ruleId) && (

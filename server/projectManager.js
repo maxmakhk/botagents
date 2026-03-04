@@ -450,6 +450,43 @@ class ProjectManager {
   }
 
   /**
+   * Update a single node's properties (e.g. label, nodeLabel, description) and notify watchers
+   */
+  updateNode(projectId, nodeId, updates = {}) {
+    if (!projectId || !nodeId) return null;
+    const project = this.projects.get(projectId);
+    if (!project) return null;
+
+    project.nodes = Array.isArray(project.nodes) ? project.nodes : [];
+    const nodeIndex = project.nodes.findIndex(n => String(n.id) === String(nodeId));
+    if (nodeIndex === -1) return null;
+
+    const node = project.nodes[nodeIndex];
+    const data = { ...(node.data || {}) };
+
+    // Apply updates to node.data
+    if (updates.labelText !== undefined) data.labelText = updates.labelText;
+    if (updates.label !== undefined) data.label = updates.label;
+    if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
+    if (updates.description !== undefined) data.description = updates.description;
+
+    project.nodes[nodeIndex] = { ...node, data };
+
+    // Persist changes
+    this.scheduleSave();
+
+    // Notify watchers with a lightweight node-update event
+    this.broadcastToProject(projectId, 'node_updated', {
+      projectId,
+      nodeId,
+      updates,
+      updatedData: data
+    });
+
+    return project.nodes[nodeIndex];
+  }
+
+  /**
    * Broadcast workflow nodes/edges to project watchers (debounced, default 500ms).
    */
   sendNodes(projectId, delayMs = 500) {

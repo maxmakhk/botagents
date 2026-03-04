@@ -839,6 +839,34 @@ const VariableManager = ({ onBack }) => {
     return () => document.removeEventListener('workflowEdgeUpdated', handler);
   }, [projectIdForRun, setRfEdges]);
 
+  // Listen for single node updates from server
+  useEffect(() => {
+    const handler = (ev) => {
+      try {
+        const nodeId = ev?.detail?.nodeId;
+        const updatedData = ev?.detail?.updatedData;
+        if (!nodeId) return;
+        // Only apply for current project
+        const pid = ev?.detail?.projectId || projectIdForRun;
+        if (!pid || pid !== projectIdForRun) return;
+        setRfNodes((prev = []) => {
+          return (prev || []).map(n => {
+            if (String(n.id) !== String(nodeId)) return n;
+            return { ...n, data: { ...(n.data || {}), ...updatedData } };
+          });
+        });
+        // Also update selectedNodeDetails if it's the same node
+        setSelectedNodeDetails((s) => {
+          if (!s || String(s.id) !== String(nodeId)) return s;
+          return { ...s, data: { ...(s.data || {}), ...updatedData } };
+        });
+      } catch (e) { console.error('workflowNodeUpdated handler error', e); }
+    };
+
+    document.addEventListener('workflowNodeUpdated', handler);
+    return () => document.removeEventListener('workflowNodeUpdated', handler);
+  }, [projectIdForRun, setRfNodes, setSelectedNodeDetails]);
+
   const {
     taskFunctionText,
     setTaskFunctionText,
@@ -2508,11 +2536,21 @@ const VariableManager = ({ onBack }) => {
         if (updates.labelText !== undefined) data.labelText = updates.labelText;
         if (updates.description !== undefined) data.description = updates.description;
         if (updates.label !== undefined) data.label = updates.label;
+        if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
         return { ...n, data };
       });
       setRfNodes(updatedNodes);
       if (selectedNodeDetails && String(selectedNodeDetails.id) === String(nodeId)) {
         setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), ...(updates || {}) } }));
+      }
+
+      // Send single node update to server (efficient)
+      if (socketRef && socketRef.current && projectIdForRun) {
+        socketRef.current.emit('update_node', {
+          projectId: projectIdForRun,
+          nodeId: nodeId,
+          updates: updates
+        });
       }
 
       // Persist workflow
