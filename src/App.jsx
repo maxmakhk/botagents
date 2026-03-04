@@ -4,6 +4,7 @@ import "./App.css";
 import VariableManager from "./features/VariableManager.jsx";
 import OutputView from "./components/OutputView.jsx";
 import NodeTemplates from "./components/NodeTemplates.jsx";
+import PlayerView from "./components/PlayerView.jsx";
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -26,6 +27,7 @@ const PAGES = {
   HOME: "HOME",
   VARIABLE_MANAGER: "VARIABLE_MANAGER",
   NODE_TEMPLATES: "NODE_TEMPLATES",
+  PLAYER_VIEW: "PLAYER_VIEW",
 };
 
 function App() {
@@ -38,6 +40,8 @@ function App() {
         return <VariableManager onBack={() => setActivePage(PAGES.HOME)} />;
       case PAGES.NODE_TEMPLATES:
         return <NodeTemplates onBack={() => setActivePage(PAGES.HOME)} />;
+      case PAGES.PLAYER_VIEW:
+        return <PlayerView onBack={() => setActivePage(PAGES.HOME)} />;
       case PAGES.HOME:
       default:
         return (
@@ -60,6 +64,10 @@ function App() {
 
               <button onClick={() => window.open("https://aichat.maxsolo.co.uk/", "_blank")}>
                 AI Chat
+              </button>
+
+              <button onClick={() => setActivePage(PAGES.PLAYER_VIEW)}>
+                Output View
               </button>
               
             </div>

@@ -37,6 +37,7 @@ const NodeDetailsModal = ({
       onClick={() => setSelectedNodeDetails(null)}
     >
       <div
+        id="popup-node-details"
         style={{
           background: '#0b1220',
           border: '2px solid #7dd3fc',
@@ -73,7 +74,8 @@ const NodeDetailsModal = ({
           </div>
         </div>
 
-        <div style={{background:'#021827', padding:14, borderRadius:10, border:'1px solid #11333d'}}>
+        <div 
+        style={{background:'#021827', padding:14, borderRadius:10, border:'1px solid #11333d'}}>
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
             <h4 style={{margin:0}}>Actions ({(selectedNodeDetails.data?.actions||[]).length})</h4>
             <div style={{display:'flex', gap:8}}>

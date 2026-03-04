@@ -5,7 +5,7 @@ import { useNodesState, useEdgesState, addEdge } from 'reactflow';
  * useWorkflowGraph hook
  * Manages React Flow workflow visualization state
  */
-export default function useWorkflowGraph() {
+export default function useWorkflowGraph({ onEdgeAdd } = {}) {
   // React Flow editable state
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState([]);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState([]);
@@ -27,9 +27,29 @@ export default function useWorkflowGraph() {
   // Handle new connections
   const onConnect = useCallback(
     (connection) => {
-      setRfEdges((edges) => addEdge(connection, edges));
+      try {
+        const newEdge = {
+          id: String(connection.id || `edge_${Date.now()}`),
+          source: String(connection.source || ''),
+          target: String(connection.target || ''),
+          label: connection.label || '',
+          sourceHandle: connection.sourceHandle !== undefined ? String(connection.sourceHandle) : undefined,
+          targetHandle: connection.targetHandle !== undefined ? String(connection.targetHandle) : undefined,
+          type: connection.type || 'next'
+        };
+        setRfEdges((prev = []) => [...(prev || []), newEdge]);
+        if (typeof onEdgeAdd === 'function') {
+          try { onEdgeAdd(newEdge); } catch (e) { /* ignore */ }
+        }
+        try {
+          document.dispatchEvent(new CustomEvent('workflowEdgeCreated', { detail: { edge: newEdge } }));
+        } catch (e) { /* ignore */ }
+      } catch (e) {
+        // fallback to reactflow addEdge
+        try { setRfEdges((edges) => addEdge(connection, edges)); } catch (err) { console.error('onConnect failed', err); }
+      }
     },
-    [setRfEdges]
+    [setRfEdges, onEdgeAdd]
   );
 
   // Handle selection changes
@@ -180,6 +200,10 @@ export default function useWorkflowGraph() {
             })
             .filter(Boolean)
         : [];
+
+      console.log('Loaded workflow nodes:', nodes);
+      console.log('Loaded workflow edges:', edges);
+
 
       setRfNodes(nodes);
       setRfEdges(edges);

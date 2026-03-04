@@ -18,6 +18,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const [storeVars, setStoreVars] = useState({});
   const [globalStoreVars, setGlobalStoreVars] = useState({});
   const [allProjectStatuses, setAllProjectStatuses] = useState({}); // projectId -> 'running' | 'stopped'
+  const [allWorkflows, setAllWorkflows] = useState([]); // full workflow list from server (id,name,nodeNumber,edgeNumber,runningStatus)
   const socketRef = useRef(null);
   const runIdRef = useRef(null);
   const [promptProcessing, setPromptProcessing] = useState(false);
@@ -28,6 +29,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const storeVarsRef = useRef(storeVars);
   const globalStoreVarsRef = useRef(globalStoreVars);
   const hasSyncedWorkflowRef = useRef(new Set());
+  const hasReceivedAllWorkflowsRef = useRef(false);
 
   useEffect(() => {
     storeVarsRef.current = storeVars;
@@ -51,47 +53,125 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         console.log(`[ProjectSync] Watching project on connect: ${currentProjectId}`);
         socketRef.current.emit('watch_project', { projectId: currentProjectId });
       }
+      // Server already emits the full workflow list on connect; no need to request it here
+    });
+
+    // Socket lifecycle debug logs
+    socketRef.current.on('disconnect', (reason) => {
+      try {
+        console.warn('[CLIENT SOCKET] disconnected:', reason, 'socketId=', socketRef.current?.id);
+      } catch (e) { console.warn('[CLIENT SOCKET] disconnect handler error', e); }
+    });
+
+    socketRef.current.on('connect_error', (err) => {
+      console.error('[CLIENT SOCKET] connect_error', err);
+    });
+
+    socketRef.current.on('reconnect_attempt', (attempt) => {
+      console.log('[CLIENT SOCKET] reconnect_attempt', attempt);
+    });
+
+    socketRef.current.on('reconnect', (attempt) => {
+      console.log('[CLIENT SOCKET] reconnect successful after attempts:', attempt);
+    });
+
+    socketRef.current.on('reconnect_failed', () => {
+      console.error('[CLIENT SOCKET] reconnect_failed');
     });
 
     // Receive ALL project statuses on connection
     socketRef.current.on('all_project_statuses', (statuses) => {
-      console.log('📋 [CLIENT] Received all project statuses:', statuses);
-      setAllProjectStatuses(statuses || {});
+      try {
+        console.log('📋 [CLIENT] Received all project statuses:', statuses);
+        setAllProjectStatuses(statuses || {});
+        // Update cached allWorkflows runningStatus flags based on statuses map
+        if (Array.isArray(allWorkflows) && statuses && Object.keys(statuses).length) {
+          setAllWorkflows((prev) => (prev || []).map((w) => {
+            if (!w || !w.id) return w;
+            const s = statuses[String(w.id)];
+            return { ...w, runningStatus: s === 'running' };
+          }));
+        }
+      } catch (e) { console.error('[CLIENT] all_project_statuses handler error', e); }
+    });
+
+    // New status payload format: [{ id, name, nodeNumber, edgeNumber, runningStatus }]
+    socketRef.current.on('sendAllWorkflowStatus', (statusList) => {
+      try {
+        console.log('[CLIENT] Received sendAllWorkflowStatus payload:', statusList);
+        if (!Array.isArray(statusList)) return;
+
+        // If we've already loaded the full list once, ignore subsequent
+        // non-runtime updates. Allow runtime updates (when any workflow is running).
+        const hasRunning = (statusList || []).some(i => !!(i && i.runningStatus));
+        if (hasReceivedAllWorkflowsRef.current && !hasRunning) {
+          console.log('[CLIENT] Ignoring redundant sendAllWorkflowStatus (no running workflows)');
+          return;
+        }
+
+        // keep full list for UI (project/workflow lists)
+        setAllWorkflows(statusList || []);
+        const mapped = statusList.reduce((acc, item) => {
+          if (!item || !item.id) return acc;
+          acc[item.id] = item.runningStatus ? 'running' : 'stopped';
+          return acc;
+        }, {});
+        setAllProjectStatuses((prev) => ({ ...(prev || {}), ...mapped }));
+        hasReceivedAllWorkflowsRef.current = true;
+      } catch (e) { console.error('[CLIENT] sendAllWorkflowStatus handler error', e); }
     });
 
     // Receive GLOBAL project status changes (sent to all clients)
     socketRef.current.on('project_status_change', (data) => {
-      console.log('🔔 [CLIENT] Project status changed:', data);
-      const { projectId: changedProjectId, status } = data || {};
-      if (changedProjectId) {
-        setAllProjectStatuses((prev) => ({
-          ...prev,
-          [changedProjectId]: status
-        }));
-        
-        // Also update runActive if this is the current project
-        if (changedProjectId === currentProjectId) {
-          if (status === 'running') {
-            console.log('🟢 [CLIENT STATUS CHANGE] Current project running, setting runActive to TRUE');
-            setRunActive(true);
-          } else if (status === 'stopped') {
-            console.log('🔴 [CLIENT STATUS CHANGE] Current project stopped, setting runActive to FALSE');
-            setRunActive(false);
+      try {
+        console.log('🔔 [CLIENT] Project status changed:', data);
+        const { projectId: changedProjectId, status } = data || {};
+        if (changedProjectId) {
+          setAllProjectStatuses((prev) => ({
+            ...prev,
+            [changedProjectId]: status
+          }));
+
+          // Update cached allWorkflows running flag so UI clears the running badge
+          setAllWorkflows((prev) => (prev || []).map((w) => {
+            if (!w || String(w.id) !== String(changedProjectId)) return w;
+            return { ...w, runningStatus: status === 'running' };
+          }));
+
+          // Also update runActive if this is the current project
+          if (changedProjectId === currentProjectId) {
+            if (status === 'running') {
+              console.log('🟢 [CLIENT STATUS CHANGE] Current project running, setting runActive to TRUE');
+              setRunActive(true);
+            } else if (status === 'stopped') {
+              console.log('🔴 [CLIENT STATUS CHANGE] Current project stopped, setting runActive to FALSE');
+              setRunActive(false);
+            }
           }
         }
-      }
+      } catch (e) { console.error('[CLIENT] project_status_change handler error', e); }
     });
 
     // Receive project STATUS updates (只更新 run/stop 按鈕狀態)
     socketRef.current.on('project_status', (data) => {
-      console.log('🔵 [CLIENT STATUS UPDATE] Received project_status:', data);
-      if (data.status === 'running') {
-        console.log('🟢 [CLIENT STATUS UPDATE] Setting runActive to TRUE');
-        setRunActive(true);
-      } else if (data.status === 'stopped') {
-        console.log('🔴 [CLIENT STATUS UPDATE] Setting runActive to FALSE');
-        setRunActive(false);
-      }
+      try {
+        console.log('🔵 [CLIENT STATUS UPDATE] Received project_status:', data);
+        const pid = data?.projectId || data?.workflowId || null;
+        if (pid) {
+          // mirror into allWorkflows so UI tab reflects stopped state
+          setAllWorkflows((prev) => (prev || []).map((w) => {
+            if (!w || String(w.id) !== String(pid)) return w;
+            return { ...w, runningStatus: data.status === 'running' };
+          }));
+        }
+        if (data.status === 'running') {
+          console.log('🟢 [CLIENT STATUS UPDATE] Setting runActive to TRUE');
+          setRunActive(true);
+        } else if (data.status === 'stopped') {
+          console.log('🔴 [CLIENT STATUS UPDATE] Setting runActive to FALSE');
+          setRunActive(false);
+        }
+      } catch (e) { console.error('[CLIENT] project_status handler error', e); }
     });
 
     // Receive execution STATE updates (只更新執行細節，不影響按鈕)
@@ -108,6 +188,45 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     socketRef.current.on('workflow_updated', (data) => {
       console.log('[ProjectSync] Workflow updated by another client');
       // Note: In VariableManager, you could sync rfNodes/rfEdges here if needed
+    });
+
+    // New server event: sendNodes (debounced by server after node/edge/workflow changes)
+    socketRef.current.on('sendNodes', (data) => {
+      try {
+        console.log('[CLIENT] Received sendNodes:', data);
+        const targetProjectId = data?.projectId || data?.workflowId;
+        if (!targetProjectId || targetProjectId !== currentProjectId) return;
+        const nodes = Array.isArray(data?.nodes) ? data.nodes : [];
+        const edges = Array.isArray(data?.edges) ? data.edges : [];
+        document.dispatchEvent(new CustomEvent('workflowNodesUpdated', {
+          detail: { projectId: targetProjectId, nodes, edges }
+        }));
+      } catch (e) { console.error('[CLIENT] sendNodes handler error', e); }
+    });
+
+    // Receive single-edge updates from server
+    socketRef.current.on('sendEdge', (data) => {
+      try {
+        console.log('[CLIENT] Received sendEdge:', data);
+        const targetProjectId = data?.projectId || data?.workflowId;
+        const edge = data?.edge;
+        if (!targetProjectId || targetProjectId !== currentProjectId) return;
+        if (!edge) return;
+        document.dispatchEvent(new CustomEvent('workflowEdgeUpdated', { detail: { projectId: targetProjectId, edge } }));
+      } catch (e) { console.error('[CLIENT] sendEdge handler error', e); }
+    });
+
+    // Log workflow data responses (new and legacy)
+    socketRef.current.on('workflow_data_response', (data) => {
+      try {
+        console.log('[CLIENT] workflow_data_response received:', data);
+      } catch (e) { console.error('[CLIENT] workflow_data_response log error', e); }
+    });
+
+    socketRef.current.on('project_workflow_response', (data) => {
+      try {
+        console.log('[CLIENT] project_workflow_response (legacy) received:', data);
+      } catch (e) { console.error('[CLIENT] project_workflow_response log error', e); }
     });
 
     socketRef.current.on('node_start', (data) => {
@@ -142,6 +261,8 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         detail: { nodeId: data.nodeId, reason: data.reason }
       }));
     });
+
+    // No REST fallback: rely on server's initial `sendAllWorkflowStatus` emission on connect
 
     socketRef.current.on('node_error', (data) => {
       console.error(`[Backend] Node ${data.nodeId} error:`, data.error);
@@ -178,12 +299,17 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
     // generic run events
     socketRef.current.on('run_status', (data) => {
-      if (!data) return;
-      if (data.runId) runIdRef.current = data.runId;
-      if (data.status === 'running') setRunActive(true);
-      else setRunActive(false);
-      if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
-      if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));
+      try {
+        console.log('🏃 [CLIENT RUN STATUS] Received run_status:', data);
+        if (!data) return;
+        if (data.runId) runIdRef.current = data.runId;
+        if (data.status === 'running') setRunActive(true);
+        else setRunActive(false);
+        if (data.currentNodeId) setActiveNodeId(data.currentNodeId);
+        if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));
+      } catch (e) {
+        console.error('[CLIENT RUN STATUS] run_status handler error', e);
+      }
     });
 
     // Prompt pipeline progress events
@@ -218,7 +344,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     socketRef.current.on('client_js_exec', (data) => {
       try {
         if (data && data.clientJS && typeof data.clientJS === 'string') {
-          console.log(`[useRunDemo] Executing clientJS from node ${data.nodeId}:`, data.clientJS);
+          //console.log(`[useRunDemo] Executing clientJS from node ${data.nodeId}:`, data.clientJS);
 
           const getGlobalVar = (key) => {
             try {
@@ -452,34 +578,79 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
   // Fetch latest workflow from server memory
   const fetchLatestWorkflow = useCallback((projectId) => {
+    console.log('fetchLatestWorkflow start')
     return new Promise((resolve, reject) => {
-      if (!socketRef.current || !socketRef.current.connected) {
-        reject(new Error('Socket not connected'));
-        return;
-      }
-      
-      console.log('[ProjectSync] Fetching latest workflow from server for project:', projectId);
-      
-      // Set up one-time listener for response
-      const responseHandler = (data) => {
-        console.log('[ProjectSync] Received workflow from server:', data);
-        if (data && data.projectId === projectId) {
-          resolve(data.workflow || null);
-        } else {
-          resolve(null);
-        }
+      console.log('[fetchLatestWorkflow] Will fetch workflow for project:', projectId, 'socketId=', socketRef.current?.id, 'connected=', !!socketRef.current?.connected);
+
+      let done = false;
+      let timeoutId = null;
+
+      const finish = (value, isError = false) => {
+        if (done) return;
+        done = true;
+        try { if (timeoutId) clearTimeout(timeoutId); } catch (e) {}
+        if (isError) reject(value);
+        else resolve(value);
       };
-      
-      socketRef.current.once('project_workflow_response', responseHandler);
-      
-      // Request workflow from server
-      socketRef.current.emit('get_project_workflow', { projectId });
-      
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        socketRef.current?.off('project_workflow_response', responseHandler);
-        reject(new Error('Timeout fetching workflow'));
-      }, 5000);
+
+      const waitForConnect = () => {
+        return new Promise((res, rej) => {
+          if (socketRef.current && socketRef.current.connected) return res();
+          const onConnect = () => {
+            try { socketRef.current?.off('connect', onConnect); } catch (e) {}
+            res();
+          };
+          const t = setTimeout(() => {
+            try { socketRef.current?.off('connect', onConnect); } catch (e) {}
+            rej(new Error('Socket did not connect in time'));
+          }, 3000);
+          try { socketRef.current?.on('connect', onConnect); } catch (e) { clearTimeout(t); rej(e); }
+        });
+      };
+
+      const workflowDataHandler = (data) => {
+        if (done) return;
+        const receivedId = data?.workflowId || data?.projectId;
+        if (String(receivedId || '') !== String(projectId || '')) return;
+        console.log('[fetchLatestWorkflow] Received workflow_data_response (handler):', data);
+        finish(data?.workflow || null);
+      };
+
+      const legacyHandler = (data) => {
+        if (done) return;
+        if (String(data?.projectId || '') !== String(projectId || '')) return;
+        console.log('[fetchLatestWorkflow] Received project_workflow_response (legacy handler):', data);
+        finish(data?.workflow || null);
+      };
+
+      (async () => {
+        try {
+          await waitForConnect();
+        } catch (e) {
+          finish(new Error('[fetchLatestWorkflow] Socket not connected'), true);
+          return;
+        }
+
+        // Use once listeners to avoid leaking handlers across reconnects
+        try {
+          socketRef.current.once('workflow_data_response', workflowDataHandler);
+          socketRef.current.once('project_workflow_response', legacyHandler);
+        } catch (e) {
+          try { socketRef.current.on('workflow_data_response', workflowDataHandler); socketRef.current.on('project_workflow_response', legacyHandler); } catch (err) { /* ignore */ }
+        }
+
+        try {
+          console.log('[fetchLatestWorkflow] Emitting get_workflow_data & get_project_workflow for', projectId, 'socketId=', socketRef.current?.id);
+          socketRef.current.emit('get_workflow_data', { workflowId: projectId });
+          socketRef.current.emit('get_project_workflow', { projectId });
+        } catch (e) {
+          console.warn('[fetchLatestWorkflow] Emit failed:', e);
+        }
+
+        timeoutId = setTimeout(() => {
+          finish(new Error('Timeout fetching workflow'), true);
+        }, 8000);
+      })();
     });
   }, []);
 
@@ -496,15 +667,15 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         return;
       }
       
-      console.log('[ProjectSync] Setting global var on server:', key, '=', value);
+      console.log('[setGlobalVar] Setting global var on server:', key, '=', value);
       
       // Set up one-time listener for response
       const responseHandler = (data) => {
         if (data && data.success) {
-          console.log('[ProjectSync] ✓ Global var set on server:', key, '=', value);
+          console.log('[setGlobalVar] ✓ Global var set on server:', key, '=', value);
           resolve({ success: true, key, value });
         } else {
-          console.error('[ProjectSync] ✗ Failed to set global var:', data?.error);
+          console.error('[setGlobalVar] ✗ Failed to set global var:', data?.error);
           reject(new Error(data?.error || 'Failed to set global var'));
         }
       };
@@ -538,6 +709,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     promptStatus,
     setProjectId,
     allProjectStatuses, // Export global project statuses
+    allWorkflows, // full workflow list for UI
     globalStoreVars,
   };
 }

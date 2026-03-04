@@ -203,9 +203,10 @@ const VariableManager = ({ onBack }) => {
     promptStatus,
     setProjectId,
     allProjectStatuses,
+    allWorkflows,
     globalStoreVars,
   } = useRunDemo({ rfNodes, rfEdges, apis });
-  
+  // (moved) Edge create/update listeners are registered later
 
   // Prevent repeatedly applying the same merged workflow (guard against re-renders)
   const lastAppliedMergedRef = useRef(null);
@@ -790,14 +791,53 @@ const VariableManager = ({ onBack }) => {
           setStoreVars(data.storeVars);
         }
 
-        // Hydrate executing nodes/edges so we don't lose them on page refresh
-        if ((data.status === 'running' || data.status === 'starting') && data.nodes && data.nodes.length > 0) {
-          if (typeof setRfNodes === 'function') setRfNodes(data.nodes);
-          if (data.edges && typeof setRfEdges === 'function') setRfEdges(data.edges);
-        }
+        // Keep run status/store vars only; do not overwrite workflow graph from run status.
       } catch (e) { /* ignore */ }
     })();
   }, [projectIdForRun, setProjectId]);
+
+  // When an edge is created in UI, forward it to server as a single-edge add
+  useEffect(() => {
+    const handler = (ev) => {
+      try {
+        const edge = ev?.detail?.edge;
+        if (!edge) return;
+        const pid = projectIdForRun;
+        if (!pid || !socketRef || !socketRef.current) {
+          console.warn('[VariableManager] Cannot forward new edge to server, missing projectId or socket', { pid });
+          return;
+        }
+        console.log('[VariableManager] Forwarding new edge to server:', edge, 'projectId=', pid);
+        socketRef.current.emit('add_edge', { projectId: pid, edge });
+      } catch (e) { console.error('workflowEdgeCreated handler error', e); }
+    };
+
+    document.addEventListener('workflowEdgeCreated', handler);
+    return () => document.removeEventListener('workflowEdgeCreated', handler);
+  }, [projectIdForRun, socketRef]);
+
+  // Apply incoming single-edge updates from server (sendEdge)
+  useEffect(() => {
+    const handler = (ev) => {
+      try {
+        const edge = ev?.detail?.edge;
+        if (!edge) return;
+        // Only apply for current project
+        const pid = ev?.detail?.projectId || projectIdForRun;
+        if (!pid || pid !== projectIdForRun) return;
+        setRfEdges((prev = []) => {
+          const exists = (prev || []).some(e => String(e.id) === String(edge.id));
+          if (exists) {
+            return (prev || []).map(e => String(e.id) === String(edge.id) ? ({ ...e, ...edge }) : e);
+          }
+          return [...(prev || []), edge];
+        });
+      } catch (e) { console.error('workflowEdgeUpdated handler error', e); }
+    };
+
+    document.addEventListener('workflowEdgeUpdated', handler);
+    return () => document.removeEventListener('workflowEdgeUpdated', handler);
+  }, [projectIdForRun, setRfEdges]);
 
   const {
     taskFunctionText,
@@ -1308,6 +1348,7 @@ const VariableManager = ({ onBack }) => {
       try {
         console.log('[VariableManager] Fetching latest workflow from server for project:', projectIdForRule);
         const serverWorkflow = await fetchLatestWorkflow(projectIdForRule);
+        console.log('[VariableManager] serverWorkflow', serverWorkflow);
         if (serverWorkflow && serverWorkflow.nodes && serverWorkflow.nodes.length > 0) {
           console.log('[VariableManager] Using workflow from server (nodes:', serverWorkflow.nodes.length, ')');
           parsed = serverWorkflow;
@@ -1510,9 +1551,11 @@ const VariableManager = ({ onBack }) => {
     currentWorkflowRef.current = { nodes: rfNodes, edges: rfEdges };
   }, [rfNodes, rfEdges]);
 
-  // Auto-load workflow when selectedRuleIndex changes
+  // Auto-load workflow only when entering workflow tab or switching selected rule
   useEffect(() => {
+    if (activeTab !== 'variablePrompt') return;
     if (selectedRuleIndex !== null && selectedRuleIndex !== undefined) {
+      console.log("update workflow for selectedRuleIndex=", selectedRuleIndex);
       // If switching from another rule, save the previous workflow first
       const prevIdx = previousRuleIndexRef.current;
       if (prevIdx !== null && prevIdx !== undefined && prevIdx !== selectedRuleIndex) {
@@ -1527,17 +1570,19 @@ const VariableManager = ({ onBack }) => {
           return newList;
         });
       }
-      
-      try {
-        loadSelectedRuleIntoPrompt(selectedRuleIndex);
-      } catch (e) {
-        console.warn('Failed to load selected rule into prompt:', e);
-      }
-      
-      // Update ref after loading
-      previousRuleIndexRef.current = selectedRuleIndex;
+      // Load selected rule (fetch from server if available) and wait for it to complete
+      (async () => {
+        try {
+          await loadSelectedRuleIntoPrompt(selectedRuleIndex);
+        } catch (e) {
+          console.warn('Failed to load selected rule into prompt:', e);
+        }
+
+        // Update ref after loading
+        previousRuleIndexRef.current = selectedRuleIndex;
+      })();
     }
-  }, [selectedRuleIndex, functionsList]);
+  }, [activeTab, selectedRuleIndex]);
 
   const deleteSelected = useCallback(() => {
     if (!selectedIds || !selectedIds.length) return;
@@ -3383,6 +3428,7 @@ const edges = [
             rulePrompts={rulePrompts}
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
+            allWorkflows={allWorkflows}
             addNewWorkflow={addNewWorkflow}
             deleteWorkflow={async () => {
               try {

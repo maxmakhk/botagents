@@ -35,6 +35,9 @@ class ProjectManager {
     // Auto-save debounce timer
     this.saveTimer = null;
     this.diskSavePath = path.join(process.cwd(), 'runs_store.json');
+
+    // Debounced workflow-structure broadcast timers (projectId -> Timeout)
+    this.sendNodesTimers = new Map();
   }
 
   // Global store var helpers
@@ -229,6 +232,8 @@ class ProjectManager {
   loadProject(projectId, nodes = [], edges = [], apis = [], stepDelay = 1000) {
     if (!this.projects.has(projectId)) {
       this.projects.set(projectId, {
+        id: projectId,
+        name: projectId,
         nodes: nodes,
         edges: edges,
         status: 'stopped',
@@ -242,6 +247,8 @@ class ProjectManager {
     } else {
       // Update nodes/edges if provided
       const project = this.projects.get(projectId);
+      project.id = project.id || projectId;
+      project.name = project.name || projectId;
       if (nodes && nodes.length > 0) project.nodes = nodes;
       if (edges && edges.length > 0) project.edges = edges;
       if (apis) project.apis = apis;
@@ -281,12 +288,7 @@ class ProjectManager {
     project.nodes = Array.isArray(nodes) ? nodes : (project.nodes || []);
     project.edges = Array.isArray(edges) ? edges : (project.edges || []);
 
-    // Broadcast to all watching clients
-    this.broadcastToProject(projectId, 'workflow_updated', {
-      projectId,
-      nodes: project.nodes,
-      edges: project.edges
-    });
+    this.sendNodes(projectId);
     
     // Auto-save to disk after workflow changes
     this.scheduleSave();
@@ -304,6 +306,187 @@ class ProjectManager {
       nodes: project.nodes || [],
       edges: project.edges || []
     };
+  }
+
+  /**
+   * Get workflow runtime/shape statuses for all workflows.
+   */
+  getAllWorkflowStatus() {
+    console.log("[getAllWorkflowStatus]");
+    return Array.from(this.projects.entries()).map(([projectId, project]) => {
+      // Prefer an explicit project name; if missing or identical to id,
+      // try to derive a friendly name from the first node's label/name.
+      let displayName = (project && project.name) ? String(project.name) : '';
+      if (!displayName || displayName === projectId) {
+        const firstNode = Array.isArray(project?.nodes) && project.nodes.length > 0 ? project.nodes[0] : null;
+        if (firstNode) {
+          displayName = firstNode?.data?.label || firstNode?.data?.name || firstNode?.label || firstNode?.name || projectId;
+        } else {
+          displayName = projectId;
+        }
+      }
+
+      return {
+        id: projectId,
+        name: displayName,
+        nodeNumber: Array.isArray(project?.nodes) ? project.nodes.length : 0,
+        edgeNumber: Array.isArray(project?.edges) ? project.edges.length : 0,
+        runningStatus: (project?.status || 'stopped') === 'running'
+      };
+    });
+  }
+
+  /**
+   * Get full workflow data for one workflow id.
+   */
+  getWorkflowData(projectId) {
+    const project = this.projects.get(projectId);
+    if (!project) return null;
+    return {
+      id: projectId,
+      name: project.name || projectId,
+      nodes: project.nodes || [],
+      edges: project.edges || [],
+      apis: project.apis || [],
+      status: project.status || 'stopped',
+      storeVars: project.storeVars || {},
+      activeNodeId: project.activeNodeId || null,
+      activeEdgeId: project.activeEdgeId || null,
+      stepDelay: project.stepDelay || 1000
+    };
+  }
+
+  /**
+   * Update workflow style only (e.g. position/viewport) by node/edge id.
+   */
+  updateWorkflowStyle(projectId, nodes = [], edges = []) {
+    const project = this.projects.get(projectId);
+    if (!project) return null;
+
+    const nodeById = new Map((project.nodes || []).map((n) => [String(n.id), n]));
+    for (const incoming of (Array.isArray(nodes) ? nodes : [])) {
+      if (!incoming || !incoming.id) continue;
+      const id = String(incoming.id);
+      const existing = nodeById.get(id);
+      if (!existing) continue;
+      if (incoming.position && typeof incoming.position === 'object') {
+        existing.position = { ...(existing.position || {}), ...incoming.position };
+      }
+      if (incoming.positionAbsolute && typeof incoming.positionAbsolute === 'object') {
+        existing.positionAbsolute = { ...(existing.positionAbsolute || {}), ...incoming.positionAbsolute };
+      }
+      if (incoming.style && typeof incoming.style === 'object') {
+        existing.style = { ...(existing.style || {}), ...incoming.style };
+      }
+      if (incoming.width !== undefined) existing.width = incoming.width;
+      if (incoming.height !== undefined) existing.height = incoming.height;
+      if (incoming.selected !== undefined) existing.selected = incoming.selected;
+      if (incoming.dragging !== undefined) existing.dragging = incoming.dragging;
+    }
+
+    const edgeById = new Map((project.edges || []).map((e) => [String(e.id), e]));
+    for (const incoming of (Array.isArray(edges) ? edges : [])) {
+      if (!incoming || !incoming.id) continue;
+      const id = String(incoming.id);
+      const existing = edgeById.get(id);
+      if (!existing) continue;
+      if (incoming.style && typeof incoming.style === 'object') {
+        existing.style = { ...(existing.style || {}), ...incoming.style };
+      }
+      if (incoming.type !== undefined) existing.type = incoming.type;
+      if (incoming.animated !== undefined) existing.animated = incoming.animated;
+      if (incoming.selected !== undefined) existing.selected = incoming.selected;
+      if (incoming.labelX !== undefined) existing.labelX = incoming.labelX;
+      if (incoming.labelY !== undefined) existing.labelY = incoming.labelY;
+      if (incoming.data && typeof incoming.data === 'object') {
+        existing.data = { ...(existing.data || {}), ...incoming.data };
+      }
+    }
+
+    this.sendNodes(projectId);
+    this.scheduleSave();
+    return this.getWorkflowData(projectId);
+  }
+
+  /**
+   * Add a single edge to a project's workflow and notify watchers with a lightweight event
+   */
+  addProjectEdge(projectId, edge) {
+    if (!projectId || !edge) return null;
+    let project = this.projects.get(projectId);
+    if (!project) {
+      // create empty project so edge can be added
+      project = this.loadProject(projectId, [], [], [], 1000);
+    }
+
+    // normalize edge object
+    const id = String(edge.id || `edge_${Date.now()}`);
+    const normalized = {
+      id,
+      source: String(edge.source || edge.from || ''),
+      target: String(edge.target || edge.to || ''),
+      label: edge.label || '',
+      sourceHandle: edge.sourceHandle !== undefined ? edge.sourceHandle : undefined,
+      targetHandle: edge.targetHandle !== undefined ? edge.targetHandle : undefined,
+      type: edge.type || edge.edgeType || 'next'
+    };
+
+    // prevent duplicate id
+    project.edges = Array.isArray(project.edges) ? project.edges : [];
+    if (!project.edges.find(e => String(e.id) === String(normalized.id))) {
+      project.edges.push(normalized);
+    } else {
+      // replace existing
+      project.edges = project.edges.map(e => String(e.id) === String(normalized.id) ? normalized : e);
+    }
+
+    // Persist minimal changes
+    this.scheduleSave();
+
+    // Notify watchers with a lightweight edge-only event
+    this.broadcastToProject(projectId, 'sendEdge', { projectId, edge: normalized });
+
+    return normalized;
+  }
+
+  /**
+   * Broadcast workflow nodes/edges to project watchers (debounced, default 500ms).
+   */
+  sendNodes(projectId, delayMs = 500) {
+    const project = this.projects.get(projectId);
+    if (!project) return;
+
+    const currentTimer = this.sendNodesTimers.get(projectId);
+    if (currentTimer) clearTimeout(currentTimer);
+
+    const timer = setTimeout(() => {
+      this.sendNodesTimers.delete(projectId);
+      const latest = this.projects.get(projectId);
+      if (!latest) return;
+      const payload = {
+        projectId,
+        workflowId: projectId,
+        nodes: latest.nodes || [],
+        edges: latest.edges || []
+      };
+      this.broadcastToProject(projectId, 'sendNodes', payload);
+      this.broadcastToProject(projectId, 'workflow_updated', payload);
+    }, Math.max(0, Number(delayMs) || 0));
+
+    this.sendNodesTimers.set(projectId, timer);
+  }
+
+  /**
+   * Broadcast all workflow statuses to ALL clients.
+   */
+  sendAllWorkflowStatus() {
+    const statuses = this.getAllWorkflowStatus();
+    this.broadcastToAllClients('sendAllWorkflowStatus', statuses);
+    const legacyStatuses = {};
+    for (const item of statuses) {
+      legacyStatuses[item.id] = item.runningStatus ? 'running' : 'stopped';
+    }
+    this.broadcastToAllClients('all_project_statuses', legacyStatuses);
   }
 
   /**
@@ -339,6 +522,9 @@ class ProjectManager {
       projectId,
       ...updates
     });
+
+    // During execution, keep all tabs updated with workflow runtime status snapshots
+    this.sendAllWorkflowStatus();
   }
 
   /**
@@ -499,7 +685,13 @@ class ProjectManager {
    * Request project to start (sets status to 'running')
    */
   startProject(projectId, nodes, edges, apis, stepDelay) {
-    const project = this.loadProject(projectId, nodes, edges, apis, stepDelay);
+    let project = this.projects.get(projectId);
+    if (!project) {
+      project = this.loadProject(projectId, nodes || [], edges || [], apis || [], stepDelay || 1000);
+    } else {
+      if (apis) project.apis = apis;
+      if (stepDelay) project.stepDelay = stepDelay;
+    }
     
     if (project.status === 'running') {
       //console.log(`[ProjectManager] Project ${projectId} already running, re-broadcasting status`);

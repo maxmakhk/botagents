@@ -34,7 +34,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
   const handleClick = (ev) => {
     ev.stopPropagation();
     const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
-    const current = (node && (node.data?.fnString || node.data?.metadata?.function || node.metadata?.function)) || '';
+    const current = (node && (node.data?.fnString || '')) || '';
     setText(current || '');
     
     // Get button position and calculate popup position
@@ -54,18 +54,20 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
       alert('Node not found');
       return;
     }
-    // First try to get from node.metadata.function (stored when node was created)
-    // Then try node.data.metadata.function
-    // Then try to find in apis array if available
-    let defaultFn = node.metadata?.function || node.data?.metadata?.function || '';
+    // Prefer component library source; fallback to original metadata snapshot
+    let defaultFn = '';
     
     // If not found and apis available, try to look up by apiId
-    if (!defaultFn && Array.isArray(apis) && apis.length > 0) {
+    if (Array.isArray(apis) && apis.length > 0) {
       const apiId = node.metadata?.apiId || node.data?.metadata?.apiId;
       if (apiId) {
         const api = apis.find(a => String(a.id) === String(apiId));
         defaultFn = api ? (api.function || api.fnString) : '';
       }
+    }
+
+    if (!defaultFn) {
+      defaultFn = node.data?.metadata?.function || node.metadata?.defaultFunction || node.metadata?.function || '';
     }
     
     if (defaultFn) {
@@ -80,8 +82,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
       const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
       if (!node) return;
       const newData = { ...(node.data || {}), fnString: text };
-      const newMeta = { ...(node.metadata || {}), function: text };
-      const updates = { data: newData, metadata: newMeta };
+      const updates = { data: newData };
       if (typeof updateNodeData === 'function') {
         updateNodeData(onNodeId, updates);
       }
@@ -100,7 +101,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
           <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:6}}>
             <button className="btn-cancel" onClick={handleCancel}>Close</button>
             <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function">Default Function</button>
-            <button className="btn-primary" onClick={handleSave}>Save</button>
+            <button className="btn-primary" onClick={handleSave}>Submit</button>
           </div>
         </div>,
         document.body

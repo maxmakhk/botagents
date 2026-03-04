@@ -121,6 +121,39 @@ app.get('/health', (req, res) => {
   try {
     const runsPath = path.join(process.cwd(), 'runs_store.json');
     await projectManager.loadFromDisk(runsPath);
+  
+    // Load persisted workflows from sqlite `rules.workflow_object` if present
+    try {
+      console.log('[Startup] Loading workflows from sqlite `rules.workflow_object`');
+      const rows = db.prepare('SELECT id, name, workflow_object FROM rules').all();
+      let loaded = 0;
+      for (const r of rows || []) {
+        try {
+          if (!r || !r.id) continue;
+          let parsed = null;
+          if (r.workflow_object) {
+            try { parsed = typeof r.workflow_object === 'string' ? JSON.parse(r.workflow_object) : r.workflow_object; } catch (e) { parsed = null; }
+          }
+          const nodes = (parsed && Array.isArray(parsed.nodes)) ? parsed.nodes : [];
+          const edges = (parsed && Array.isArray(parsed.edges)) ? parsed.edges : [];
+          const apis = (parsed && Array.isArray(parsed.apis)) ? parsed.apis : [];
+          const stepDelay = (parsed && parsed.stepDelay) ? parsed.stepDelay : 1000;
+
+          projectManager.loadProject(r.id, nodes, edges, apis, stepDelay);
+          // propagate stored rule name if available
+          if (r.name) {
+            const proj = projectManager.getProject(r.id);
+            if (proj) proj.name = r.name;
+          }
+          loaded += 1;
+        } catch (e) {
+          console.warn('[Startup] Failed to load workflow from row', r && r.id, e);
+        }
+      }
+      console.log(`[Startup] Loaded ${loaded} workflows from sqlite (rules.workflow_object)`);
+    } catch (e) {
+      console.warn('[Startup] Error loading workflows from sqlite', e);
+    }
   } catch (e) {
     console.warn('Error loading runs_store.json at startup', e);
   }
@@ -764,6 +797,7 @@ io.on('connection', (socket) => {
   // Send all project statuses immediately on connect
   const allStatuses = projectManager.getAllProjectStatuses();
   socket.emit('all_project_statuses', allStatuses);
+  socket.emit('sendAllWorkflowStatus', projectManager.getAllWorkflowStatus());
   console.log(`[Socket] Sent all project statuses to ${socket.id}:`, allStatuses);
 
   // Client wants to watch a project
@@ -825,6 +859,33 @@ io.on('connection', (socket) => {
     projectManager.updateProjectWorkflow(projectId, nodes, edges);
   });
 
+  // Client adds a single edge to workflow
+  socket.on('add_edge', (data) => {
+    try {
+      const { projectId, edge } = data || {};
+      if (!projectId || !edge) return;
+      console.log(`[Socket] Client ${socket.id} requested add_edge for ${projectId}:`, edge && edge.id ? edge.id : '(no-id)');
+      const added = projectManager.addProjectEdge(projectId, edge);
+      socket.emit('add_edge_result', { success: !!added, projectId, edge: added || null });
+    } catch (e) {
+      console.error('add_edge handler error', e);
+      socket.emit('add_edge_result', { success: false, error: String(e) });
+    }
+  });
+
+  // Client updates workflow style only (e.g. autolayout positions)
+  socket.on('update_workflow_style', (data) => {
+    const { projectId, workflowId, nodes, edges } = data || {};
+    const targetWorkflowId = workflowId || projectId;
+    if (!targetWorkflowId) return;
+    const updated = projectManager.updateWorkflowStyle(targetWorkflowId, nodes, edges);
+    socket.emit('workflow_style_updated', {
+      workflowId: targetWorkflowId,
+      projectId: targetWorkflowId,
+      success: !!updated
+    });
+  });
+
   // Client requests workflow (nodes/edges)
   socket.on('get_project_workflow', (data) => {
     const { projectId } = data || {};
@@ -832,10 +893,32 @@ io.on('connection', (socket) => {
 
     console.log(`[Socket] Client ${socket.id} requested workflow for ${projectId}`);
     const workflow = projectManager.getProjectWorkflow(projectId);
-    socket.emit('project_workflow_response', {
-      projectId,
-      workflow: workflow
-    });
+    if (!workflow) {
+      console.log(`[Socket] project_workflow for ${projectId} not found; sending notFound to ${socket.id}`);
+      socket.emit('project_workflow_response', { projectId, workflow: null, notFound: true });
+    } else {
+      console.log(`[Socket] Sending project_workflow_response to ${socket.id} for ${projectId}: nodes=${(workflow.nodes||[]).length}, edges=${(workflow.edges||[]).length}`);
+      socket.emit('project_workflow_response', { projectId, workflow });
+    }
+  });
+
+  // New workflow management API over socket
+  socket.on('get_all_workflow_status', () => {
+    socket.emit('sendAllWorkflowStatus', projectManager.getAllWorkflowStatus());
+  });
+
+  socket.on('get_workflow_data', (data) => {
+    const workflowId = data?.workflowId || data?.projectId;
+    if (!workflowId) return;
+    console.log(`[Socket] Client ${socket.id} requested workflow DATA for ${workflowId}`);
+    const workflow = projectManager.getWorkflowData(workflowId);
+    if (!workflow) {
+      console.log(`[Socket] workflow DATA for ${workflowId} not found; responding notFound to ${socket.id}`);
+      socket.emit('workflow_data_response', { workflowId, projectId: workflowId, workflow: null, notFound: true });
+    } else {
+      console.log(`[Socket] Sending workflow_data_response to ${socket.id} for ${workflowId}: nodes=${(workflow.nodes||[]).length}, edges=${(workflow.edges||[]).length}`);
+      socket.emit('workflow_data_response', { workflowId, projectId: workflowId, workflow });
+    }
   });
 
   // Client requests to save workflow to Firebase from server memory
@@ -877,6 +960,18 @@ io.on('connection', (socket) => {
       await setDoc(docRef, docData, { merge: true });
 
       console.log(`[Socket] ✓ Saved workflow ${projectId} to Firebase`);
+      // If the client provided ruleData.name, propagate it into server memory
+      try {
+        if (ruleData && ruleData.name) {
+          const proj = projectManager.getProject(projectId);
+          if (proj) {
+            proj.name = ruleData.name;
+            console.log(`[Socket] Updated in-memory project name for ${projectId} -> ${ruleData.name}`);
+            // Also broadcast updated workflow statuses to clients so UI gets new names
+            projectManager.sendAllWorkflowStatus();
+          }
+        }
+      } catch (e) { console.warn('[Socket] Failed to update in-memory project name', e); }
       socket.emit('save_workflow_result', { success: true, projectId });
       
     } catch (error) {
@@ -1059,6 +1154,33 @@ app.get('/api/projects/statuses', (req, res) => {
   try {
     const statuses = projectManager.getAllProjectStatuses();
     res.json(statuses);
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// ------------------ Workflow Management API -----------------------------
+app.get('/api/workflows/statuses', (req, res) => {
+  try {
+    res.json(projectManager.getAllWorkflowStatus());
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.get('/api/workflows/:workflowId', (req, res) => {
+  try {
+    const workflowId = req.params.workflowId;
+    const workflow = projectManager.getWorkflowData(workflowId);
+    if (!workflow) return res.status(404).json({ error: 'not_found' });
+    res.json(workflow);
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.patch('/api/workflows/:workflowId/style', (req, res) => {
+  try {
+    const workflowId = req.params.workflowId;
+    const nodes = req.body?.nodes;
+    const edges = req.body?.edges;
+    const updated = projectManager.updateWorkflowStyle(workflowId, nodes, edges);
+    if (!updated) return res.status(404).json({ error: 'not_found' });
+    res.json({ success: true, workflowId });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
