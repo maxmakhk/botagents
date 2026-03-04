@@ -222,13 +222,27 @@ app.get('/wait/:workflowID/:status', (req, res) => {
       return res.status(404).json({ success: false, error: 'Workflow not found' });
     }
 
-    // Update waiting_wait state
-    projectManager.setWaitingState(projectId, waitingState);
+    // Update waiting_wait state and capture detailed resume diagnostics
+    const waitResult = projectManager.setWaitingState(projectId, waitingState);
+
+    // If resume was requested but no waiting resolver was active, return 409 for clearer client behavior
+    if (!waitingState && waitResult && waitResult.canResume === false) {
+      return res.status(409).json({
+        success: false,
+        projectId,
+        waiting_wait: waitingState,
+        activeRun: !!waitResult.activeRun,
+        resolvedCount: Number(waitResult.resolvedCount || 0),
+        error: 'No active waiting node to resume (workflow may have already finished or was not paused).'
+      });
+    }
     
     res.json({ 
       success: true, 
       projectId: projectId, 
       waiting_wait: waitingState,
+      activeRun: waitResult ? !!waitResult.activeRun : false,
+      resolvedCount: waitResult ? Number(waitResult.resolvedCount || 0) : 0,
       message: waitingState ? 'Workflow paused' : 'Workflow resumed'
     });
   } catch (error) {

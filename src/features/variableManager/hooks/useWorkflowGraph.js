@@ -88,9 +88,13 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
 
   const cancelEdgeEdit = useCallback(() => { setEdgeEdit(null); }, []);
 
-  // Handle double-click on node
+  // Handle double-click on node - DISABLED (use info button instead)
   const onNodeDoubleClick = useCallback((evt, node) => {
-    setSelectedNodeDetails(node || null);
+    // Check if called from info button (evt is null) or actual double-click (evt exists)
+    // If from info button, open details. If from double-click, do nothing.
+    if (evt === null) {
+      setSelectedNodeDetails(node || null);
+    }
   }, []);
 
   // Handle node click

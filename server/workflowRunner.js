@@ -445,8 +445,10 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     },
     // helper to set waiting state from inside node code
     setWaiting: async (flag) => {
+      console.log(`[setWaiting]A ${flag}`);
       try {
         const waiting = !!flag;
+        console.log(`[setWaiting]B ${projectId} ${flag}`);
         // update the project store and notify watchers
         projectManager.setWaitingState(projectId, waiting);
 

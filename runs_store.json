@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-04T15:57:39.105Z",
+  "savedAt": "2026-03-04T20:56:36.172Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -1846,7 +1846,7 @@
             "description": "api",
             "label": "Input Text Machine",
             "nodeLabel": "start",
-            "fnString": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\nsetWaiting(true)\n//let waitResponse = fetch('http://localhost:3001/wait/FileAI2/true');\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n\n          let waitResponse = fetch('http://localhost:3001/wait/FileAI2/false');\n\n        }, 1000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "fnString": "async function processRequest(input) {\n\n//await setWaiting(true)\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START2\");\nlet waitResponse = fetch('http://localhost:3001/wait/FileAI2/true');\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n\n          let waitResponse = fetch('http://localhost:3001/wait/FileAI2/false');\n\n        }, 1000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "actions": [],
             "metadata": {
               "apiId": "49hAqx8nk9kywqpDbIYl",
@@ -1873,7 +1873,7 @@
           },
           "width": 128,
           "height": 64,
-          "selected": true,
+          "selected": false,
           "dragging": false
         },
         {
@@ -1900,7 +1900,7 @@
             "description": "api",
             "label": "File AI",
             "nodeLabel": "FileAI",
-            "fnString": "async function processRequest(input) {\nconsole.log(\"start FILEAI\");\nsetWaiting(true)\n  console.log(\"Received Ask START\");\n\n  const body = { query: \"test\" };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n//setWaiting(false)\n          let waitResponse = fetch('http://localhost:3001/wait/FileAI2/false');\n\n  return { status: 'success'};\n}\n",
+            "fnString": "async function processRequest(input) {\nconsole.log(\"start FILEAI\");\nawait setWaiting(true)\n  console.log(\"Received Ask START\");\n\n  const body = { query: \"test\" };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n          let waitResponse = fetch('http://localhost:3001/wait/FileAI2/false');\n\n  return { status: 'success'};\n}\n",
             "actions": [],
             "metadata": {
               "apiId": "sBBs3o16YtuUQQiChhu6",
@@ -1926,7 +1926,9 @@
             "height": 64
           },
           "width": 128,
-          "height": 64
+          "height": 64,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "api_1772555203387",
@@ -2030,15 +2032,13 @@
             "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": false,
-          "dragging": false
+          "height": 64
         },
         {
           "id": "api_1772636918871",
           "position": {
-            "x": 280,
-            "y": 200
+            "x": 485.71428571428567,
+            "y": 230
           },
           "type": "api",
           "metadata": {
@@ -2057,11 +2057,11 @@
           },
           "data": {
             "labelText": "wait10s",
-            "label": "wait10s",
             "description": "api",
+            "label": "wait10s",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nsetWaiting(true)\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\nsetWaiting(false)\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "dmWZ28QrPYOoWQ2pcOyU",
               "apiName": "wait10s",
@@ -2076,16 +2076,25 @@
                 "open"
               ]
             },
-            "fnString": "async function processRequest(input) {\nsetWaiting(true)\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\nsetWaiting(false)\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-            "nodeLabel": "",
+            "width": 128,
+            "height": 64,
             "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
-          }
+            "minHeight": 64,
+            "height": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": true,
+          "positionAbsolute": {
+            "x": 485.71428571428567,
+            "y": 230
+          },
+          "dragging": false
         }
       ],
       "edges": [
@@ -2151,18 +2160,17 @@
           "target": "api_1772636918871",
           "label": "",
           "sourceHandle": "right",
-          "targetHandle": "left",
-          "type": "next"
+          "targetHandle": "left"
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {
         "waiting_wait": false,
         "rule_1772537005255_7j7ed8__node_api_1772555180349_status": "waiting_user_input",
-        "rule_1772537005255_7j7ed8__node_api_1772555180349_wait_start": 1772639767789,
+        "rule_1772537005255_7j7ed8__node_api_1772555180349_wait_start": 1772657407897,
         "rule_1772537005255_7j7ed8__node_api_1772555180349_error": "Cannot read properties of undefined (reading 'setWaiting')",
         "askresponse": {
-          "answer": "{\n  \"content\": \"Here\\u2019s an answer to the query \\u201ctest\\u201d, using the provided documents, followed by the document evaluations:\\n\\n**Answer:**\\n\\nThe `useExternalApis` hook manages external API configuration and testing. It includes a function `testApi` that likely performs API testing, and uses the `appendLogToBackend` function to log API test results to the backend. Additionally, the `useRuleSources` hook contains code for managing rule sources, including potential testing functionality related to rule expressions.\\n\\n**Document Evaluations:**\\n\\n*   **Document 1 (useExternalApis.js):** High relevance. This document provides the core functionality for managing external APIs, including the `testApi` function and its role in logging API results, which directly relates to the query \\\"test.\\\" The mention of testing API logs is key.\\n*   **Document 2 (systemPromptGenerator.js):** Low relevance. This document deals with generating system prompts for AI, and while it mentions data manipulation and parsing, it doesn\\u2019t directly relate to testing.\\n*   **Document 3 (useProjectsWorkflow.js):** Medium relevance. This document involves workflow management and AI prompts, and includes functionality for \\u201cappendLog,\\u201d suggesting it is involved in logging results. However, it's less directly relevant to the simple \\u201ctest\\u201d query.\\n*   **Document 4 (useRuleSources.js):** Medium relevance. This document focuses on rule sources and categories, and includes the `fetchVariables` and `saveRuleSources` functions, implying data validation and testing.\\n*   **Document 5 (apisService.js):** High relevance. This document provides a function (`loadApis`) specifically designed to load APIs, suggesting that \\u201ctest\\u201d could involve testing the API endpoints themselves.\\n*   **Document 6 (aiagent.py):** Low relevance. This document is a Python script for an AI agent, and doesn't contain any direct relevance to the query \\\"test.\\\"\\n*   **Document 7 (OutputView.jsx):** Low relevance. This document is a React component for displaying output, and while it includes logging functionality, doesn\\u2019t relate directly to the word \\\"test.\\\"\"\n}",
+          "answer": "{\n  \"content\": \"Here\\u2019s an answer to the query \\u201ctest\\u201d, based on the provided documents, followed by document evaluations:\\n\\n**Answer:**\\n\\nThe `useExternalApis` hook manages external API configuration and testing. It includes functionality to load APIs from a Firestore collection named \\u201cVariableManager-apis\\u201d using the `loadApis` function from the `apisService`. This function fetches API data and sets it as the `apis` state variable. There is also a `testApi` function within `useExternalApis` that can be used for testing API calls.\\n\\n**Document Evaluations:**\\n\\n*   **Document 1 (useExternalApis.js):** High relevance. This document contains the core logic for the `useExternalApis` hook, including its primary function (`loadApis`) for retrieving API data, and the overall structure and purpose of the hook. Key evidence includes the `loadApis` function and the hook\\u2019s description.\\n*   **Document 2 (systemPromptGenerator.js):** Low relevance. This document focuses on generating system prompts, which is a completely separate functionality from the API testing and management described in the original query. While it utilizes similar concepts like APIs and variables, the connection is not direct.\\n*   **Document 3 (useProjectsWorkflow.js):** Low relevance. This document is related to workflow management and project automation, employing concepts like variables, rules, and AI prompts. While it utilizes Firestore and related services, it does not directly address the request to \\u201ctest\\u201d an API.\\n*   **Document 4 (useRuleSources.js):** Low relevance. This document deals with rule sources and categories within a database, with functions to load and save rule data, but doesn\\u2019t contain any test functionality or API interaction.\\n*   **Document 5 (apisService.js):** High relevance. This document is central to the query. It defines the `loadApis` function, which directly addresses the core requirement of retrieving API data from a Firestore database. Key evidence includes the function's purpose and the Firestore query it performs.\\n*   **Document 6 (aiagent.py):** Low relevance. This is a Python script for an AI agent, focused on running a model (Florence-2) and doesn't relate to API testing or functionality.\\n*   **Document 7 (OutputView.jsx):** Low Relevance. This document describes a React component that renders output, referencing various data sources and potentially triggering API calls, but doesn\\u2019t contain the testing functionality itself.\"\n}",
           "answer_summary": "",
           "context_preview": "You are an internal document assistant. You must answer in English.\nYou will be given:\n1. The original user query.\n2. A cleaned keyword version of the query.\n3. A set of retrieved documents (Document 1, 2, 3).\n\nYour task:\n1. First, write a concise but clear answer to the original query, using ONLY the information in the provided documents.\n   - If the information is insufficient, state clearly that you don't know.\n2. Then, write a short evaluation for each document (Document 1, 2, 3):\n   - State...",
           "document_details": [
@@ -2288,645 +2296,17 @@
             "dateUtils.js"
           ]
         },
-        "rule_1772537005255_7j7ed8__waiting_wait": true,
+        "rule_1772537005255_7j7ed8__waiting_wait": false,
         "rule_1772537005255_7j7ed8__node_api_1772555196293_status": "waiting_user_input",
-        "rule_1772537005255_7j7ed8__node_api_1772555196293_wait_start": 1772639794830
+        "rule_1772537005255_7j7ed8__node_api_1772555196293_wait_start": 1772657448105,
+        "rule_1772537005255_7j7ed8__node_api_1772555203387_status": "waiting_user_input",
+        "rule_1772537005255_7j7ed8__node_api_1772555203387_wait_start": 1772656080226,
+        "rule_1772537005255_7j7ed8__node_api_1772625567112_status": "waiting_user_input",
+        "rule_1772537005255_7j7ed8__node_api_1772625567112_wait_start": 1772656846331
       },
-      "activeNodeId": "api_1772555196293",
+      "activeNodeId": null,
       "activeEdgeId": null,
-      "apis": [
-        {
-          "id": "T7sJl75flCKvuLNb2053",
-          "name": "Jump",
-          "function": "async function processRequest(input) {\n  try {\n    const response = await fetch('http://localhost:3001/trigger/myWorkflow');\n    if (!response.ok) {\n      throw new Error(`HTTP error! status: ${response.status}`);\n    }\n    const data = await response.text();\n    console.log('Workflow triggered:', data);\n  } catch (error) {\n    console.error('Trigger failed:', error);\n  }\n  return {};\n}",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772621530,
-            "nanoseconds": 165000000
-          },
-          "url": "",
-          "tags": [
-            "action"
-          ],
-          "metadata": {
-            "cssStyle": ""
-          },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772633860,
-            "nanoseconds": 94000000
-          },
-          "description": ""
-        },
-        {
-          "id": "49hAqx8nk9kywqpDbIYl",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772538062,
-            "nanoseconds": 731000000
-          },
-          "description": "create a div with a input box, when input and submit, save data to globalstorevars",
-          "lastPrompt": "",
-          "tags": [
-            "object"
-          ],
-          "url": "",
-          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\nstoreVars.waiting_wait = true;\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\nstoreVars.waiting_wait = false\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "name": "Input Text Machine",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772535237,
-            "nanoseconds": 297000000
-          }
-        },
-        {
-          "id": "485EMQ90MknKIJWqneWn",
-          "tags": [
-            "object"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772535049,
-            "nanoseconds": 29000000
-          },
-          "description": "input what data you want to print, and it will print on the box",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "url": "",
-          "name": "Print Data Machine",
-          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n  console.log(\"new ask box START\");\n\n  const clientJS = `\n    console.log(\"clientJS ask box START\");\n    \n    function createPrintDataMachine(container) {\n      const printDiv = document.createElement('div');\n      printDiv.id = 'printDataMachine';\n      printDiv.style.cssText = 'width: 400px; height: 400px; overflow: auto; background: #515151; border: 1px solid #dee2e6; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap;';\n      container.appendChild(printDiv);\n      return printDiv;\n    }\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n\n    let printDiv = document.getElementById('printDataMachine');\n    const isNew = !printDiv;\n    \n    if (isNew) {\n      console.log(\"new ask box create\");\n      printDiv = createPrintDataMachine(container);\n    }\n\n    const printoutdata = ${JSON.stringify(printoutdata)};\n    let formattedData = '';\n    if (typeof printoutdata === 'object' && printoutdata !== null) {\n      formattedData = JSON.stringify(printoutdata, null, 2);\n    } else {\n      formattedData = JSON.stringify(printoutdata, null, 2) || 'No data';\n    }\n\n    printDiv.innerHTML = '<pre>' + formattedData + '</pre>';\n    console.log(\"clientJS ask box finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772530589,
-            "nanoseconds": 266000000
-          }
-        },
-        {
-          "id": "sBBs3o16YtuUQQiChhu6",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772489190,
-            "nanoseconds": 169000000
-          },
-          "name": "File AI",
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\n  console.log(\"Received Ask START\");\n\n  const body = { query: \"test\" };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n   storeVars.waiting_wait = false;\n  return { status: 'success'};\n}\n",
-          "url": "",
-          "tags": [
-            "action"
-          ],
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772530473,
-            "nanoseconds": 459000000
-          },
-          "description": "input question, and get search result, but current the target folder is fixed",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1"
-          }
-        },
-        {
-          "id": "8xHtUfyeYGl5BFMrFvrC",
-          "url": "",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "description": "",
-          "tags": [
-            "object"
-          ],
-          "function": "",
-          "name": "File Server",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772489168,
-            "nanoseconds": 77000000
-          }
-        },
-        {
-          "id": "GvIRRETpmWWaNyHojFN7",
-          "tags": [
-            "human",
-            "engineer",
-            "action"
-          ],
-          "metadata": {
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg",
-            "cssStyle": ""
-          },
-          "description": "handle objects position",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114048,
-            "nanoseconds": 163000000
-          },
-          "lastPrompt": "",
-          "url": "",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772058807,
-            "nanoseconds": 924000000
-          },
-          "name": "worldPosition",
-          "function": "async function processRequest(input) {\n    let worlda = getVar(\"worlda\") || [];\n    \n    if (!worlda || worlda.length === 0) {\n        return {ok: false, error: \"No world data found\"};\n    }\n    \n    let worlddata = worlda.find(item => item.id === 'world');\n    if (!worlddata || !worlddata.size?.w || !worlddata.size?.h) {\n        return {ok: false, error: \"Invalid world size\"};\n    }\n    \n    let worldWidth = worlddata.size.w;\n    let worldHeight = worlddata.size.h;\n    \n    let objectsdata = worlda.filter(item => item.id !== 'world');\n    \n    if (objectsdata.length === 0) {\n        return {ok: true, message: \"No objects to layout\"};\n    }\n    \n    let objectsList = objectsdata.map(o => `${o.id} (${o.name || 'unnamed'})`).join(', ');\n    let userPrompt = `World size: ${worldWidth}x${worldHeight}. Objects: ${objectsList}. \n    Assign non-overlapping grid positions (x:0-${worldWidth-1}, y:0-${worldHeight-1}) to each object. \n    Logical layout: machines on edges, players center. \n    Respond ONLY with valid JSON array: [{\"id\":\"obj1\",\"position\":{\"x\":1,\"y\":2}},{\"id\":\"obj2\",\"position\":{\"x\":3,\"y\":0}}]`;\n    \n    let systemPrompt = 'You are a game level designer. Output only valid JSON array of positions, no other text.';\n    \n    try {\n        const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            body: JSON.stringify({ \n                role: 'user', \n                prompt: userPrompt, \n                system: systemPrompt \n            })\n        });\n        \n        const chatData = await resp.json();\n        let aiResponse = chatData.content.trim();\n        \n        console.log('AI Layout Response:', aiResponse);\n        \n        // Parse JSON (handle minor formatting issues)\n        let positions;\n        try {\n            positions = JSON.parse(aiResponse);\n        } catch (e) {\n            // Fallback: try extract JSON from text\n            let jsonMatch = aiResponse.match(/\\[.*\\]/s);\n            if (jsonMatch) {\n                positions = JSON.parse(jsonMatch[0]);\n            } else {\n                throw e;\n            }\n        }\n        \n        positions.forEach(pos => {\n            let obj = objectsdata.find(o => o.id === pos.id);\n            if (obj && pos.position) {\n                obj.position = { \n                    x: Math.max(0, Math.min(worldWidth - 1, pos.position.x)), \n                    y: Math.max(0, Math.min(worldHeight - 1, pos.position.y)) \n                };\n            }\n        });\n        \n        console.log('AI Positions Applied:', objectsdata.map(o => ({id: o.id, pos: o.position})));\n        \n    } catch (error) {\n        console.error('AI Layout failed:', error);\n        return {ok: false, error: 'AI layout failed, using manual'};\n    }\n    \n    let updatedWorld = [worlddata, ...objectsdata];\n    setVar(\"worlda\", updatedWorld);\n    \n    return {\n        ok: true,\n        updated: objectsdata.length,\n        worldSize: {w: worldWidth, h: worldHeight},\n        layout: 'AI auto',\n        objectsMoved: objectsdata.map(o => ({id: o.id, newPos: o.position}))\n    };\n}\n"
-        },
-        {
-          "id": "VONCn1km19SO3f3TPCKC",
-          "url": "",
-          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
-          "name": "IsometricPosition",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772058520,
-            "nanoseconds": 107000000
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114072,
-            "nanoseconds": 445000000
-          },
-          "description": "convert 2d position X,Y to isometric position",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "tags": [
-            "world",
-            "action"
-          ]
-        },
-        {
-          "id": "KRw88k6UJ2m2X7YluTbK",
-          "url": "",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
-          "name": "ipcamA",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772055154,
-            "nanoseconds": 354000000
-          },
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg",
-            "cssStyle": ""
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114090,
-            "nanoseconds": 817000000
-          },
-          "description": "a physical object",
-          "tags": [
-            "ipcam",
-            "object"
-          ]
-        },
-        {
-          "id": "YgunsIWPkZbGaH80gIro",
-          "url": "",
-          "name": "engineerA",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772055149,
-            "nanoseconds": 470000000
-          },
-          "tags": [
-            "engineer",
-            "object"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114099,
-            "nanoseconds": 62000000
-          },
-          "description": "a physical human",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg",
-            "cssStyle": ""
-          },
-          "lastPrompt": ""
-        },
-        {
-          "id": "UArt3hSXc7L0B0a05Uaa",
-          "url": "",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "name": "OutputViewB",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772053163,
-            "nanoseconds": 498000000
-          },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772139358,
-            "nanoseconds": 686000000
-          },
-          "description": "a physical environment",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:2",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg"
-          },
-          "tags": [
-            "world",
-            "object"
-          ]
-        },
-        {
-          "id": "J5Iv8yiUDZm5KCl5w0rf",
-          "name": "MachineA",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772053081,
-            "nanoseconds": 656000000
-          },
-          "url": "",
-          "tags": [
-            "object",
-            "machine"
-          ],
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114117,
-            "nanoseconds": 787000000
-          },
-          "description": "a physical environment",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg"
-          }
-        },
-        {
-          "id": "54N3ODFTqzcpqEnWGbnt",
-          "url": "",
-          "tags": [
-            "human",
-            "action"
-          ],
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
-            "size": "3:1"
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772113512,
-            "nanoseconds": 786000000
-          },
-          "name": "Dialogue Generator",
-          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772019996,
-            "nanoseconds": 969000000
-          }
-        },
-        {
-          "id": "dmWZ28QrPYOoWQ2pcOyU",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772019467,
-            "nanoseconds": 427000000
-          },
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-          "name": "wait10s",
-          "url": "",
-          "lastPrompt": "",
-          "description": "waiting by seconds",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772117718,
-            "nanoseconds": 171000000
-          },
-          "metadata": {
-            "cssStyle": ""
-          },
-          "tags": [
-            "any",
-            "action",
-            "open"
-          ]
-        },
-        {
-          "id": "NUI7cFBcc3F59XbVBA2y",
-          "tags": [
-            "action"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114160,
-            "nanoseconds": 228000000
-          },
-          "description": "clone variable to new variable",
-          "metadata": {
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg",
-            "size": "2:1"
-          },
-          "lastPrompt": "",
-          "url": "",
-          "name": "Data Converter",
-          "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772015462,
-            "nanoseconds": 745000000
-          }
-        },
-        {
-          "id": "SzbbJVSYrntOHUF9boDU",
-          "name": "OutputView",
-          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771945066,
-            "nanoseconds": 303000000
-          },
-          "url": "",
-          "tags": [
-            "object"
-          ],
-          "metadata": {
-            "cssStyle": ""
-          },
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114185,
-            "nanoseconds": 519000000
-          },
-          "description": "physical environment"
-        },
-        {
-          "id": "CKrZDm2g9Vt1gNId0Gt1",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771926544,
-            "nanoseconds": 739000000
-          },
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 1.0\")\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 1s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 1000 }\n  };\n}",
-          "name": "Waiting",
-          "url": "",
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772117733,
-            "nanoseconds": 788000000
-          },
-          "description": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d77b1625ed2.70755447.jpg",
-            "size": "1:1",
-            "cssStyle": ""
-          },
-          "tags": [
-            "action",
-            "any",
-            "open"
-          ]
-        },
-        {
-          "id": "eJ2AB3vSxgbwoNinjMnD",
-          "tags": [
-            "ipcam",
-            "action"
-          ],
-          "lastPrompt": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114217,
-            "nanoseconds": 340000000
-          },
-          "description": "pick a ipcam, take a snapshop and generate label",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
-          },
-          "name": "CameraInput",
-          "function": "async function processRequest() {\n  setVar('takingphoto', true);\nsetVar('takingphotoV2', 'v2');\nconsole.log(\"takingphoto\", true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}\n",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771840604,
-            "nanoseconds": 972000000
-          },
-          "url": ""
-        },
-        {
-          "id": "UsWhf6pyCDQW1nvcnHxa",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg"
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114249,
-            "nanoseconds": 546000000
-          },
-          "description": "image to prompt",
-          "tags": [
-            "action"
-          ],
-          "url": "",
-          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "name": "VisionAI",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771840006,
-            "nanoseconds": 714000000
-          }
-        },
-        {
-          "id": "E5tInoIhMDck4CQq8Idt",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114261,
-            "nanoseconds": 946000000
-          },
-          "description": "physical component",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png"
-          },
-          "lastPrompt": "",
-          "tags": [
-            "object"
-          ],
-          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
-          "name": "show Button",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771495135,
-            "nanoseconds": 814000000
-          },
-          "url": ""
-        },
-        {
-          "id": "zJoNOauAnOf2nlglnlkf",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771495123,
-            "nanoseconds": 317000000
-          },
-          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
-          "name": "show Text",
-          "url": "",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114267,
-            "nanoseconds": 202000000
-          },
-          "description": "physical component",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
-          },
-          "lastPrompt": "",
-          "tags": [
-            "object"
-          ]
-        },
-        {
-          "id": "UNqCOI0lbGdZagC0kra5",
-          "url": "",
-          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
-          "name": "show Image",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771495005,
-            "nanoseconds": 117000000
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114272,
-            "nanoseconds": 595000000
-          },
-          "description": "physical component",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png"
-          },
-          "lastPrompt": "",
-          "tags": [
-            "object"
-          ]
-        },
-        {
-          "id": "EqR1uSyCMk59JYM86lSw",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772113617,
-            "nanoseconds": 68000000
-          },
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04ecea9a4f7.38771203.jpg"
-          },
-          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
-          "tags": [
-            "action"
-          ],
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770218220,
-            "nanoseconds": 600000000
-          },
-          "function": "",
-          "name": "xAI(Ram)"
-        },
-        {
-          "id": "0FnnIKiR0PxZlv4MT9nm",
-          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
-          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = 53.537048;\n  const lon = -2.010916;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "name": "OpenWeather",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770215450,
-            "nanoseconds": 531000000
-          },
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
-            "size": "3:1",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114296,
-            "nanoseconds": 774000000
-          },
-          "description": "get weather information via openweather api",
-          "tags": [
-            "action"
-          ]
-        },
-        {
-          "id": "rACQtq73fn2l4o7LHcQW",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770213924,
-            "nanoseconds": 893000000
-          },
-          "name": "Mission Check",
-          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
-          "tags": [
-            "action"
-          ],
-          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1"
-          },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772113659,
-            "nanoseconds": 748000000
-          },
-          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m"
-        },
-        {
-          "id": "jJjkD9yPzcKD21Jljtqg",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "function": "",
-          "name": "xAI",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770212884,
-            "nanoseconds": 535000000
-          },
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04eec6f6c74.11574150.png",
-            "size": "2:1"
-          },
-          "description": "correct ai data",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114351,
-            "nanoseconds": 858000000
-          },
-          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
-          "tags": [
-            "action"
-          ]
-        }
-      ],
+      "apis": [],
       "stepDelay": 1000
     },
     {

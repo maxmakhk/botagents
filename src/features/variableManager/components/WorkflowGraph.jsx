@@ -24,25 +24,16 @@ const ensureInjectedCss = (cssText) => {
   }
 };
 
-// EditFnButton: opens a popup to view/edit node.data.fnString and save back to nodes
+// EditFnButton: opens a centered modal to view/edit node.data.fnString and save back to nodes
 const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [] }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
-  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
-  const buttonRef = useRef(null);
 
   const handleClick = (ev) => {
     ev.stopPropagation();
     const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
     const current = (node && (node.data?.fnString || '')) || '';
     setText(current || '');
-    
-    // Get button position and calculate popup position
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setPopupPos({ x: rect.right + 10, y: rect.top });
-    }
-    
     setOpen(true);
   };
 
@@ -93,17 +84,21 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
 
   return (
     <div>
-      <button ref={buttonRef} title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
+      <button title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
       {open && ReactDOM.createPortal(
-        <div style={{position:'fixed', left: popupPos.x, top: popupPos.y, zIndex: 9999, background:'#021827', border:'1px solid #13353b', padding:8, borderRadius:6, minWidth:420}} onClick={(e) => e.stopPropagation()}>
-          <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6}}>Edit node function (fnString)</div>
-          <textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:6, borderRadius:4}} placeholder="Paste function body here" />
-          <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:6}}>
-            <button className="btn-cancel" onClick={handleCancel}>Close</button>
-            <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function">Default Function</button>
-            <button className="btn-primary" onClick={handleSave}>Submit</button>
+        <>
+          {/* Background overlay */}
+          <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex: 10000}} onClick={() => setOpen(false)} />
+          {/* Centered modal */}
+          <div style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
+            <div style={{fontSize:'0.9rem', color:'#9fd6e1', marginBottom:10, fontWeight:600}}>Edit node function (fnString)</div>
+            <textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:8, borderRadius:6, fontFamily:'monospace', fontSize:'0.85rem'}} placeholder="Paste function body here" />
+            <div style={{display:'flex', gap:10, justifyContent:'flex-end', marginTop:12}}><button className="btn-cancel" onClick={handleCancel} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Close</button>
+              <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function" style={{padding:'8px 14px', fontSize:'0.9rem'}}>Default Function</button>
+              <button className="btn-primary" onClick={handleSave} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Submit</button>
+            </div>
           </div>
-        </div>,
+        </>,
         document.body
       )}
     </div>
@@ -283,7 +278,7 @@ const WorkflowNode = ({ id, data }) => {
 
   return (
     <div style={containerStyle} className={`entry-btn ${extraClass} ${apiIdClass}`.trim()}>
-      {/* lock button + prompt icon top-right */}
+      {/* lock button + info icon + prompt icon top-right */}
       <div style={{position:'absolute', right:2, top:2, display:'flex', gap:2, flexDirection: 'row'}}>
         <button
           title={data?.locked || data?.metadata?.locked ? 'Unlock node' : 'Lock node'}
@@ -291,6 +286,13 @@ const WorkflowNode = ({ id, data }) => {
           style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}
         >
           {data?.locked || data?.metadata?.locked ? '🔒' : '🔓'}
+        </button>
+        <button
+          title="Show node details"
+          onClick={(ev) => { ev.stopPropagation(); try { if (data?.onShowNodeDetails) data.onShowNodeDetails(id); } catch(e){} }}
+          style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}
+        >
+          ℹ️
         </button>
         <PromptButton onNodeId={id} onSubmit={onNodePromptSubmit} onGetRelated={onGetRelated} rfNodes={rfNodes} rfEdges={rfEdges} />
         <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} apis={data?.apis} />
@@ -590,6 +592,13 @@ const WorkflowGraph = ({
           const clicked = nodesArr.find((nn) => String(nn.id) === String(nodeId));
           const relatedEdge = edgesArr.filter((e) => String(e.source) === String(nodeId) || String(e.target) === String(nodeId));
           return { relatedNode: clicked ? [clicked] : [], relatedEdge };
+        },
+        // provide callback to open node details modal
+        onShowNodeDetails: (nodeId) => {
+          const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(nodeId)) : null;
+          if (node && typeof onNodeDoubleClick === 'function') {
+            onNodeDoubleClick(null, node);
+          }
         }
       }
     }));

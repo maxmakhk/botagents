@@ -949,9 +949,14 @@ class ProjectManager {
     });
 
     // If resuming (waitingState = false), trigger waitResolvers to resume execution
+    let activeRun = false;
+    let resolvedCount = 0;
+    
     if (!waitingState) {
       const runInfo = this.runningProjects.get(projectId);
+      activeRun = !!runInfo && !!runInfo.executing;
       if (runInfo && runInfo.waitResolvers) {
+        resolvedCount = Object.keys(runInfo.waitResolvers).length;
         console.log(`[ProjectManager] Resuming workflow ${projectId}, waitResolvers keys:`, Object.keys(runInfo.waitResolvers));
         // Resolve all waiting promises
         for (const [nodeId, resolver] of Object.entries(runInfo.waitResolvers)) {
@@ -971,7 +976,13 @@ class ProjectManager {
       }
     }
 
-    return { success: true, waiting_wait: waitingState };
+    return {
+      success: true,
+      waiting_wait: waitingState,
+      activeRun,
+      resolvedCount,
+      canResume: waitingState ? true : (resolvedCount > 0)
+    };
   }
 
   /**

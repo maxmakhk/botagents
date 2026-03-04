@@ -31,7 +31,7 @@ const NodeDetailsModal = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1150,
+        zIndex: 10002,
         backdropFilter: 'blur(2px)'
       }}
       onClick={() => setSelectedNodeDetails(null)}
