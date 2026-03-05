@@ -263,6 +263,7 @@ async function runLoop({
             // convenience aliases for waiting control (allow calling setWaiting(...) directly)
             const setWaiting = async (flag) => { if (ctx && typeof ctx.setWaiting === 'function') return await ctx.setWaiting(flag); };
             const waiting_wait = async (flag) => { if (ctx && typeof ctx.waiting_wait === 'function') return await ctx.waiting_wait(flag); };
+            const workflowRun = async (...args) => { if (ctx && typeof ctx.workflowRun === 'function') return await ctx.workflowRun(...args); };
 
             ${source}
 
@@ -307,16 +308,34 @@ async function runLoop({
         broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn end', new Date(endTs).toISOString(), dur] });
 
         // Check wait
+        // If node had source (fnString) default to pausing unless auto_advance is set.
+        if (source) {
+          const autoAdvance = !!currentNode.data?.auto_advance;
+          if (!autoAdvance) {
+            setVar(`node_${currentNode.id}_status`, 'waiting_user_input');
+            setVar(`node_${currentNode.id}_wait_start`, Date.now());
+            broadcastLog('node_wait', { nodeId: currentNode.id, reason: 'waiting_user_input' });
+
+            let resumeResolve;
+            const resumePromise = new Promise((res) => { resumeResolve = res; });
+            waitResolvers[`manual_${currentNode.id}`] = resumeResolve;
+            console.log(`[workflowRunner] registered manual wait resolver: manual_${currentNode.id}`);
+            await resumePromise;
+            delete waitResolvers[`manual_${currentNode.id}`];
+          }
+        }
+
+        // Backward compatibility: also honor legacy `waiting_wait` store var
         const isWaiting = getFromStoreNorm('waiting_wait');
         if (isWaiting) {
           setVar(`node_${currentNode.id}_status`, 'waiting_user_input');
           setVar(`node_${currentNode.id}_wait_start`, Date.now());
           broadcastLog('node_wait', { nodeId: currentNode.id, reason: 'waiting_user_input' });
 
-          let resumeResolve;
-          const resumePromise = new Promise((res) => { resumeResolve = res; });
-          waitResolvers[String(currentNode.id)] = resumeResolve;
-          await resumePromise;
+          let resumeResolve2;
+          const resumePromise2 = new Promise((res) => { resumeResolve2 = res; });
+          waitResolvers[String(currentNode.id)] = resumeResolve2;
+          await resumePromise2;
           delete waitResolvers[String(currentNode.id)];
         }
       } catch (error) {
@@ -405,10 +424,18 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
   // socket-run wrapper that uses runLoop
   const getNodes = (typeof nodes === 'function') ? nodes : () => (Array.isArray(nodes) ? nodes : []);
   const getEdges = (typeof edges === 'function') ? edges : () => (Array.isArray(edges) ? edges : []);
+  const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
 
   let storeVars = { ...initialStoreVars };
   let abort = false;
   const waitResolvers = {};
+  // expose local waitResolvers to ProjectManager.runningProjects when projectId is provided
+  if (projectId) {
+    try {
+      projectManager.runningProjects.set(projectId, { executing: true, abort: false, waitResolvers });
+      console.log(`[workflowRunner] registered runningProjects entry for ${projectId}`);
+    } catch (e) { console.warn('[workflowRunner] failed to register runningProjects entry', e); }
+  }
 
   const broadcastLog = (event, data) => {
     try { socket.emit(event, data); } catch (e) { /* ignore */ }
@@ -469,6 +496,46 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
     // alias to match older naming used in some node code
     waiting_wait: async (flag) => {
       return await (typeof this.setWaiting === 'function' ? this.setWaiting(flag) : (async () => { projectManager.setWaitingState(projectId, !!flag); })());
+    },
+    workflowRun: async (arg) => {
+      console.log(`[workflowRun] invoked (runWorkflow.makeCtx) node=${currentNode && currentNode.id} arg=`, arg);
+      try {
+        // If called with true -> resume current manual wait for this node
+        if (arg === true) {
+          console.log(`[workflowRun] resume requested for node ${currentNode.id}`);
+          const manualKey = `manual_${currentNode.id}`;
+          const manualResolver = waitResolvers && waitResolvers[manualKey];
+          if (typeof manualResolver === 'function') { try { manualResolver(); } catch (e) {} delete waitResolvers[manualKey]; }
+          const legacyResolver = waitResolvers && waitResolvers[String(currentNode.id)];
+          if (typeof legacyResolver === 'function') { try { legacyResolver(); } catch (e) {} delete waitResolvers[String(currentNode.id)]; }
+
+          try { setVar('waiting_wait', false); setVar(`node_${currentNode.id}_status`, 'user_continued'); } catch (e) {}
+          broadcastLog('store_vars_update', { storeVars, projectId });
+          broadcastState({ storeVars, projectId });
+          return true;
+        }
+
+        // If passed an object, start a new run via runManager
+        if (arg && typeof arg === 'object') {
+          const opts = arg;
+          try {
+            console.log(`[workflowRun] starting new run for project ${projectId}`);
+            const rm = await import('./runManager.js');
+            const startFn = rm?.startRun || rm?.default?.startRun || (rm?.default || null);
+            if (typeof startFn === 'function') {
+              const runObj = startFn({ projectId, nodes: getNodes(), edges: getEdges(), apis: getApis(), options: opts });
+              return runObj;
+            }
+          } catch (e) {
+            broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
+          }
+          broadcastLog('store_vars_update', { storeVars, projectId });
+          broadcastState({ storeVars, projectId });
+          return null;
+        }
+
+        return null;
+      } catch (e) { return null; }
     },
     config: currentNode.data?.config || {},
     apis
@@ -593,6 +660,48 @@ export async function executeWorkflow({
         if (Object.prototype.hasOwnProperty.call(storeVars, key)) return storeVars[key];
         return undefined;
       } catch (e) { return undefined; }
+    },
+    workflowRun: async (arg) => {
+      console.log(`[workflowRun] invoked (executeWorkflow.makeCtx) node=${currentNode && currentNode.id} arg=`, arg);
+      try {
+        if (arg === true) {
+          console.log(`[workflowRun] executeWorkflow resume requested for node ${currentNode.id}`);
+          const manualKey = `manual_${currentNode.id}`;
+          const manualResolver = waitResolvers && waitResolvers[manualKey];
+          if (typeof manualResolver === 'function') { try { manualResolver(); } catch (e) {} delete waitResolvers[manualKey]; }
+          const legacyResolver = waitResolvers && waitResolvers[String(currentNode.id)];
+          if (typeof legacyResolver === 'function') { try { legacyResolver(); } catch (e) {} delete waitResolvers[String(currentNode.id)]; }
+
+          try {
+            const key = 'waiting_wait';
+            if (projectId) storeVars[`${projectId}__${key}`] = false;
+            storeVars[key] = false;
+          } catch (e) {}
+          broadcastLog('store_vars_update', { storeVars, projectId });
+          broadcastState({ storeVars, projectId });
+          return true;
+        }
+
+        if (arg && typeof arg === 'object') {
+          const opts = arg;
+          try {
+            console.log(`[workflowRun] executeWorkflow starting new run for project ${projectId}`);
+            const rm = await import('./runManager.js');
+            const startFn = rm?.startRun || rm?.default?.startRun || (rm?.default || null);
+            if (typeof startFn === 'function') {
+              const runObj = startFn({ projectId, nodes: getNodes(), edges: getEdges(), apis: getApis(), options: opts });
+              return runObj;
+            }
+          } catch (e) {
+            broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
+          }
+          broadcastLog('store_vars_update', { storeVars, projectId });
+          broadcastState({ storeVars, projectId });
+          return null;
+        }
+
+        return null;
+      } catch (e) { return null; }
     },
     config: currentNode.data?.config || {},
     apis

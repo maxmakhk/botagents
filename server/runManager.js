@@ -132,7 +132,8 @@ class RunManager {
         runObj.fakeSocket.emit('run_started', { runId, projectId });
 
         // supply socket-like object to existing runWorkflow implementation
-        await runWorkflow(runObj.fakeSocket, { nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
+        // Ensure we pass projectId so the runner can register its waitResolvers with ProjectManager
+        await runWorkflow(runObj.fakeSocket, { projectId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
 
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();

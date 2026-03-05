@@ -118,8 +118,6 @@ app.get('/health', (req, res) => {
 
 // Workflow trigger URLs
 app.get('/trigger/:workflowName', async (req, res) => {
-  console.log('Received request to trigger workflow:', req.params.workflowName);
-
   try {
     const { workflowName } = req.params;
     const result = projectManager.findWorkflowByName(workflowName);
@@ -130,15 +128,15 @@ app.get('/trigger/:workflowName', async (req, res) => {
 
     const { projectId, project } = result;
 
-    // Check if already running
-    if (project.status === 'running') {
-      return res.status(409).json({ success: false, error: 'Workflow already running' });
+    // Get first node and set it as activeNodeId
+    const firstNode = project.nodes && project.nodes[0];
+    if (!firstNode) {
+      return res.status(400).json({ success: false, error: 'Workflow has no nodes' });
     }
 
-    // Start workflow from beginning
-    projectManager.startProject(projectId, project.nodes, project.edges, project.apis, project.stepDelay);
-    
-    res.json({ success: true, projectId });
+    project.activeNodeId = firstNode.id;
+
+    res.json({ success: true, projectId, activeNodeId: firstNode.id });
   } catch (error) {
     console.error('[/trigger/:workflowName] Error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -146,8 +144,6 @@ app.get('/trigger/:workflowName', async (req, res) => {
 });
 
 app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
-  console.log('trigger & workflow & label', req.params.workflowName, req.params.nodeLabel);
-  
   try {
     const { workflowName, nodeLabel } = req.params;
     const result = projectManager.findWorkflowByName(workflowName);
@@ -164,18 +160,10 @@ app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
       return res.status(404).json({ success: false, error: `Node with label "${nodeLabel}" not found` });
     }
 
-    const isRunning = project.status === 'running';
+    // Store node ID as jumpID for /run/:workflowID to use
+    project.jumpID = targetNode.id;
 
-    if (isRunning) {
-      // Force jump to node
-      const jumpResult = await projectManager.forceJumpToNode(projectId, targetNode.id);
-      return res.json({ success: jumpResult.success, projectId, jumped: true, nodeId: targetNode.id });
-    } else {
-      // Set customStartNodeId and start workflow
-      project.customStartNodeId = targetNode.id;
-      projectManager.startProject(projectId, project.nodes, project.edges, project.apis, project.stepDelay);
-      return res.json({ success: true, projectId, jumped: false, nodeId: targetNode.id });
-    }
+    res.json({ success: true, projectId, nodeId: targetNode.id, message: 'Node ID stored in jumpID, call /run/:workflowID to continue' });
   } catch (error) {
     console.error('[/trigger/:workflowName/:nodeLabel] Error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -247,6 +235,55 @@ app.get('/wait/:workflowID/:status', (req, res) => {
     });
   } catch (error) {
     console.error('[/wait/:workflowID/:status] Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Convenience endpoint to resume workflow: check jumpID first, else find next node by edges
+app.get('/run/:workflowID', async (req, res) => {
+  try {
+    const { workflowID } = req.params;
+    console.log(`/run/ ${workflowID} requested resume`);
+
+    // Resolve projectId
+    let projectId = workflowID;
+    const result = projectManager.findWorkflowByName(workflowID);
+    if (result) projectId = result.projectId;
+
+    const project = projectManager.getProject(projectId);
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+
+    // Check if jumpID is set (from /trigger/:workflowName/:nodeLabel)
+    let nextNodeId = null;
+    if (project.jumpID) {
+      nextNodeId = project.jumpID;
+      delete project.jumpID;  // Clear it after use
+    } else {
+      // Get current node
+      const activeNodeId = project.activeNodeId;
+      if (!activeNodeId) {
+        return res.json({ success: false, error: 'No active node' });
+      }
+
+      // Find next node via edges
+      const edges = project.edges || [];
+      const outgoing = edges.filter(e => String(e.source || e.from) === String(activeNodeId));
+
+      if (outgoing.length === 0) {
+        return res.json({ success: true, message: 'No next node, workflow complete' });
+      }
+
+      nextNodeId = outgoing[0].target || outgoing[0].to;
+    }
+
+    // Jump to next node
+    await projectManager.forceJumpToNode(projectId, String(nextNodeId));
+
+    res.json({ success: true, projectId, nextNodeId, message: 'Jumped to next node' });
+  } catch (error) {
+    console.error('[/run/:workflowID] Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
