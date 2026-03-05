@@ -132,7 +132,12 @@ export const buildWorkflowPayload = ({ rfNodes, rfEdges, workflowData, functions
       description: (n.data && n.data.description) ? String(n.data.description) : String(n.description || ''),
       position: n.position || { x: 0, y: 0 },
       metadata: n.metadata || n.data?.metadata || {},
-      actions
+      actions,
+      data: {
+        nodeLabel: n.data?.nodeLabel || '',
+        fnString: n.data?.fnString || '',
+        functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
+      }
     };
   });
 

@@ -251,11 +251,56 @@ const VariableManager = ({ onBack }) => {
         setRfNodes(rounded);
       }
       if (Array.isArray(layoutedEdges)) setRfEdges(layoutedEdges);
+      // Push layout changes to server so other clients see new positions
+      try {
+        const nodesToPush = rounded || layoutedNodes || [];
+        const edgesToPush = Array.isArray(layoutedEdges) ? layoutedEdges : (edges || rfEdges || []);
+        if (typeof pushWorkflowUpdate === 'function') pushWorkflowUpdate(nodesToPush, edgesToPush);
+      } catch (e) { /* ignore push errors */ }
       // keep current zoom level; do not auto-fit after layout
     } catch (err) {
       console.error('Auto layout failed:', err);
     }
   }, [rfNodes, rfEdges, setRfNodes, setRfEdges, setLayoutDirection]);
+
+  // Wrapper for React Flow onNodesChange: apply position updates locally then push minimal update to server
+  const handleNodesChange = useCallback((changes) => {
+    try {
+      // let React Flow update its internal nodes state
+      if (typeof onRfNodesChange === 'function') onRfNodesChange(changes);
+
+      if (!Array.isArray(changes) || changes.length === 0) return;
+
+      // Build updated nodes by applying position-type changes onto current rfNodes snapshot
+      const updated = (rfNodes || []).map((n) => {
+        const ch = (changes || []).find(c => String(c.id) === String(n.id));
+        if (!ch) return n;
+        // React Flow change object may include position or positionAbsolute
+        if (ch.position && typeof ch.position.x === 'number' && typeof ch.position.y === 'number') {
+          return { ...n, position: { x: Math.round(ch.position.x), y: Math.round(ch.position.y) } };
+        }
+        if (ch.positionAbsolute && typeof ch.positionAbsolute.x === 'number' && typeof ch.positionAbsolute.y === 'number') {
+          return { ...n, position: { x: Math.round(ch.positionAbsolute.x), y: Math.round(ch.positionAbsolute.y) } };
+        }
+        return n;
+      });
+
+      // Determine if any node moved
+      const moved = updated.filter((u, i) => {
+        const old = rfNodes && rfNodes[i];
+        if (!old || !old.position || !u.position) return false;
+        return old.position.x !== u.position.x || old.position.y !== u.position.y;
+      });
+      if (moved.length === 0) return;
+
+      // Push the full nodes array (server will diff as needed)
+      if (typeof pushWorkflowUpdate === 'function') {
+        pushWorkflowUpdate(updated, rfEdges || []);
+      }
+    } catch (e) {
+      console.warn('handleNodesChange push failed', e);
+    }
+  }, [onRfNodesChange, rfNodes, rfEdges, pushWorkflowUpdate]);
 
   // Helper: generate a light pastel HSL color
   const getRandLightColor = () => {
@@ -1314,7 +1359,8 @@ const VariableManager = ({ onBack }) => {
               actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
               data: {
                 nodeLabel: n.data?.nodeLabel || '',
-                fnString: n.data?.fnString || ''
+                fnString: n.data?.fnString || '',
+                functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
               }
             })),
             edges: edgesValid.map((e, i) => ({
@@ -1960,7 +2006,12 @@ const VariableManager = ({ onBack }) => {
         description: (n.data && n.data.description) ? String(n.data.description) : '',
         position: n.position || { x: 0, y: 0 },
         metadata: n.metadata || n.data?.metadata || {},
-        actions: Array.isArray(n.data?.actions) ? n.data.actions : []
+        actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
+        data: {
+          nodeLabel: n.data?.nodeLabel || '',
+          fnString: n.data?.fnString || '',
+          functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
+        }
       }));
       const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
       const saveIdx = (selectedRuleIndex === undefined || selectedRuleIndex === null) ? 0 : Number(selectedRuleIndex);
@@ -2447,7 +2498,20 @@ const VariableManager = ({ onBack }) => {
 
       // Persist the current workflow into the functionsList entry for this rule index
       try {
-        const exportNodes = (updatedNodes || []).map((n) => ({ id: String(n.id), type: n.type || 'action', label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id), description: (n.data && n.data.description) ? String(n.data.description) : '', position: n.position || { x: 0, y: 0 }, metadata: n.metadata || n.data?.metadata || {}, actions: Array.isArray(n.data?.actions) ? n.data.actions : [] }));
+        const exportNodes = (updatedNodes || []).map((n) => ({
+          id: String(n.id),
+          type: n.type || 'action',
+          label: (n.data && (n.data.labelText || n.data.label)) ? String(n.data.labelText || n.data.label) : String(n.id),
+          description: (n.data && n.data.description) ? String(n.data.description) : '',
+          position: n.position || { x: 0, y: 0 },
+          metadata: n.metadata || n.data?.metadata || {},
+          actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
+          data: {
+            nodeLabel: n.data?.nodeLabel || '',
+            fnString: n.data?.fnString || '',
+            functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
+          }
+        }));
         const exportEdges = (rfEdges || []).map((e) => ({ id: String(e.id || ''), source: String(e.source || e.from || ''), target: String(e.target || e.to || ''), label: e.label || '' }));
 
         const nextFunctions = [...nextFunctionsBase];
@@ -2486,7 +2550,12 @@ const VariableManager = ({ onBack }) => {
         description: (n.data && n.data.description) ? String(n.data.description) : '',
         position: n.position || { x: 0, y: 0 },
         metadata: n.metadata || n.data?.metadata || {},
-        actions: Array.isArray(n.data?.actions) ? n.data.actions : []
+        actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
+        data: {
+          nodeLabel: n.data?.nodeLabel || '',
+          fnString: n.data?.fnString || '',
+          functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
+        }
       }));
       const exportEdges = (rfEdges || []).map((e) => ({
         id: String(e.id || ''),
@@ -3621,7 +3690,7 @@ const edges = [
             rfEdges={rfEdges}
             setRfNodes={setRfNodes}
             setRfEdges={setRfEdges}
-            onRfNodesChange={onRfNodesChange}
+            onRfNodesChange={handleNodesChange}
             onRfEdgesChange={onRfEdgesChange}
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}

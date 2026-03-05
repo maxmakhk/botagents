@@ -129,6 +129,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
             const restoredLabelText = n.data?.labelText || n.label || n.id;
             const restoredLabel = n.data?.label || n.label || n.id;
             const restoredFnString = n.data?.fnString || '';
+            const restoredFunctionInput = n.data?.functionInput ?? n.functionInput ?? undefined;
             
             return {
               id: String(n.id),
@@ -141,6 +142,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
                 label: restoredLabel,
                 nodeLabel: n.data?.nodeLabel || '', // Preserve node label from server
                 fnString: restoredFnString,
+                functionInput: restoredFunctionInput,
                 actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
                 metadata,
                 backgroundColor: n.backgroundColor || (n.data && n.data.backgroundColor) || undefined,
@@ -236,7 +238,8 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
       actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
       data: {
         nodeLabel: n.data?.nodeLabel || '',
-        fnString: n.data?.fnString || '' // Preserve node fnString when exporting
+        fnString: n.data?.fnString || '', // Preserve node fnString when exporting
+        functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
       }
     }));
 
