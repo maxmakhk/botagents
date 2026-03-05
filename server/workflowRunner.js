@@ -452,7 +452,60 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
       warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args }); }
     },
     alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
-    node: currentNode,
+    // Ensure node.data.input.var contains functionInput when present on node or resolved API
+    node: (() => {
+      try {
+        const data = { ...(currentNode.data || {}) };
+        // determine base input object
+        const baseInput = (data.input ?? data.config ?? data.payload) || {};
+        let defaultFnInput = undefined;
+        if (data.functionInput !== undefined) defaultFnInput = data.functionInput;
+        else {
+          try {
+            const apiList = getApis();
+            const rawLabel = String(data?.label || currentNode?.label || data?.labelText || '').trim();
+            const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
+            if (normalized && Array.isArray(apiList)) {
+              for (const a of apiList) {
+                const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
+                if (!cand) continue;
+                if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
+                  if (a && a.functionInput !== undefined) { defaultFnInput = a.functionInput; break; }
+                }
+              }
+            }
+          } catch (e) { /* ignore api resolution errors */ }
+        }
+        const finalInput = { ...baseInput };
+        if (defaultFnInput !== undefined) {
+          if (typeof defaultFnInput === 'string') {
+            // Try strict JSON first
+            try {
+              defaultFnInput = JSON.parse(defaultFnInput);
+            } catch (e1) {
+              // Heuristic: convert single quotes to double and quote unquoted keys then try parse
+              try {
+                let s = String(defaultFnInput).trim();
+                s = s.replace(/'/g, '"');
+                s = s.replace(/([{,]\s*)([A-Za-z0-9_@$]+)\s*:/g, '$1"$2":');
+                defaultFnInput = JSON.parse(s);
+              } catch (e2) {
+                // Last resort: evaluate as JS expression (may be a plain object literal)
+                try {
+                  // eslint-disable-next-line no-new-func
+                  const val = (new Function('return ' + defaultFnInput))();
+                  defaultFnInput = (val && typeof val === 'object') ? val : {};
+                } catch (e3) {
+                  defaultFnInput = {};
+                }
+              }
+            }
+          }
+          finalInput.var = (defaultFnInput && typeof defaultFnInput === 'object') ? defaultFnInput : {};
+        }
+        return { ...currentNode, data: { ...data, input: finalInput } };
+      } catch (e) { return currentNode; }
+    })(),
     storeVars: storeVars,
     globalStoreVars: projectManager.getGlobalVars(),
     setVar: (n, v) => {
@@ -613,7 +666,56 @@ export async function executeWorkflow({
       warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args }); }
     },
     alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
-    node: currentNode,
+    // Ensure node.data.input.var contains functionInput when present on node or resolved API
+    node: (() => {
+      try {
+        const data = { ...(currentNode.data || {}) };
+        const baseInput = (data.input ?? data.config ?? data.payload) || {};
+        let defaultFnInput = undefined;
+        if (data.functionInput !== undefined) defaultFnInput = data.functionInput;
+        else {
+          try {
+            const apiList = getApis();
+            const rawLabel = String(data?.label || currentNode?.label || data?.labelText || '').trim();
+            const normalized = rawLabel.replace(/^api[:\s-]*/i, '').trim().toLowerCase();
+            if (normalized && Array.isArray(apiList)) {
+              for (const a of apiList) {
+                const cand = String(a?.name || a?.label || a?.displayName || a?.id || '').trim().toLowerCase();
+                if (!cand) continue;
+                if (cand === normalized || cand.includes(normalized) || normalized.includes(cand)) {
+                  if (a && a.functionInput !== undefined) { defaultFnInput = a.functionInput; break; }
+                }
+              }
+            }
+          } catch (e) { /* ignore */ }
+        }
+        const finalInput = { ...baseInput };
+        if (defaultFnInput !== undefined) {
+          if (typeof defaultFnInput === 'string') {
+            try {
+              defaultFnInput = JSON.parse(defaultFnInput);
+            } catch (e1) {
+              try {
+                let s = String(defaultFnInput).trim();
+                s = s.replace(/'/g, '"');
+                s = s.replace(/([{,]\s*)([A-Za-z0-9_@$]+)\s*:/g, '$1"$2":');
+                defaultFnInput = JSON.parse(s);
+              } catch (e2) {
+                try {
+                  // eslint-disable-next-line no-new-func
+                  const val = (new Function('return ' + defaultFnInput))();
+                  defaultFnInput = (val && typeof val === 'object') ? val : {};
+                } catch (e3) {
+                  defaultFnInput = {};
+                }
+              }
+            }
+          }
+          finalInput.var = (defaultFnInput && typeof defaultFnInput === 'object') ? defaultFnInput : {};
+        }
+        return { ...currentNode, data: { ...data, input: finalInput } };
+      } catch (e) { return currentNode; }
+    })(),
     storeVars: storeVars,
     globalStoreVars: projectManager.getGlobalVars(),
     setVar: (n, v) => {

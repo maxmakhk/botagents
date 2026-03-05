@@ -23,6 +23,7 @@ const ExternalAPIPanel = ({
 }) => {
   const [newApiTags, setNewApiTags] = useState('');
   const [newApiFunction, setNewApiFunction] = useState('');
+  const [newApiFunctionInput, setNewApiFunctionInput] = useState('');
   const [newApiDescription, setNewApiDescription] = useState('');
   const [newApiCss, setNewApiCss] = useState('');
   const [editingApiId, setEditingApiId] = useState(null);
@@ -60,9 +61,10 @@ const ExternalAPIPanel = ({
       return;
     }
     // POST URL is optional; if empty pass an empty string
-    await addApi(newApiName.trim(), (newApiUrl || '').trim(), newApiTags, newApiFunction, newApiCss, newApiDescription);
+    await addApi(newApiName.trim(), (newApiUrl || '').trim(), newApiTags, newApiFunction, newApiCss, newApiDescription, newApiFunctionInput);
     setNewApiTags('');
     setNewApiFunction('');
+    setNewApiFunctionInput('');
     setNewApiDescription('');
     setNewApiCss('');
   };
@@ -105,18 +107,25 @@ const ExternalAPIPanel = ({
 
   const openFunctionEditor = (apiId) => {
     const api = apis.find(a => a.id === apiId);
-    if (api) setFunctionEditModal({ apiId, tempFunction: api.function || '' });
+    if (api) setFunctionEditModal({ apiId, tempFunction: api.function || '', tempFunctionInput: api.functionInput !== undefined ? (typeof api.functionInput === 'string' ? api.functionInput : JSON.stringify(api.functionInput, null, 2)) : '' });
   };
   const closeFunctionEditor = () => setFunctionEditModal(null);
 
   const saveFunctionEdit = async () => {
     if (!functionEditModal) return;
-    const { apiId, tempFunction } = functionEditModal;
+    const { apiId, tempFunction, tempFunctionInput } = functionEditModal;
     handleEditField(apiId, 'function', tempFunction);
+    handleEditField(apiId, 'functionInput', tempFunctionInput);
     try {
       const api = apis.find(a => a.id === apiId);
       if (api) {
-        const updatePayload = { name: api.name, url: api.url, function: tempFunction };
+        let parsedInput = tempFunctionInput;
+        try {
+          parsedInput = tempFunctionInput && typeof tempFunctionInput === 'string' ? JSON.parse(tempFunctionInput) : tempFunctionInput;
+        } catch (e) {
+          parsedInput = tempFunctionInput;
+        }
+        const updatePayload = { name: api.name, url: api.url, function: tempFunction, functionInput: parsedInput };
         if (api.tags !== undefined) updatePayload.tags = api.tags;
         await updateApiMetadata(apiId, updatePayload);
         setAiWarning('Function saved successfully');
@@ -219,6 +228,13 @@ const ExternalAPIPanel = ({
           value={newApiFunction}
           onChange={(e) => setNewApiFunction(e.target.value)}
           rows={3}
+          style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #475569', background: '#020617', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem', marginBottom: 8 }}
+        />
+        <textarea
+          placeholder="Function input default (optional - JSON or JS value used as default input.var)"
+          value={newApiFunctionInput}
+          onChange={(e) => setNewApiFunctionInput(e.target.value)}
+          rows={4}
           style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #475569', background: '#020617', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem', marginBottom: 8 }}
         />
         <textarea
@@ -723,6 +739,16 @@ const ExternalAPIPanel = ({
                       ▶ Test Function
                     </button>
                   </div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6, fontWeight:600}}>Function Input (default input.var)</div>
+                  <textarea
+                    value={functionEditModal.tempFunctionInput || ''}
+                    onChange={(e) => setFunctionEditModal({ ...functionEditModal, tempFunctionInput: e.target.value })}
+                    placeholder='例如 JSON array 或 物件，代表預設 input.var'
+                    rows={6}
+                    style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #475569', background: '#0f172a', color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem', resize: 'vertical', marginBottom: 8 }}
+                  />
                 </div>
                 <textarea
                   value={functionEditModal.tempFunction}

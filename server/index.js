@@ -21,8 +21,20 @@ import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, se
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
-app.use(express.json());
+
+// Increase default body size limit to reduce PayloadTooLarge occurrences during debugging
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors());
+
+// Temporary logging middleware: prints claimed content-length and route to help find large requests
+app.use((req, res, next) => {
+  try {
+    const cl = req.headers['content-length'] || '(none)';
+    console.log(`[REQ-SIZE] ${req.method} ${req.originalUrl} content-length=${cl}`);
+  } catch (e) { /* ignore */ }
+  next();
+});
 
 // Initialize Firebase for server-side Firestore operations (used by endpoints below)
 const firebaseConfig = {
@@ -394,7 +406,7 @@ app.post('/api/logs', (req, res) => {
 app.post('/api/external-apis', async (req, res) => {
   try {
     if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
-    const { name, url, tags = [], function: fn = '', cssStyle = '', description = '' } = req.body || {};
+    const { name, url, tags = [], function: fn = '', cssStyle = '', description = '', functionInput = '' } = req.body || {};
     if (!name) return res.status(400).json({ error: 'name_required' });
     const docRef = await addDoc(collection(firestore, 'VariableManager-apis'), {
       name,
@@ -402,11 +414,12 @@ app.post('/api/external-apis', async (req, res) => {
       description: description || '',
       tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean),
       function: fn || '',
+      functionInput: functionInput !== undefined ? functionInput : '',
       metadata: { cssStyle: cssStyle || '' },
       lastPrompt: '',
       createdAt: new Date(),
     });
-    const out = { id: docRef.id, name, url, description: description || '', tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean), function: fn || '', metadata: { cssStyle: cssStyle || '' }, lastPrompt: '', createdAt: new Date() };
+    const out = { id: docRef.id, name, url, description: description || '', tags: Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean), function: fn || '', functionInput: functionInput !== undefined ? functionInput : '', metadata: { cssStyle: cssStyle || '' }, lastPrompt: '', createdAt: new Date() };
     // notify project manager / running runners (if projectId provided)
     try {
       const projectId = req.body?.projectId;
@@ -444,6 +457,7 @@ app.put('/api/external-apis/:id', async (req, res) => {
     if (metadata.url !== undefined) updateData.url = metadata.url;
     if (metadata.description !== undefined) updateData.description = metadata.description;
     if (metadata['function'] !== undefined) updateData.function = metadata['function'];
+    if (metadata.functionInput !== undefined) updateData.functionInput = metadata.functionInput;
     if (metadata.tags !== undefined) updateData.tags = Array.isArray(metadata.tags) ? metadata.tags : String(metadata.tags).split(',').map(t => t.trim()).filter(Boolean);
     const metaImage = metadata.image !== undefined ? metadata.image : metaFromBody.image;
     const metaSize = metadata.size !== undefined ? metadata.size : metaFromBody.size;
@@ -653,7 +667,7 @@ app.post('/api/generate-system-prompt', async (req, res) => {
     // ============================================================================
     // This function calls Ollama to generate nodes and edges from the user prompt
     // and system prompt. OLLAMA_URL and OLLAMA_MODEL should be configured in .env
-    // (e.g., OLLAMA_URL=http://localhost:11434/api/chat, OLLAMA_MODEL=gemma3:4b)
+    // (e.g., OLLAMA_URL=http://localhost:11434/api/chat, OLLAMA_MODEL=qwen3:8b)
     //
     // Ollama must be running locally before enabling this.
     // To enable this: uncomment the code below and ensure Ollama is running
@@ -669,7 +683,7 @@ app.post('/api/generate-system-prompt', async (req, res) => {
       
       // Return the complete Ollama result
       result.ollamaResult = ollamaResult;
-      result.aimodel = process.env.OLLAMA_MODEL || 'gemma3:4b';
+      result.aimodel = process.env.OLLAMA_MODEL || 'qwen3:8b';
       
       // Extract nodes and edges from parsed workflow if available
       if (ollamaResult?.parsedWorkflow) {

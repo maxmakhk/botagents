@@ -105,6 +105,18 @@ function generateSystemPrompt({ userPrompt = '', functionsList = [], apis = [] }
       });
     }
 
+    // Build component input descriptions (parse functionInput when present)
+    const componentInputs = [];
+    if (Array.isArray(apis)) {
+      apis.forEach((api) => {
+        let fi = api.functionInput;
+        if (typeof fi === 'string') {
+          try { fi = JSON.parse(fi); } catch (e) { /* keep string if not JSON */ }
+        }
+        componentInputs.push({ name: api.name || api.id || 'unknown', id: api.id || '', functionInput: fi });
+      });
+    }
+
     let output = '';
     output += 'Physically Objects:\n';
     physicalObjects.forEach((obj) => {
@@ -121,12 +133,19 @@ function generateSystemPrompt({ userPrompt = '', functionsList = [], apis = [] }
       if (comp.isAction) tags.push('action');
       if (tags.length > 0) output += `, [${tags.join(', ')}]`;
       output += '\n';
+      output += '\nComponent Inputs (defaults):\n';
+      componentInputs.forEach((ci) => {
+        let fiStr = '';
+        try { fiStr = (typeof ci.functionInput === 'string') ? ci.functionInput : JSON.stringify(ci.functionInput, null, 2); } catch (e) { fiStr = String(ci.functionInput); }
+        output += `${ci.name} (${ci.id}): ${fiStr}\n`;
+      });
     });
 
     const systemPrompt = `it is a industry lab
 if you have phycisly object here:
 ${output}
-base on user prompt, to create a workflow, as a array format as below:
+When using component defaults: if a component's "Component Inputs (defaults)" entry is ` + "undefined" + `, skip providing an input for that component when generating nodes (do not include a 'value' or an empty object).
+Base on user prompt, to create a workflow, as a array format as below:
 const nodes = [
  {id: "node1", action:"CameraInput",value:""},
  {id: "node2", action:"worldPosition",value:""},

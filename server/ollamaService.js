@@ -7,14 +7,14 @@
  * @param {string} options.systemPrompt - System prompt describing available objects and actions
  * @param {string} options.userPrompt - User's task description
  * @param {string} options.ollamaUrl - Ollama API endpoint URL (from .env, e.g., http://localhost:11434/api/chat)
- * @param {string} options.ollamaModel - Ollama model name (from .env, defaults to 'gemma3:4b')
+ * @param {string} options.ollamaModel - Ollama model name (from .env, defaults to 'qwen3:8b')
  * @returns {Promise<{ollamaResult: {content: string, rawMessage: Object, parsedWorkflow: Object}}>} Complete Ollama response
  */
 async function requestFromOllama({
   systemPrompt = '',
   userPrompt = '',
   ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434/api/chat',
-  ollamaModel = process.env.OLLAMA_MODEL || 'gemma3:4b'
+  ollamaModel = process.env.OLLAMA_MODEL || 'qwen3:8b'
 } = {}) {
   
   console.log('[ollamaService] Requesting workflow from Ollama...');

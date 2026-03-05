@@ -28,12 +28,15 @@ const ensureInjectedCss = (cssText) => {
 const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [] }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
+  const [functionInput, setFunctionInput] = useState('');
 
   const handleClick = (ev) => {
     ev.stopPropagation();
     const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
     const current = (node && (node.data?.fnString || '')) || '';
     setText(current || '');
+    const currentInput = (node && (node.data?.functionInput || '')) || '';
+    setFunctionInput(typeof currentInput === 'string' ? currentInput : JSON.stringify(currentInput, null, 2));
     setOpen(true);
   };
 
@@ -72,7 +75,13 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     try {
       const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
       if (!node) return;
-      const newData = { ...(node.data || {}), fnString: text };
+      let parsedInput = functionInput;
+      try {
+        parsedInput = functionInput && typeof functionInput === 'string' ? JSON.parse(functionInput) : functionInput;
+      } catch (e) {
+        parsedInput = functionInput;
+      }
+      const newData = { ...(node.data || {}), fnString: text, functionInput: parsedInput };
       const updates = { data: newData };
       if (typeof updateNodeData === 'function') {
         updateNodeData(onNodeId, updates);
@@ -80,6 +89,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     } catch (e) { console.error('EditFnButton save error:', e); }
     setOpen(false);
     setText('');
+    setFunctionInput('');
   };
 
   return (
@@ -93,6 +103,10 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
           <div style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
             <div style={{fontSize:'0.9rem', color:'#9fd6e1', marginBottom:10, fontWeight:600}}>Edit node function (fnString)</div>
             <textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:8, borderRadius:6, fontFamily:'monospace', fontSize:'0.85rem'}} placeholder="Paste function body here" />
+            <div style={{marginTop:12}}>
+              <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6, fontWeight:600}}>Function Input (default input.var)</div>
+              <textarea rows={8} value={functionInput} onChange={(e) => setFunctionInput(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:8, borderRadius:6, fontFamily:'monospace', fontSize:'0.85rem'}} placeholder='例如 JSON array，代表 input.var' />
+            </div>
             <div style={{display:'flex', gap:10, justifyContent:'flex-end', marginTop:12}}><button className="btn-cancel" onClick={handleCancel} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Close</button>
               <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function" style={{padding:'8px 14px', fontSize:'0.9rem'}}>Default Function</button>
               <button className="btn-primary" onClick={handleSave} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Submit</button>
