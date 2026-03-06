@@ -625,7 +625,7 @@ app.post('/api/generate-system-prompt', async (req, res) => {
   console.log('Received POST /api/generate-system-prompt with body:', req.body.userPrompt, req.body.functionsList.length);
   try {
     const { userPrompt, functionsList, apis } = req.body || {};
-    const result = generateSystemPrompt({ userPrompt, functionsList, apis });
+    const result = generateSystemPrompt({ userPrompt, functionsList, apis, globalStoreVars: projectManager.getGlobalVars() });
 
 
 
