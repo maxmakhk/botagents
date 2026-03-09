@@ -206,6 +206,7 @@ Rules:
 - Number of nodes should be within 20
 - Output JSON Result only, no markdown, no explanation, no code block, just pure JSON.
 - edges can have optional "expression" field to indicate execution conditions (e.g., "varA > 10"), but if not provided, assume always true. the variables is collected from globalStoreVars, which is the memory of current workflow, it can be updated by each node execution, and it can be used for condition judgement for edges.
+- Function Input variable, you can using getVar("varName") to load the globalStoreVars.varName
 
 if you have phycisly object here:
 ${output}
@@ -231,6 +232,8 @@ Rules:
 - Think carefully about how to complete a full structure
 - Number of nodes should be within 20
 - Output JSON Result only, no markdown, no explanation, no code block, just pure JSON.
+- Function Input variable, you can using getVar("varName") to load the globalStoreVars.varName
+- edges can have optional "expression" field to indicate execution conditions (e.g., "varA > 10"), but if not provided, assume always true. the variables is collected from globalStoreVars, which is the memory of current workflow, it can be updated by each node execution, and it can be used for condition judgement for edges.
 
 Your Physical objects here (JSON array):
 ${JSON.stringify(objectVariables, null, 2)}
@@ -241,14 +244,14 @@ ${JSON.stringify(actionComponents, null, 2)}
 When using component defaults: if a component's "Component Inputs (defaults)" entry is ` + "undefined" + `, skip providing an input for that component when generating nodes (do not include a 'value' or an empty object).
 Base on user prompt, to create a workflow, as a array format as below:
 const nodes = [
- {id: "node1", action:"CameraInput",value:"", label:"start", input:{} },
- {id: "node2", action:"worldPosition",value:"", label:"node2", input:{} },
- {id: "node3", action:"wait",value:2000, label:"end", input:{} }
+ {id: "node1", action:"CameraInput",value:"", label:"start", desc:"", functionInput:{} },
+ {id: "node2", action:"worldPosition",value:"", label:"node2", desc:"", functionInput:{} },
+ {id: "node3", action:"wait",value:2000, label:"end", desc:"", functionInput:{} }
 ]
 const edges = [
-  {source: "node1", target: "node2", label: "next"},
-  {source: "node2", target: "node3", label: "next"},
-  {source: "node3", target: "node1", label: "repeat"},
+  {source: "node1", target: "node2", label: "next", expression:"varA > 10"},
+  {source: "node2", target: "node3", label: "next", expression:"varB < 5"},
+  {source: "node3", target: "node1", label: "repeat", expression:"varC === true"},
 ]`;
 
     return { 

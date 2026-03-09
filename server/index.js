@@ -30,8 +30,8 @@ app.use(cors());
 // Temporary logging middleware: prints claimed content-length and route to help find large requests
 app.use((req, res, next) => {
   try {
-    const cl = req.headers['content-length'] || '(none)';
-    console.log(`[REQ-SIZE] ${req.method} ${req.originalUrl} content-length=${cl}`);
+    //const cl = req.headers['content-length'] || '(none)';
+    //console.log(`[REQ-SIZE] ${req.method} ${req.originalUrl} content-length=${cl}`);
   } catch (e) { /* ignore */ }
   next();
 });
@@ -159,7 +159,7 @@ app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
   try {
     const { workflowName, nodeLabel } = req.params;
     const result = projectManager.findWorkflowByName(workflowName);
-    
+    console.log("[trigger/:workflowName/:nodeLabel]", result, "[workflowName/]", workflowName, "[nodeLabel/]", nodeLabel);
     if (!result) {
       return res.status(404).json({ success: false, error: 'Workflow not found' });
     }
@@ -174,6 +174,10 @@ app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
 
     // Store node ID as jumpID for /run/:workflowID to use
     project.jumpID = targetNode.id;
+
+    console.log(`[Trigger] Stored jumpID=${targetNode.id} for workflow "${workflowName}" (projectId=${projectId}). Call /run/${workflowName} to continue execution from this node.`); 
+
+    fetch('http://localhost:3001/run/'+ workflowName)
 
     res.json({ success: true, projectId, nodeId: targetNode.id, message: 'Node ID stored in jumpID, call /run/:workflowID to continue' });
   } catch (error) {
@@ -255,7 +259,7 @@ app.get('/wait/:workflowID/:status', (req, res) => {
 app.get('/run/:workflowID', async (req, res) => {
   try {
     const { workflowID } = req.params;
-    console.log(`/run/ ${workflowID} requested resume`);
+    //console.log(`/run/ ${workflowID} requested resume`);
 
     // Resolve projectId
     let projectId = workflowID;
@@ -267,7 +271,6 @@ app.get('/run/:workflowID', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Workflow not found' });
     }
 
-    // Check if jumpID is set (from /trigger/:workflowName/:nodeLabel)
     let nextNodeId = null;
     if (project.jumpID) {
       nextNodeId = project.jumpID;
