@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-09T15:22:22.565Z",
+  "savedAt": "2026-03-10T08:46:16.607Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -1209,7 +1209,7 @@
             "action",
             "open"
           ],
-          "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
+          "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772117718,
@@ -1218,7 +1218,8 @@
           "url": "",
           "description": "Wait a few seconds, then proceed to the next node.",
           "lastPrompt": "",
-          "name": "wait10s"
+          "name": "workflow waiting",
+          "functionInput": "{\nwaitingTime: 10000\n}"
         },
         {
           "id": "NUI7cFBcc3F59XbVBA2y",
@@ -6925,24 +6926,1086 @@
       "projectId": "rule_1770846786680_c7l65u",
       "nodes": [
         {
+          "id": "api_1773070948933",
           "position": {
-            "y": 200,
-            "x": 200
+            "x": 118,
+            "y": 149
           },
-          "label": "New node 1",
-          "metadata": {},
-          "id": "node_1770758595113",
-          "type": "action",
-          "description": "Describe this step",
-          "actions": []
+          "type": "api",
+          "metadata": {
+            "apiId": "B4ojA6yqEBrIXmRZH1uu",
+            "apiName": "MoveObjectController",
+            "apiUrl": null,
+            "image": null,
+            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action",
+              "position"
+            ]
+          },
+          "data": {
+            "labelText": "MoveObjectController",
+            "description": "api",
+            "label": "MoveObjectController",
+            "nodeLabel": "start",
+            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "B4ojA6yqEBrIXmRZH1uu",
+              "apiName": "MoveObjectController",
+              "apiUrl": null,
+              "image": null,
+              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action",
+                "position"
+              ]
+            },
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64,
+            "height": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "api_1773070981232",
+          "position": {
+            "x": 886,
+            "y": 248
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "T7sJl75flCKvuLNb2053",
+            "apiName": "JumpToNodeByLabel",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "JumpToNodeByLabel",
+            "description": "api",
+            "label": "JumpToNodeByLabel",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "functionInput": "{\ntargetWorkflowID: 'Game1runner',\ntargetNodeLabel: 'start'\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "T7sJl75flCKvuLNb2053",
+              "apiName": "JumpToNodeByLabel",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64,
+            "height": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 881.9642857142858,
+            "y": 246.8571428571429
+          },
+          "dragging": true
+        },
+        {
+          "id": "api_1773095208776",
+          "position": {
+            "x": 545,
+            "y": 215
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "B4ojA6yqEBrIXmRZH1uu",
+            "apiName": "MoveObjectController",
+            "apiUrl": null,
+            "image": null,
+            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action",
+              "position"
+            ]
+          },
+          "data": {
+            "labelText": "MoveObjectController",
+            "label": "MoveObjectController",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "B4ojA6yqEBrIXmRZH1uu",
+              "apiName": "MoveObjectController",
+              "apiUrl": null,
+              "image": null,
+              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action",
+                "position"
+              ]
+            },
+            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 200, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 200, targetY: 50,  speed: 100 },\n]\n}"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 547.3928571428571,
+            "y": 215.42857142857144
+          },
+          "dragging": true
+        },
+        {
+          "id": "api_1773095254293",
+          "position": {
+            "x": 342,
+            "y": 180
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
+            "apiName": "workflow waiting",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n  return {\n    status: 'done'\n  };\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "any",
+              "action",
+              "open"
+            ]
+          },
+          "data": {
+            "labelText": "workflow waiting",
+            "label": "workflow waiting",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
+              "apiName": "workflow waiting",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n  return {\n    status: 'done'\n  };\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "any",
+                "action",
+                "open"
+              ]
+            },
+            "fnString": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
+            "functionInput": "{\nwaitingTime:5000\n}"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 348.7857142857142,
+            "y": 180
+          },
+          "dragging": false
+        },
+        {
+          "id": "api_1773095301904",
+          "position": {
+            "x": 716,
+            "y": 299
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
+            "apiName": "workflow waiting",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n  return {\n    status: 'done'\n  };\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "any",
+              "action",
+              "open"
+            ]
+          },
+          "data": {
+            "labelText": "workflow waiting",
+            "label": "workflow waiting",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
+              "apiName": "workflow waiting",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n  return {\n    status: 'done'\n  };\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "any",
+                "action",
+                "open"
+              ]
+            },
+            "fnString": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
+            "functionInput": "{\nwaitingTime:5000\n}"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64
+          },
+          "width": 128,
+          "height": 64,
+          "selected": true,
+          "positionAbsolute": {
+            "x": 716.9285714285714,
+            "y": 297.21428571428567
+          },
+          "dragging": true
         }
       ],
-      "edges": [],
-      "status": "stopped",
-      "storeVars": {},
-      "activeNodeId": null,
+      "edges": [
+        {
+          "id": "edge_1773070999744__a_1773095258442",
+          "source": "api_1773070948933",
+          "target": "api_1773095254293",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "smoothstep",
+          "pathOptions": {
+            "borderRadius": 20
+          },
+          "style": {},
+          "selected": false
+        },
+        {
+          "id": "edge_1773070999744__b_1773095258442__a_1773095264464__a_1773095274843",
+          "source": "api_1773095254293",
+          "target": "api_1773095208776",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "smoothstep",
+          "pathOptions": {
+            "borderRadius": 20
+          },
+          "style": {},
+          "selected": false
+        },
+        {
+          "id": "edge_1773070999744__b_1773095258442__a_1773095264464__b_1773095274843__a_1773095306426",
+          "source": "api_1773095208776",
+          "target": "api_1773095301904",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "smoothstep",
+          "pathOptions": {
+            "borderRadius": 20
+          },
+          "style": {},
+          "selected": false
+        },
+        {
+          "id": "edge_1773070999744__b_1773095258442__a_1773095264464__b_1773095274843__b_1773095306426",
+          "source": "api_1773095301904",
+          "target": "api_1773070981232",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "smoothstep",
+          "pathOptions": {
+            "borderRadius": 20
+          },
+          "style": {},
+          "selected": false
+        }
+      ],
+      "status": "running",
+      "storeVars": {
+        "rule_1770846786680_c7l65u__node_api_1773070948933_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773132373243,
+        "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773132372231,
+        "rule_1770846786680_c7l65u__node_api_1773095254293_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773132364186,
+        "rule_1770846786680_c7l65u__node_api_1773095208776_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773132365208,
+        "rule_1770846786680_c7l65u__node_api_1773095301904_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773132371220
+      },
+      "activeNodeId": "api_1773095254293",
       "activeEdgeId": null,
-      "apis": [],
+      "apis": [
+        {
+          "id": "9ciuxQlkizKAipN9n2Xb",
+          "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "functionInput": "",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1773065448,
+            "nanoseconds": 865000000
+          },
+          "tags": [
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772710475,
+            "nanoseconds": 714000000
+          },
+          "lastPrompt": "",
+          "name": "cleanOutputView",
+          "description": "",
+          "url": ""
+        },
+        {
+          "id": "t18j2BxNlpLTRPNRpXZu",
+          "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772710350,
+            "nanoseconds": 58000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1773065484,
+            "nanoseconds": 993000000
+          },
+          "tags": [
+            "object"
+          ],
+          "lastPrompt": "",
+          "name": "createObjects",
+          "url": "",
+          "description": "create objects on the output view"
+        },
+        {
+          "id": "B4ojA6yqEBrIXmRZH1uu",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772709881,
+            "nanoseconds": 702000000
+          },
+          "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
+          "name": "MoveObjectController",
+          "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "url": "",
+          "tags": [
+            "action",
+            "position"
+          ],
+          "description": "control objects move to the destination in a straight line, using position targetX and targetY",
+          "lastPrompt": "",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1773095261,
+            "nanoseconds": 977000000
+          }
+        },
+        {
+          "id": "JGSx9JbLTukDp0LGA8TY",
+          "name": "Print Search Result Machine",
+          "url": "",
+          "description": "",
+          "lastPrompt": "",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772698845,
+            "nanoseconds": 591000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772709079,
+            "nanoseconds": 937000000
+          },
+          "tags": [
+            "object",
+            "output"
+          ],
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
+        },
+        {
+          "id": "T7sJl75flCKvuLNb2053",
+          "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+          "functionInput": "{\ntargetWorkflowID: 'main',\ntargetNodeLabel: 'start'\n}",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "tags": [
+            "action"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1773071073,
+            "nanoseconds": 799000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772621530,
+            "nanoseconds": 165000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "description": "next node redirect to target label",
+          "name": "JumpToNodeByLabel"
+        },
+        {
+          "id": "49hAqx8nk9kywqpDbIYl",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772535237,
+            "nanoseconds": 297000000
+          },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772719274,
+            "nanoseconds": 891000000
+          },
+          "functionInput": "{\ntestinput: 1\n}",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "name": "Input Text Machine",
+          "description": "create a div with a input box, when input and submit, save data to globalstorevars",
+          "url": "",
+          "lastPrompt": ""
+        },
+        {
+          "id": "485EMQ90MknKIJWqneWn",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772530589,
+            "nanoseconds": 266000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772698937,
+            "nanoseconds": 167000000
+          },
+          "tags": [
+            "object",
+            "output"
+          ],
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n  console.log(\"new ask box START\");\n\n  const clientJS = `\n    console.log(\"clientJS ask box START\");\n    \n    function createPrintDataMachine(container) {\n      const printDiv = document.createElement('div');\n      printDiv.id = 'printDataMachine';\n      printDiv.style.cssText = 'width: 400px; height: 400px; overflow: auto; background: #515151; border: 1px solid #dee2e6; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap;';\n      container.appendChild(printDiv);\n      return printDiv;\n    }\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n\n    let printDiv = document.getElementById('printDataMachine');\n    const isNew = !printDiv;\n    \n    if (isNew) {\n      console.log(\"new ask box create\");\n      printDiv = createPrintDataMachine(container);\n    }\n\n    const printoutdata = ${JSON.stringify(printoutdata)};\n    let formattedData = '';\n    if (typeof printoutdata === 'object' && printoutdata !== null) {\n      formattedData = JSON.stringify(printoutdata, null, 2);\n    } else {\n      formattedData = JSON.stringify(printoutdata, null, 2) || 'No data';\n    }\n\n    printDiv.innerHTML = '<pre>' + formattedData + '</pre>';\n    console.log(\"clientJS ask box finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "name": "Print Data Machine",
+          "description": "input what data you want to print, and it will print on the box",
+          "url": "",
+          "lastPrompt": ""
+        },
+        {
+          "id": "sBBs3o16YtuUQQiChhu6",
+          "tags": [
+            "action"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772839362,
+            "nanoseconds": 285000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772489190,
+            "nanoseconds": 169000000
+          },
+          "function": "//File AI\nasync function processRequest(input) {\n  const inputtext = input.var.inputtext;//getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
+          "functionInput": "{\ninputtext: getVar(\"inputtext\")\n}",
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": ""
+          },
+          "name": "File AI",
+          "url": "",
+          "description": "input question, and get search result, but current the target folder is fixed",
+          "lastPrompt": ""
+        },
+        {
+          "id": "8xHtUfyeYGl5BFMrFvrC",
+          "description": "",
+          "tags": [
+            "object"
+          ],
+          "url": "",
+          "name": "File Server",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772489168,
+            "nanoseconds": 77000000
+          },
+          "function": "",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "lastPrompt": ""
+        },
+        {
+          "id": "GvIRRETpmWWaNyHojFN7",
+          "function": "async function processRequest(input) {\n    let worlda = getVar(\"worlda\") || [];\n    \n    if (!worlda || worlda.length === 0) {\n        return {ok: false, error: \"No world data found\"};\n    }\n    \n    let worlddata = worlda.find(item => item.id === 'world');\n    if (!worlddata || !worlddata.size?.w || !worlddata.size?.h) {\n        return {ok: false, error: \"Invalid world size\"};\n    }\n    \n    let worldWidth = worlddata.size.w;\n    let worldHeight = worlddata.size.h;\n    \n    let objectsdata = worlda.filter(item => item.id !== 'world');\n    \n    if (objectsdata.length === 0) {\n        return {ok: true, message: \"No objects to layout\"};\n    }\n    \n    let objectsList = objectsdata.map(o => `${o.id} (${o.name || 'unnamed'})`).join(', ');\n    let userPrompt = `World size: ${worldWidth}x${worldHeight}. Objects: ${objectsList}. \n    Assign non-overlapping grid positions (x:0-${worldWidth-1}, y:0-${worldHeight-1}) to each object. \n    Logical layout: machines on edges, players center. \n    Respond ONLY with valid JSON array: [{\"id\":\"obj1\",\"position\":{\"x\":1,\"y\":2}},{\"id\":\"obj2\",\"position\":{\"x\":3,\"y\":0}}]`;\n    \n    let systemPrompt = 'You are a game level designer. Output only valid JSON array of positions, no other text.';\n    \n    try {\n        const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            body: JSON.stringify({ \n                role: 'user', \n                prompt: userPrompt, \n                system: systemPrompt \n            })\n        });\n        \n        const chatData = await resp.json();\n        let aiResponse = chatData.content.trim();\n        \n        console.log('AI Layout Response:', aiResponse);\n        \n        // Parse JSON (handle minor formatting issues)\n        let positions;\n        try {\n            positions = JSON.parse(aiResponse);\n        } catch (e) {\n            // Fallback: try extract JSON from text\n            let jsonMatch = aiResponse.match(/\\[.*\\]/s);\n            if (jsonMatch) {\n                positions = JSON.parse(jsonMatch[0]);\n            } else {\n                throw e;\n            }\n        }\n        \n        positions.forEach(pos => {\n            let obj = objectsdata.find(o => o.id === pos.id);\n            if (obj && pos.position) {\n                obj.position = { \n                    x: Math.max(0, Math.min(worldWidth - 1, pos.position.x)), \n                    y: Math.max(0, Math.min(worldHeight - 1, pos.position.y)) \n                };\n            }\n        });\n        \n        console.log('AI Positions Applied:', objectsdata.map(o => ({id: o.id, pos: o.position})));\n        \n    } catch (error) {\n        console.error('AI Layout failed:', error);\n        return {ok: false, error: 'AI layout failed, using manual'};\n    }\n    \n    let updatedWorld = [worlddata, ...objectsdata];\n    setVar(\"worlda\", updatedWorld);\n    \n    return {\n        ok: true,\n        updated: objectsdata.length,\n        worldSize: {w: worldWidth, h: worldHeight},\n        layout: 'AI auto',\n        objectsMoved: objectsdata.map(o => ({id: o.id, newPos: o.position}))\n    };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg",
+            "size": "2:1"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114048,
+            "nanoseconds": 163000000
+          },
+          "tags": [
+            "human",
+            "engineer",
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772058807,
+            "nanoseconds": 924000000
+          },
+          "lastPrompt": "",
+          "description": "handle objects position",
+          "url": "",
+          "name": "worldPosition"
+        },
+        {
+          "id": "VONCn1km19SO3f3TPCKC",
+          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114072,
+            "nanoseconds": 445000000
+          },
+          "tags": [
+            "world",
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772058520,
+            "nanoseconds": 107000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "description": "convert 2d position X,Y to isometric position",
+          "name": "IsometricPosition"
+        },
+        {
+          "id": "KRw88k6UJ2m2X7YluTbK",
+          "lastPrompt": "",
+          "name": "ipcamA",
+          "url": "",
+          "description": "a physical object",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114090,
+            "nanoseconds": 817000000
+          },
+          "tags": [
+            "ipcam",
+            "object"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772055154,
+            "nanoseconds": 354000000
+          }
+        },
+        {
+          "id": "YgunsIWPkZbGaH80gIro",
+          "lastPrompt": "",
+          "name": "engineerA",
+          "url": "",
+          "description": "a physical human",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg"
+          },
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772055149,
+            "nanoseconds": 470000000
+          },
+          "tags": [
+            "engineer",
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114099,
+            "nanoseconds": 62000000
+          }
+        },
+        {
+          "id": "UArt3hSXc7L0B0a05Uaa",
+          "lastPrompt": "",
+          "name": "OutputViewB",
+          "description": "a physical environment",
+          "url": "",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "metadata": {
+            "size": "2:2",
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772139358,
+            "nanoseconds": 686000000
+          },
+          "tags": [
+            "world",
+            "object"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772053163,
+            "nanoseconds": 498000000
+          }
+        },
+        {
+          "id": "J5Iv8yiUDZm5KCl5w0rf",
+          "lastPrompt": "",
+          "name": "MachineA",
+          "url": "",
+          "description": "a physical environment",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg",
+            "size": "2:1"
+          },
+          "tags": [
+            "object",
+            "machine"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114117,
+            "nanoseconds": 787000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772053081,
+            "nanoseconds": 656000000
+          }
+        },
+        {
+          "id": "54N3ODFTqzcpqEnWGbnt",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772113512,
+            "nanoseconds": 786000000
+          },
+          "name": "Dialogue Generator",
+          "url": "",
+          "tags": [
+            "human",
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772019996,
+            "nanoseconds": 969000000
+          },
+          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
+          "lastPrompt": "",
+          "metadata": {
+            "size": "3:1",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
+          }
+        },
+        {
+          "id": "dmWZ28QrPYOoWQ2pcOyU",
+          "url": "",
+          "description": "Wait a few seconds, then proceed to the next node.",
+          "name": "workflow waiting",
+          "lastPrompt": "",
+          "tags": [
+            "any",
+            "action",
+            "open"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772839178,
+            "nanoseconds": 951000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772019467,
+            "nanoseconds": 427000000
+          },
+          "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
+          "functionInput": "{\nwaitingTime: 10000\n}",
+          "metadata": {
+            "cssStyle": ""
+          }
+        },
+        {
+          "id": "NUI7cFBcc3F59XbVBA2y",
+          "lastPrompt": "",
+          "name": "Data Converter",
+          "description": "clone variable to new variable",
+          "url": "",
+          "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
+          "metadata": {
+            "size": "2:1",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
+          },
+          "tags": [
+            "action"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114160,
+            "nanoseconds": 228000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772015462,
+            "nanoseconds": 745000000
+          }
+        },
+        {
+          "id": "SzbbJVSYrntOHUF9boDU",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771945066,
+            "nanoseconds": 303000000
+          },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114185,
+            "nanoseconds": 519000000
+          },
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
+          "name": "OutputView",
+          "url": "",
+          "description": "physical environment",
+          "lastPrompt": ""
+        },
+        {
+          "id": "eJ2AB3vSxgbwoNinjMnD",
+          "lastPrompt": "",
+          "name": "CameraInput",
+          "url": "",
+          "description": "pick a ipcam, take a snapshop and generate label\noutput:  getVar('imageurl')",
+          "function": "async function processRequest() {\n  setVar('takingphoto', true);\nconsole.log(\"takingphoto\", true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 1000));\n\n  setVar('imageurl', data.url);\n  setVar('takingphoto', false);\n\n  return { status: 'success', output: data };\n}\n",
+          "functionInput": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772839156,
+            "nanoseconds": 109000000
+          },
+          "tags": [
+            "ipcam",
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840604,
+            "nanoseconds": 972000000
+          }
+        },
+        {
+          "id": "UsWhf6pyCDQW1nvcnHxa",
+          "lastPrompt": "",
+          "name": "VisionAI",
+          "description": "input an image, and request image reading by vision AI model",
+          "url": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg",
+            "cssStyle": ""
+          },
+          "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840006,
+            "nanoseconds": 714000000
+          },
+          "tags": [
+            "action"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808343,
+            "nanoseconds": 629000000
+          }
+        },
+        {
+          "id": "E5tInoIhMDck4CQq8Idt",
+          "lastPrompt": "",
+          "name": "show Button",
+          "description": "create a button object to output view",
+          "url": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png",
+            "cssStyle": ""
+          },
+          "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495135,
+            "nanoseconds": 814000000
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808294,
+            "nanoseconds": 130000000
+          },
+          "tags": [
+            "object"
+          ]
+        },
+        {
+          "id": "zJoNOauAnOf2nlglnlkf",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495123,
+            "nanoseconds": 317000000
+          },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808284,
+            "nanoseconds": 833000000
+          },
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
+          },
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
+          "name": "show Text",
+          "description": "create a text object to output view",
+          "url": "",
+          "lastPrompt": ""
+        },
+        {
+          "id": "UNqCOI0lbGdZagC0kra5",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png"
+          },
+          "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495005,
+            "nanoseconds": 117000000
+          },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808267,
+            "nanoseconds": 262000000
+          },
+          "lastPrompt": "",
+          "url": "",
+          "description": "create a image to the outputview",
+          "name": "show Image"
+        },
+        {
+          "id": "EqR1uSyCMk59JYM86lSw",
+          "function": "",
+          "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04ecea9a4f7.38771203.jpg",
+            "cssStyle": ""
+          },
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
+          "tags": [
+            "action"
+          ],
+          "name": "xAI(Ram)",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772113617,
+            "nanoseconds": 68000000
+          },
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770218220,
+            "nanoseconds": 600000000
+          }
+        },
+        {
+          "id": "0FnnIKiR0PxZlv4MT9nm",
+          "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = input.var.lat;\n  const lon = input.var.lon;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
+          "metadata": {
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
+            "size": "3:1"
+          },
+          "functionInput": "{\n  lat: 53.537048,\n  lon: -2.010916\n}",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772838973,
+            "nanoseconds": 234000000
+          },
+          "tags": [
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770215450,
+            "nanoseconds": 531000000
+          },
+          "lastPrompt": "",
+          "name": "OpenWeather",
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "description": "get weather information via openweather api\noutput: getVar(\"openweatherTemp\")"
+        },
+        {
+          "id": "rACQtq73fn2l4o7LHcQW",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772113659,
+            "nanoseconds": 748000000
+          },
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
+          "name": "Mission Check",
+          "tags": [
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770213924,
+            "nanoseconds": 893000000
+          },
+          "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": ""
+          },
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }"
+        },
+        {
+          "id": "jJjkD9yPzcKD21Jljtqg",
+          "function": "",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04eec6f6c74.11574150.png",
+            "size": "2:1"
+          },
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808243,
+            "nanoseconds": 505000000
+          },
+          "tags": [
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770212884,
+            "nanoseconds": 535000000
+          },
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "name": "xAI",
+          "description": "input a keyword, and then request answer from xAI(Grok)",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback"
+        }
+      ],
       "stepDelay": 1000
     },
     {
@@ -7228,7 +8291,7 @@
         {
           "id": "api_1772710436206",
           "position": {
-            "x": 93,
+            "x": 94,
             "y": -45
           },
           "type": "api",
@@ -7276,70 +8339,14 @@
             "height": 64
           },
           "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1772710441814",
-          "position": {
-            "x": 297,
-            "y": 54
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\nconsole.log(input)\n  const objects = input.var.objectActions || [];\n  // \n\n  const clientJS = `\n\n  const configs = ${JSON.stringify(objects || [])};\n\nconsole.log(\"MoveObjectsController start\", configs );\n\n  if (!Array.isArray(configs) || configs.length === 0) {\n    console.warn(\"MoveObjectsController: no objects\");\n    return;\n  }\n\n  const items = [];\n\n  configs.forEach(cfg => {\n    if (!cfg || !cfg.selector) return;\n    const el = document.querySelector(cfg.selector);\n    if (!el) {\n      console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n      return;\n    }\n\n    const style = window.getComputedStyle(el);\n    if (style.position === \"static\") {\n      el.style.position = \"absolute\";\n    }\n\n    const rect = el.getBoundingClientRect();\n    const startX = rect.left + window.scrollX;\n    const startY = rect.top + window.scrollY;\n\n    const targetX = cfg.targetX ?? startX;\n    const targetY = cfg.targetY ?? startY;\n    const speed   = cfg.speed   ?? 200; // px / 秒\n\n    items.push({\n      el,\n      startX,\n      startY,\n      targetX,\n      targetY,\n      speed,\n      done: false\n    });\n  });\n\n  if (items.length === 0) {\n    console.warn(\"MoveObjectsController: no valid items\");\n    return;\n  }\n\n  let startTime = null;\n\n  function step(timestamp) {\n    if (!startTime) startTime = timestamp;\n    const elapsed = (timestamp - startTime) / 1000; // 秒\n\n    let allDone = true;\n\n    items.forEach(item => {\n      if (item.done) return;\n\n      const dx = item.targetX - item.startX;\n      const dy = item.targetY - item.startY;\n      const distance = Math.sqrt(dx * dx + dy * dy);\n      if (distance === 0) {\n        item.done = true;\n        return;\n      }\n\n      const duration = distance / item.speed; // 秒\n      const t = Math.min(elapsed / duration, 1);\n\n      const x = item.startX + dx * t;\n      const y = item.startY + dy * t;\n\n      item.el.style.left = x + \"px\";\n      item.el.style.top  = y + \"px\";\n\n      if (t >= 1) {\n        item.done = true;\n      } else {\n        allDone = false;\n      }\n    });\n\n    if (!allDone) {\n      window.requestAnimationFrame(step);\n    }\n  }\n\n  window.requestAnimationFrame(step);\n\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "position"
-            ]
-          },
-          "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\nconsole.log(input)\n  const objects = input.var.objectActions || [];\n  // \n\n  const clientJS = `\n\n  const configs = ${JSON.stringify(objects || [])};\n\nconsole.log(\"MoveObjectsController start\", configs );\n\n  if (!Array.isArray(configs) || configs.length === 0) {\n    console.warn(\"MoveObjectsController: no objects\");\n    return;\n  }\n\n  const items = [];\n\n  configs.forEach(cfg => {\n    if (!cfg || !cfg.selector) return;\n    const el = document.querySelector(cfg.selector);\n    if (!el) {\n      console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n      return;\n    }\n\n    const style = window.getComputedStyle(el);\n    if (style.position === \"static\") {\n      el.style.position = \"absolute\";\n    }\n\n    const rect = el.getBoundingClientRect();\n    const startX = rect.left + window.scrollX;\n    const startY = rect.top + window.scrollY;\n\n    const targetX = cfg.targetX ?? startX;\n    const targetY = cfg.targetY ?? startY;\n    const speed   = cfg.speed   ?? 200; // px / 秒\n\n    items.push({\n      el,\n      startX,\n      startY,\n      targetX,\n      targetY,\n      speed,\n      done: false\n    });\n  });\n\n  if (items.length === 0) {\n    console.warn(\"MoveObjectsController: no valid items\");\n    return;\n  }\n\n  let startTime = null;\n\n  function step(timestamp) {\n    if (!startTime) startTime = timestamp;\n    const elapsed = (timestamp - startTime) / 1000; // 秒\n\n    let allDone = true;\n\n    items.forEach(item => {\n      if (item.done) return;\n\n      const dx = item.targetX - item.startX;\n      const dy = item.targetY - item.startY;\n      const distance = Math.sqrt(dx * dx + dy * dy);\n      if (distance === 0) {\n        item.done = true;\n        return;\n      }\n\n      const duration = distance / item.speed; // 秒\n      const t = Math.min(elapsed / duration, 1);\n\n      const x = item.startX + dx * t;\n      const y = item.startY + dy * t;\n\n      item.el.style.left = x + \"px\";\n      item.el.style.top  = y + \"px\";\n\n      if (t >= 1) {\n        item.done = true;\n      } else {\n        allDone = false;\n        const resp = fetch('http://localhost:3001/run/main');\n\n      }\n    });\n\n    if (!allDone) {\n      window.requestAnimationFrame(step);\n    }\n  }\n\n  window.requestAnimationFrame(step);\n\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nobjectActions : [\n{ selector: '#box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: '#box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
-              "apiName": "MoveObjectController",
-              "apiUrl": null,
-              "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\nconsole.log(input)\n  const objects = input.var.objectActions || [];\n  // \n\n  const clientJS = `\n\n  const configs = ${JSON.stringify(objects || [])};\n\nconsole.log(\"MoveObjectsController start\", configs );\n\n  if (!Array.isArray(configs) || configs.length === 0) {\n    console.warn(\"MoveObjectsController: no objects\");\n    return;\n  }\n\n  const items = [];\n\n  configs.forEach(cfg => {\n    if (!cfg || !cfg.selector) return;\n    const el = document.querySelector(cfg.selector);\n    if (!el) {\n      console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n      return;\n    }\n\n    const style = window.getComputedStyle(el);\n    if (style.position === \"static\") {\n      el.style.position = \"absolute\";\n    }\n\n    const rect = el.getBoundingClientRect();\n    const startX = rect.left + window.scrollX;\n    const startY = rect.top + window.scrollY;\n\n    const targetX = cfg.targetX ?? startX;\n    const targetY = cfg.targetY ?? startY;\n    const speed   = cfg.speed   ?? 200; // px / 秒\n\n    items.push({\n      el,\n      startX,\n      startY,\n      targetX,\n      targetY,\n      speed,\n      done: false\n    });\n  });\n\n  if (items.length === 0) {\n    console.warn(\"MoveObjectsController: no valid items\");\n    return;\n  }\n\n  let startTime = null;\n\n  function step(timestamp) {\n    if (!startTime) startTime = timestamp;\n    const elapsed = (timestamp - startTime) / 1000; // 秒\n\n    let allDone = true;\n\n    items.forEach(item => {\n      if (item.done) return;\n\n      const dx = item.targetX - item.startX;\n      const dy = item.targetY - item.startY;\n      const distance = Math.sqrt(dx * dx + dy * dy);\n      if (distance === 0) {\n        item.done = true;\n        return;\n      }\n\n      const duration = distance / item.speed; // 秒\n      const t = Math.min(elapsed / duration, 1);\n\n      const x = item.startX + dx * t;\n      const y = item.startY + dy * t;\n\n      item.el.style.left = x + \"px\";\n      item.el.style.top  = y + \"px\";\n\n      if (t >= 1) {\n        item.done = true;\n      } else {\n        allDone = false;\n      }\n    });\n\n    if (!allDone) {\n      window.requestAnimationFrame(step);\n    }\n  }\n\n  window.requestAnimationFrame(step);\n\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "position"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
           "height": 64,
-          "selected": false,
-          "dragging": false
+          "selected": true
         },
         {
           "id": "api_1772717386732",
           "position": {
             "x": -33,
-            "y": -164
+            "y": -200
           },
           "type": "api",
           "metadata": {
@@ -7388,93 +8395,18 @@
           "width": 128,
           "height": 64,
           "selected": false,
-          "dragging": false
-        },
-        {
-          "id": "api_1773065477779",
-          "position": {
-            "x": 564,
-            "y": 104
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "T7sJl75flCKvuLNb2053",
-            "apiName": "JumpToNodeByLabel",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  try {\n    const response = await fetch('http://localhost:3001/trigger/'+ input.var.targetNodeLabel);\n    if (!response.ok) {\n      throw new Error(`HTTP error! status: ${response.status}`);\n    }\n    const data = await response.text();\n    console.log('Workflow triggered:', data);\n  } catch (error) {\n    console.error('Trigger failed:', error);\n  }\n  return {};\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action"
-            ]
-          },
-          "data": {
-            "labelText": "JumpToNodeByLabel",
-            "description": "api",
-            "label": "JumpToNodeByLabel",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "functionInput": "{\ntargetWorkflowID:\"main\",\ntargetNodeLabel:\"start\"\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "T7sJl75flCKvuLNb2053",
-              "apiName": "JumpToNodeByLabel",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetNodeLabel);\n  return {};\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64,
-          "selected": true,
-          "dragging": false
+          "dragging": true,
+          "positionAbsolute": {
+            "x": -33,
+            "y": -187.76189313616067
+          }
         }
       ],
       "edges": [
         {
-          "id": "edge_1772710448647",
-          "source": "api_1772710436206",
-          "target": "api_1772710441814",
-          "label": "",
-          "sourceHandle": "null",
-          "targetHandle": "null"
-        },
-        {
-          "id": "edge_1772710450662",
-          "source": "api_1772710436206",
-          "target": "api_1772710441814",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
           "id": "edge_1772717392085",
           "source": "api_1772717386732",
           "target": "api_1772710436206",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1773065482337",
-          "source": "api_1772710441814",
-          "target": "api_1773065477779",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
@@ -7499,9 +8431,9 @@
           }
         ],
         "rule_1770846786680_w27k1f__node_api_1772710436206_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710436206_wait_start": 1773069721505,
+        "rule_1770846786680_w27k1f__node_api_1772710436206_wait_start": 1773094849185,
         "rule_1770846786680_w27k1f__node_api_1772710441814_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710441814_wait_start": 1773069722519,
+        "rule_1770846786680_w27k1f__node_api_1772710441814_wait_start": 1773071043978,
         "objects": [
           {
             "selector": "#box1",
@@ -7517,22 +8449,21 @@
           }
         ],
         "rule_1770846786680_w27k1f__node_api_1772717386732_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773069720486,
+        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773094848173,
         "rule_1770846786680_w27k1f__node_api_1772710436206_error": "Cannot read properties of undefined (reading 'objects')",
         "rule_1770846786680_w27k1f__node_api_1773065477779_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1773065477779_wait_start": 1773069723621
+        "rule_1770846786680_w27k1f__node_api_1773065477779_wait_start": 1773071045000
       },
-      "activeNodeId": null,
+      "activeNodeId": "api_1772710436206",
       "activeEdgeId": null,
       "apis": [
         {
           "id": "9ciuxQlkizKAipN9n2Xb",
-          "lastPrompt": "",
+          "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "functionInput": "",
           "metadata": {
             "cssStyle": ""
           },
-          "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "description": "",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1773065448,
@@ -7546,15 +8477,23 @@
             "seconds": 1772710475,
             "nanoseconds": 714000000
           },
-          "url": "",
+          "lastPrompt": "",
           "name": "cleanOutputView",
-          "functionInput": ""
+          "description": "",
+          "url": ""
         },
         {
           "id": "t18j2BxNlpLTRPNRpXZu",
-          "url": "",
           "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
-          "name": "createObjects",
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772710350,
+            "nanoseconds": 58000000
+          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1773065484,
@@ -7563,92 +8502,85 @@
           "tags": [
             "object"
           ],
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772710350,
-            "nanoseconds": 58000000
-          },
-          "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "description": "create objects on the output view",
           "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          }
+          "name": "createObjects",
+          "url": "",
+          "description": "create objects on the output view"
         },
         {
           "id": "B4ojA6yqEBrIXmRZH1uu",
-          "functionInput": "{\nobjectActions : [\n{ selector: '#box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: '#box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
-          "name": "MoveObjectController",
-          "url": "",
+          "tags": [
+            "action",
+            "position"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1773074965,
+            "nanoseconds": 250000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772709881,
             "nanoseconds": 702000000
           },
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772808044,
-            "nanoseconds": 24000000
-          },
-          "tags": [
-            "action",
-            "position"
-          ],
-          "description": "control objects move to the destination in a straight line, using position targetX and targetY",
-          "function": "// MoveObjectsController\nasync function processRequest(input) {\nconsole.log(input)\n  const objects = input.var.objectActions || [];\n  // \n\n  const clientJS = `\n\n  const configs = ${JSON.stringify(objects || [])};\n\nconsole.log(\"MoveObjectsController start\", configs );\n\n  if (!Array.isArray(configs) || configs.length === 0) {\n    console.warn(\"MoveObjectsController: no objects\");\n    return;\n  }\n\n  const items = [];\n\n  configs.forEach(cfg => {\n    if (!cfg || !cfg.selector) return;\n    const el = document.querySelector(cfg.selector);\n    if (!el) {\n      console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n      return;\n    }\n\n    const style = window.getComputedStyle(el);\n    if (style.position === \"static\") {\n      el.style.position = \"absolute\";\n    }\n\n    const rect = el.getBoundingClientRect();\n    const startX = rect.left + window.scrollX;\n    const startY = rect.top + window.scrollY;\n\n    const targetX = cfg.targetX ?? startX;\n    const targetY = cfg.targetY ?? startY;\n    const speed   = cfg.speed   ?? 200; // px / 秒\n\n    items.push({\n      el,\n      startX,\n      startY,\n      targetX,\n      targetY,\n      speed,\n      done: false\n    });\n  });\n\n  if (items.length === 0) {\n    console.warn(\"MoveObjectsController: no valid items\");\n    return;\n  }\n\n  let startTime = null;\n\n  function step(timestamp) {\n    if (!startTime) startTime = timestamp;\n    const elapsed = (timestamp - startTime) / 1000; // 秒\n\n    let allDone = true;\n\n    items.forEach(item => {\n      if (item.done) return;\n\n      const dx = item.targetX - item.startX;\n      const dy = item.targetY - item.startY;\n      const distance = Math.sqrt(dx * dx + dy * dy);\n      if (distance === 0) {\n        item.done = true;\n        return;\n      }\n\n      const duration = distance / item.speed; // 秒\n      const t = Math.min(elapsed / duration, 1);\n\n      const x = item.startX + dx * t;\n      const y = item.startY + dy * t;\n\n      item.el.style.left = x + \"px\";\n      item.el.style.top  = y + \"px\";\n\n      if (t >= 1) {\n        item.done = true;\n      } else {\n        allDone = false;\n      }\n    });\n\n    if (!allDone) {\n      window.requestAnimationFrame(step);\n    }\n  }\n\n  window.requestAnimationFrame(step);\n\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
           "metadata": {
             "cssStyle": ""
           },
+          "name": "MoveObjectController",
+          "url": "",
+          "description": "control objects move to the destination in a straight line, using position targetX and targetY",
           "lastPrompt": ""
         },
         {
           "id": "JGSx9JbLTukDp0LGA8TY",
-          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "name": "Print Search Result Machine",
+          "url": "",
           "description": "",
           "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772698845,
+            "nanoseconds": 591000000
           },
-          "url": "",
-          "name": "Print Search Result Machine",
-          "tags": [
-            "object",
-            "output"
-          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772709079,
             "nanoseconds": 937000000
           },
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772698845,
-            "nanoseconds": 591000000
-          }
-        },
-        {
-          "id": "T7sJl75flCKvuLNb2053",
-          "lastPrompt": "",
+          "tags": [
+            "object",
+            "output"
+          ],
           "metadata": {
             "cssStyle": ""
           },
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
+        },
+        {
+          "id": "T7sJl75flCKvuLNb2053",
           "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-          "description": "next node redirect to target label",
+          "functionInput": "{\ntargetWorkflowID: 'main',\ntargetNodeLabel: 'start'\n}",
+          "metadata": {
+            "cssStyle": ""
+          },
           "tags": [
             "action"
           ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1773069511,
-            "nanoseconds": 917000000
+            "seconds": 1773071073,
+            "nanoseconds": 799000000
           },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772621530,
             "nanoseconds": 165000000
           },
+          "lastPrompt": "",
           "url": "",
-          "functionInput": "{\ntargetWorkflowID: 'main',\ntargetNodeLabel: 'start'\n}",
+          "description": "next node redirect to target label",
           "name": "JumpToNodeByLabel"
         },
         {
@@ -7658,32 +8590,31 @@
             "seconds": 1772535237,
             "nanoseconds": 297000000
           },
+          "tags": [
+            "object"
+          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772719274,
             "nanoseconds": 891000000
           },
-          "tags": [
-            "object"
-          ],
-          "name": "Input Text Machine",
           "functionInput": "{\ntestinput: 1\n}",
-          "url": "",
           "metadata": {
             "cssStyle": ""
           },
-          "lastPrompt": "",
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "name": "Input Text Machine",
           "description": "create a div with a input box, when input and submit, save data to globalstorevars",
-          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
+          "url": "",
+          "lastPrompt": ""
         },
         {
           "id": "485EMQ90MknKIJWqneWn",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772530589,
+            "nanoseconds": 266000000
           },
-          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n  console.log(\"new ask box START\");\n\n  const clientJS = `\n    console.log(\"clientJS ask box START\");\n    \n    function createPrintDataMachine(container) {\n      const printDiv = document.createElement('div');\n      printDiv.id = 'printDataMachine';\n      printDiv.style.cssText = 'width: 400px; height: 400px; overflow: auto; background: #515151; border: 1px solid #dee2e6; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap;';\n      container.appendChild(printDiv);\n      return printDiv;\n    }\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n\n    let printDiv = document.getElementById('printDataMachine');\n    const isNew = !printDiv;\n    \n    if (isNew) {\n      console.log(\"new ask box create\");\n      printDiv = createPrintDataMachine(container);\n    }\n\n    const printoutdata = ${JSON.stringify(printoutdata)};\n    let formattedData = '';\n    if (typeof printoutdata === 'object' && printoutdata !== null) {\n      formattedData = JSON.stringify(printoutdata, null, 2);\n    } else {\n      formattedData = JSON.stringify(printoutdata, null, 2) || 'No data';\n    }\n\n    printDiv.innerHTML = '<pre>' + formattedData + '</pre>';\n    console.log(\"clientJS ask box finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-          "description": "input what data you want to print, and it will print on the box",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772698937,
@@ -7693,170 +8624,176 @@
             "object",
             "output"
           ],
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772530589,
-            "nanoseconds": 266000000
+          "metadata": {
+            "cssStyle": ""
           },
+          "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n  console.log(\"new ask box START\");\n\n  const clientJS = `\n    console.log(\"clientJS ask box START\");\n    \n    function createPrintDataMachine(container) {\n      const printDiv = document.createElement('div');\n      printDiv.id = 'printDataMachine';\n      printDiv.style.cssText = 'width: 400px; height: 400px; overflow: auto; background: #515151; border: 1px solid #dee2e6; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap;';\n      container.appendChild(printDiv);\n      return printDiv;\n    }\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n\n    let printDiv = document.getElementById('printDataMachine');\n    const isNew = !printDiv;\n    \n    if (isNew) {\n      console.log(\"new ask box create\");\n      printDiv = createPrintDataMachine(container);\n    }\n\n    const printoutdata = ${JSON.stringify(printoutdata)};\n    let formattedData = '';\n    if (typeof printoutdata === 'object' && printoutdata !== null) {\n      formattedData = JSON.stringify(printoutdata, null, 2);\n    } else {\n      formattedData = JSON.stringify(printoutdata, null, 2) || 'No data';\n    }\n\n    printDiv.innerHTML = '<pre>' + formattedData + '</pre>';\n    console.log(\"clientJS ask box finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "name": "Print Data Machine",
+          "description": "input what data you want to print, and it will print on the box",
           "url": "",
-          "name": "Print Data Machine"
+          "lastPrompt": ""
         },
         {
           "id": "sBBs3o16YtuUQQiChhu6",
-          "lastPrompt": "",
-          "metadata": {
-            "size": "2:1",
-            "cssStyle": ""
-          },
-          "function": "//File AI\nasync function processRequest(input) {\n  const inputtext = input.var.inputtext;//getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
-          "description": "input question, and get search result, but current the target folder is fixed",
+          "tags": [
+            "action"
+          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772839362,
             "nanoseconds": 285000000
           },
-          "tags": [
-            "action"
-          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772489190,
             "nanoseconds": 169000000
           },
-          "url": "",
+          "function": "//File AI\nasync function processRequest(input) {\n  const inputtext = input.var.inputtext;//getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
           "functionInput": "{\ninputtext: getVar(\"inputtext\")\n}",
-          "name": "File AI"
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": ""
+          },
+          "name": "File AI",
+          "url": "",
+          "description": "input question, and get search result, but current the target folder is fixed",
+          "lastPrompt": ""
         },
         {
           "id": "8xHtUfyeYGl5BFMrFvrC",
-          "lastPrompt": "",
+          "description": "",
           "tags": [
             "object"
           ],
-          "metadata": {
-            "cssStyle": ""
-          },
+          "url": "",
+          "name": "File Server",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772489168,
             "nanoseconds": 77000000
           },
-          "url": "",
           "function": "",
-          "description": "",
-          "name": "File Server"
+          "metadata": {
+            "cssStyle": ""
+          },
+          "lastPrompt": ""
         },
         {
           "id": "GvIRRETpmWWaNyHojFN7",
-          "name": "worldPosition",
-          "url": "",
-          "createdAt": {
+          "function": "async function processRequest(input) {\n    let worlda = getVar(\"worlda\") || [];\n    \n    if (!worlda || worlda.length === 0) {\n        return {ok: false, error: \"No world data found\"};\n    }\n    \n    let worlddata = worlda.find(item => item.id === 'world');\n    if (!worlddata || !worlddata.size?.w || !worlddata.size?.h) {\n        return {ok: false, error: \"Invalid world size\"};\n    }\n    \n    let worldWidth = worlddata.size.w;\n    let worldHeight = worlddata.size.h;\n    \n    let objectsdata = worlda.filter(item => item.id !== 'world');\n    \n    if (objectsdata.length === 0) {\n        return {ok: true, message: \"No objects to layout\"};\n    }\n    \n    let objectsList = objectsdata.map(o => `${o.id} (${o.name || 'unnamed'})`).join(', ');\n    let userPrompt = `World size: ${worldWidth}x${worldHeight}. Objects: ${objectsList}. \n    Assign non-overlapping grid positions (x:0-${worldWidth-1}, y:0-${worldHeight-1}) to each object. \n    Logical layout: machines on edges, players center. \n    Respond ONLY with valid JSON array: [{\"id\":\"obj1\",\"position\":{\"x\":1,\"y\":2}},{\"id\":\"obj2\",\"position\":{\"x\":3,\"y\":0}}]`;\n    \n    let systemPrompt = 'You are a game level designer. Output only valid JSON array of positions, no other text.';\n    \n    try {\n        const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            body: JSON.stringify({ \n                role: 'user', \n                prompt: userPrompt, \n                system: systemPrompt \n            })\n        });\n        \n        const chatData = await resp.json();\n        let aiResponse = chatData.content.trim();\n        \n        console.log('AI Layout Response:', aiResponse);\n        \n        // Parse JSON (handle minor formatting issues)\n        let positions;\n        try {\n            positions = JSON.parse(aiResponse);\n        } catch (e) {\n            // Fallback: try extract JSON from text\n            let jsonMatch = aiResponse.match(/\\[.*\\]/s);\n            if (jsonMatch) {\n                positions = JSON.parse(jsonMatch[0]);\n            } else {\n                throw e;\n            }\n        }\n        \n        positions.forEach(pos => {\n            let obj = objectsdata.find(o => o.id === pos.id);\n            if (obj && pos.position) {\n                obj.position = { \n                    x: Math.max(0, Math.min(worldWidth - 1, pos.position.x)), \n                    y: Math.max(0, Math.min(worldHeight - 1, pos.position.y)) \n                };\n            }\n        });\n        \n        console.log('AI Positions Applied:', objectsdata.map(o => ({id: o.id, pos: o.position})));\n        \n    } catch (error) {\n        console.error('AI Layout failed:', error);\n        return {ok: false, error: 'AI layout failed, using manual'};\n    }\n    \n    let updatedWorld = [worlddata, ...objectsdata];\n    setVar(\"worlda\", updatedWorld);\n    \n    return {\n        ok: true,\n        updated: objectsdata.length,\n        worldSize: {w: worldWidth, h: worldHeight},\n        layout: 'AI auto',\n        objectsMoved: objectsdata.map(o => ({id: o.id, newPos: o.position}))\n    };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg",
+            "size": "2:1"
+          },
+          "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772058807,
-            "nanoseconds": 924000000
+            "seconds": 1772114048,
+            "nanoseconds": 163000000
           },
           "tags": [
             "human",
             "engineer",
             "action"
           ],
-          "updatedAt": {
+          "createdAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772114048,
-            "nanoseconds": 163000000
+            "seconds": 1772058807,
+            "nanoseconds": 924000000
           },
+          "lastPrompt": "",
           "description": "handle objects position",
-          "function": "async function processRequest(input) {\n    let worlda = getVar(\"worlda\") || [];\n    \n    if (!worlda || worlda.length === 0) {\n        return {ok: false, error: \"No world data found\"};\n    }\n    \n    let worlddata = worlda.find(item => item.id === 'world');\n    if (!worlddata || !worlddata.size?.w || !worlddata.size?.h) {\n        return {ok: false, error: \"Invalid world size\"};\n    }\n    \n    let worldWidth = worlddata.size.w;\n    let worldHeight = worlddata.size.h;\n    \n    let objectsdata = worlda.filter(item => item.id !== 'world');\n    \n    if (objectsdata.length === 0) {\n        return {ok: true, message: \"No objects to layout\"};\n    }\n    \n    let objectsList = objectsdata.map(o => `${o.id} (${o.name || 'unnamed'})`).join(', ');\n    let userPrompt = `World size: ${worldWidth}x${worldHeight}. Objects: ${objectsList}. \n    Assign non-overlapping grid positions (x:0-${worldWidth-1}, y:0-${worldHeight-1}) to each object. \n    Logical layout: machines on edges, players center. \n    Respond ONLY with valid JSON array: [{\"id\":\"obj1\",\"position\":{\"x\":1,\"y\":2}},{\"id\":\"obj2\",\"position\":{\"x\":3,\"y\":0}}]`;\n    \n    let systemPrompt = 'You are a game level designer. Output only valid JSON array of positions, no other text.';\n    \n    try {\n        const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            body: JSON.stringify({ \n                role: 'user', \n                prompt: userPrompt, \n                system: systemPrompt \n            })\n        });\n        \n        const chatData = await resp.json();\n        let aiResponse = chatData.content.trim();\n        \n        console.log('AI Layout Response:', aiResponse);\n        \n        // Parse JSON (handle minor formatting issues)\n        let positions;\n        try {\n            positions = JSON.parse(aiResponse);\n        } catch (e) {\n            // Fallback: try extract JSON from text\n            let jsonMatch = aiResponse.match(/\\[.*\\]/s);\n            if (jsonMatch) {\n                positions = JSON.parse(jsonMatch[0]);\n            } else {\n                throw e;\n            }\n        }\n        \n        positions.forEach(pos => {\n            let obj = objectsdata.find(o => o.id === pos.id);\n            if (obj && pos.position) {\n                obj.position = { \n                    x: Math.max(0, Math.min(worldWidth - 1, pos.position.x)), \n                    y: Math.max(0, Math.min(worldHeight - 1, pos.position.y)) \n                };\n            }\n        });\n        \n        console.log('AI Positions Applied:', objectsdata.map(o => ({id: o.id, pos: o.position})));\n        \n    } catch (error) {\n        console.error('AI Layout failed:', error);\n        return {ok: false, error: 'AI layout failed, using manual'};\n    }\n    \n    let updatedWorld = [worlddata, ...objectsdata];\n    setVar(\"worlda\", updatedWorld);\n    \n    return {\n        ok: true,\n        updated: objectsdata.length,\n        worldSize: {w: worldWidth, h: worldHeight},\n        layout: 'AI auto',\n        objectsMoved: objectsdata.map(o => ({id: o.id, newPos: o.position}))\n    };\n}\n",
-          "metadata": {
-            "cssStyle": "",
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a00a6dd622f9.98854559.jpg"
-          },
-          "lastPrompt": ""
+          "url": "",
+          "name": "worldPosition"
         },
         {
           "id": "VONCn1km19SO3f3TPCKC",
-          "url": "",
-          "name": "IsometricPosition",
-          "tags": [
-            "world",
-            "action"
-          ],
+          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": ""
+          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772114072,
             "nanoseconds": 445000000
           },
+          "tags": [
+            "world",
+            "action"
+          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772058520,
             "nanoseconds": 107000000
           },
-          "function": "async function processRequest(input) {\n  /*\n  let worlda = getVar(\"worlda\")\n  worlda (global)\n  [{\"id\":\"ipcamA\",\"name\":\"ipcamA\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"size\":{\"w\":1,\"h\":3,\"d\":1},\"status\":\"idle\"},{\"id\":\"engine…\n  */\n  \n  let worldA = getVar(\"worldA\") || [];\n  \n  function toIso(x, y, tileW = 64, tileH = 32) {\n    return {\n      screenX: (x - y) * (tileW / 2),\n      screenY: (x + y) * (tileH / 2)\n    };\n  }\n  \n  const isoPositions = worldA.map(item => ({\n    id: item.id,\n    name: item.name,\n    iso: toIso(item.position.x, item.position.y),\n    screenSize: {\n      w: item.size.w * 32,  // tileW/2\n      h: item.size.h * 16   // tileH\n    }\n  }));\n  \n  worldA.forEach(machine => {\n    if (machine.id === \"ipcamA\") {\n      machine.status = \"active\";\n    }\n  });\n  \n  setVar(\"worldA\", worldA);\n  setVar(\"worldA_iso\", isoPositions);\n\n  return {\n    status: 'rendered'\n  };\n}\n",
-          "description": "convert 2d position X,Y to isometric position",
           "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          }
+          "url": "",
+          "description": "convert 2d position X,Y to isometric position",
+          "name": "IsometricPosition"
         },
         {
           "id": "KRw88k6UJ2m2X7YluTbK",
-          "description": "a physical object",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg",
-            "cssStyle": ""
-          },
           "lastPrompt": "",
           "name": "ipcamA",
           "url": "",
-          "createdAt": {
+          "description": "a physical object",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"ipcamA\") || {\n    id: \"ipcamA\",\n    name: \"ipcamA\",\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/ipcam.png\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      },\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 1, d: 1 },\n    status: 'idle'\n  };\n  \n  if (!worldA.find(m => m.id === \"ipcamA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d24e211e4.67927350.jpg"
+          },
+          "updatedAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772055154,
-            "nanoseconds": 354000000
+            "seconds": 1772114090,
+            "nanoseconds": 817000000
           },
           "tags": [
             "ipcam",
             "object"
           ],
-          "updatedAt": {
+          "createdAt": {
             "type": "firestore/timestamp/1.0",
-            "seconds": 1772114090,
-            "nanoseconds": 817000000
+            "seconds": 1772055154,
+            "nanoseconds": 354000000
           }
         },
         {
           "id": "YgunsIWPkZbGaH80gIro",
-          "url": "",
+          "lastPrompt": "",
           "name": "engineerA",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114099,
-            "nanoseconds": 62000000
+          "url": "",
+          "description": "a physical human",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg"
           },
-          "tags": [
-            "engineer",
-            "object"
-          ],
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772055149,
             "nanoseconds": 470000000
           },
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const thisObj = worldA.find(m => m.id === \"engineerA\") || {\n    id: \"engineerA\",\n    name: \"engineerA\",\n    position: { x: 0, y: 0, z: 0 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/engineerA.png\",\n    size: { w: 1, h: 2, d: 1 },\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"engineerA\")) {\n    worldA.push(thisObj);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'objReady'\n  };\n}\n",
-          "description": "a physical human",
-          "lastPrompt": "",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04d8d00d535.50650932.jpg",
-            "cssStyle": ""
+          "tags": [
+            "engineer",
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114099,
+            "nanoseconds": 62000000
           }
         },
         {
           "id": "UArt3hSXc7L0B0a05Uaa",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772053163,
-            "nanoseconds": 498000000
+          "lastPrompt": "",
+          "name": "OutputViewB",
+          "description": "a physical environment",
+          "url": "",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+          "metadata": {
+            "size": "2:2",
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg"
           },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
@@ -7867,25 +8804,23 @@
             "world",
             "object"
           ],
-          "name": "OutputViewB",
-          "url": "",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699f62e71a3769.83305628.jpg",
-            "size": "2:2"
-          },
-          "lastPrompt": "",
-          "description": "a physical environment",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  let worldItem = worldA.find(m => m.id === \"world\");\n  if (!worldItem) {\n    worldItem = {\n      id: \"world\",\n      name: \"world\",\n      position: { x: 0, y: 0, z: 0 },\n      size: { w: 5, h: 5, d: 1 },\n      imageurl: \"https://aiagent.maxsolo.co.uk/images/virualspace_b.png\",\n      zIndex: 0,\n      status: \"idle\",\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n    };\n    worldA.push(worldItem);\n  } else {\n    if (!worldItem.hasOwnProperty(\"zIndex\")) {\n      worldItem.zIndex = 0;\n    }\n  }\n\n\n  setVar(\"worldA\", worldA);\n\n  const tileSize = 64;\n\n  let clientJS = `\n    (function() {\n      const tileSize = ${tileSize};\n      const outputBody = document.getElementById('output-body');\n      if (!outputBody) return;\n\n      const worldA = ${JSON.stringify(worldA)};\n\n      // Step 1: add / update elements\n      worldA.forEach(function(item) {\n        var el = document.getElementById(item.id);\n        if (!el) {\n          el = document.createElement('div');\n          el.id = item.id;\n          el.style.position = 'absolute';\n          el.style.border = '1px solid #000';\n          if (item.imageurl) {\n            el.style.backgroundImage = 'url(' + item.imageurl + ')';\n            el.style.backgroundSize = '100% 100%';\n            el.style.backgroundPosition = 'center';\n          } else {\n            el.style.backgroundColor = (item.color || 'rgba(255, 255, 255, 0.5)');\n          }\n\n          if (item.zIndex === undefined) {\n            el.style.zIndex = 1;\n          } else {\n            el.style.zIndex = item.zIndex;\n          }\n          outputBody.appendChild(el);\n        }\n\n        el.style.left = (item.position.x * tileSize) + 'px';\n        el.style.top = (item.position.y * tileSize) + 'px';\n        el.style.width = (item.size.w * tileSize) + 'px';\n        el.style.height = (item.size.h * tileSize) + 'px';\n\n        var label = el.querySelector('.label');\n        if (!label) {\n          label = document.createElement('div');\n          label.className = 'label';\n          label.style.position = 'absolute';\n          label.style.bottom = '0';\n          label.style.left = '0';\n          label.style.background = 'rgba(0,0,0,0.7)';\n          label.style.color = 'white';\n          label.style.fontSize = '10px';\n          label.style.padding = '2px';\n          el.appendChild(label);\n        }\n        label.textContent = item.name || item.id;\n\n        // === Dialogue：長期顯示在物件旁邊（下方） ===\n        // 清除舊的 dialogue element\n        var oldDlg = el.querySelector('.dialogue-text');\n        if (oldDlg) oldDlg.remove();\n\n        if (item.dialogue && item.dialogue.text) {\n          var dlg = document.createElement('div');\n          dlg.className = 'dialogue-text';\n          dlg.style.position = 'absolute';\n          dlg.style.top = '100%';          // 在物件下方\n          dlg.style.left = '0';\n          dlg.style.marginTop = '2px';\n          dlg.style.background = 'rgba(0, 0, 0, 0.7)';\n          dlg.style.color = 'white';\n          dlg.style.fontSize = '10px';\n          dlg.style.padding = '2px 4px';\n          dlg.style.whiteSpace = 'nowrap';\n          dlg.textContent = item.dialogue.text;\n          el.appendChild(dlg);\n        }\n      });\n\n      // Step 2: remove elements not in worldA\n      var worldIds = worldA.map(function(i){ return i.id; });\n      var allEls = Array.prototype.slice.call(\n        outputBody.querySelectorAll('div[id]')\n      );\n      allEls.forEach(function(el) {\n        if (worldIds.indexOf(el.id) === -1) {\n          el.remove();\n        }\n      });\n    })();\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772053163,
+            "nanoseconds": 498000000
+          }
         },
         {
           "id": "J5Iv8yiUDZm5KCl5w0rf",
+          "lastPrompt": "",
           "name": "MachineA",
           "url": "",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772053081,
-            "nanoseconds": 656000000
+          "description": "a physical environment",
+          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
+          "metadata": {
+            "cssStyle": "",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg",
+            "size": "2:1"
           },
           "tags": [
             "object",
@@ -7896,127 +8831,126 @@
             "seconds": 1772114117,
             "nanoseconds": 787000000
           },
-          "description": "a physical environment",
-          "function": "async function processRequest(input) {\n  const worldA = getVar(\"worldA\") || [];\n  \n  const machineA = worldA.find(m => m.id === \"machineA\") || {\n    id: \"machineA\",\n    name: \"machineA\",\n    position: { x: 0, y: 0, z: 0 },\n    size: { w: 1, h: 2, d: 1 },\n    imageurl:\"https://aiagent.maxsolo.co.uk/images/machineA.png\",\n    status: 'idle',\ndialogue: {\n        text: \"歡迎來到這台工業設備的控制室。\"\n      }\n  };\n  \n  if (!worldA.find(m => m.id === \"machineA\")) {\n    worldA.push(machineA);\n  }\n  \n  setVar(\"worldA\", worldA);\n  \n  return {\n    status: 'machineReady'\n  };\n}\n",
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699f62a3881ab7.97846155.jpg",
-            "size": "2:1"
-          },
-          "lastPrompt": ""
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772053081,
+            "nanoseconds": 656000000
+          }
         },
         {
           "id": "54N3ODFTqzcpqEnWGbnt",
-          "url": "",
-          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
-          "name": "Dialogue Generator",
-          "lastPrompt": "",
-          "tags": [
-            "human",
-            "action"
-          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772113512,
             "nanoseconds": 786000000
           },
+          "name": "Dialogue Generator",
+          "url": "",
+          "tags": [
+            "human",
+            "action"
+          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772019996,
             "nanoseconds": 969000000
           },
+          "function": "async function processRequest() {\n  setVar('DialogueGenerating', true);\n\n  console.log(\"Recieved Message START\");\n\n  let normalizedPrompt = 'keyword:Operating normally';\n  let systemPrompt = 'Respond in exactly one short sentence as engineer.';\n  const resp = await fetch('https://aichat.maxsolo.co.uk/api/chat', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ \n      role: 'user', \n      prompt: normalizedPrompt, \n      system: systemPrompt \n    })\n  });\n\n  const chatData = await resp.json();\n  const dialogueContent = chatData.content;\n\n  console.log(\"Recieved Message\", dialogueContent);\n\n  storeVars.waiting_wait = true;\n  setVar('DialogueContent', dialogueContent);\n  setVar('DialogueGenerating', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: chatData };\n}\n",
+          "lastPrompt": "",
           "metadata": {
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
             "size": "3:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg"
+            "image": "https://maxsolo.co.uk/images/uploads/img_699ee15f8cf5d3.52675505.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
           }
         },
         {
           "id": "dmWZ28QrPYOoWQ2pcOyU",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n  return {\n    status: 'done'\n  };\n}",
+          "url": "",
           "description": "Wait a few seconds, then proceed to the next node.",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772839178,
-            "nanoseconds": 951000000
-          },
+          "name": "workflow waiting",
+          "lastPrompt": "",
           "tags": [
             "any",
             "action",
             "open"
           ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772839178,
+            "nanoseconds": 951000000
+          },
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772019467,
             "nanoseconds": 427000000
           },
-          "url": "",
+          "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
           "functionInput": "{\nwaitingTime: 10000\n}",
-          "name": "workflow waiting"
+          "metadata": {
+            "cssStyle": ""
+          }
         },
         {
           "id": "NUI7cFBcc3F59XbVBA2y",
-          "metadata": {
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
-            "size": "2:1",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg"
-          },
           "lastPrompt": "",
+          "name": "Data Converter",
           "description": "clone variable to new variable",
+          "url": "",
           "function": "async function processRequest() {\n  setVar('takingphoto', true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 2000));\n\n  storeVars.waiting_wait = true;\n  setVar('imageurl', data.url); // <-- no trailing space\n  setVar('takingphoto', false);\n  storeVars.waiting_wait = false;\n\n  return { status: 'success', output: data };\n}",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772015462,
-            "nanoseconds": 745000000
+          "metadata": {
+            "size": "2:1",
+            "image": "https://maxsolo.co.uk/images/uploads/img_699ed42bb8da60.55992193.jpg",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
           },
+          "tags": [
+            "action"
+          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772114160,
             "nanoseconds": 228000000
           },
-          "tags": [
-            "action"
-          ],
-          "name": "Data Converter",
-          "url": ""
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772015462,
+            "nanoseconds": 745000000
+          }
         },
         {
           "id": "SzbbJVSYrntOHUF9boDU",
-          "lastPrompt": "",
-          "metadata": {
-            "cssStyle": ""
-          },
-          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
-          "description": "physical environment",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772114185,
-            "nanoseconds": 519000000
-          },
-          "tags": [
-            "object"
-          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771945066,
             "nanoseconds": 303000000
           },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772114185,
+            "nanoseconds": 519000000
+          },
+          "metadata": {
+            "cssStyle": ""
+          },
+          "function": "async function processRequest() {\n\nconst currentD1 = getVar('outputviewdialogue1')\nconst currentD2 = getVar('outputviewdialogue2')\nconst currentD3 = getVar('outputviewdialogue3')\nconst currentD4 = getVar('outputviewdialogue4')\n\n  const url = getVar('imageurl')\n\nlet data3 = 80\nlet output3 = '';\n\nlet data4 = 90\nlet output4 = '';\n\nif(data3 > 50){\noutput3 = 'Operating normally';\n}else{\noutput3 = 'Malfunction';\n}\n\nif(currentD2 != url){\nsetVar('outputviewdialogue2', \"<img src='\"+ url +\"' height=32>\");\n}\n\n  setVar('outputviewdialogue1', \"Taking Photo:\"+ getVar('takingphoto'));\n  \n  setVar('outputviewdialogue3', output3);\n  setVar('outputviewdialogue4', getVar('dialoguecontent') );\n\n  return { status: 'success' };\n}",
+          "name": "OutputView",
           "url": "",
-          "name": "OutputView"
+          "description": "physical environment",
+          "lastPrompt": ""
         },
         {
           "id": "eJ2AB3vSxgbwoNinjMnD",
+          "lastPrompt": "",
           "name": "CameraInput",
-          "functionInput": "",
           "url": "",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771840604,
-            "nanoseconds": 972000000
+          "description": "pick a ipcam, take a snapshop and generate label\noutput:  getVar('imageurl')",
+          "function": "async function processRequest() {\n  setVar('takingphoto', true);\nconsole.log(\"takingphoto\", true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 1000));\n\n  setVar('imageurl', data.url);\n  setVar('takingphoto', false);\n\n  return { status: 'success', output: data };\n}\n",
+          "functionInput": "",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
+            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
           },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
@@ -8027,23 +8961,28 @@
             "ipcam",
             "action"
           ],
-          "description": "pick a ipcam, take a snapshop and generate label\noutput:  getVar('imageurl')",
-          "function": "async function processRequest() {\n  setVar('takingphoto', true);\nconsole.log(\"takingphoto\", true);\n\n  const res = await fetch('https://aiagent.maxsolo.co.uk/snapshot');\n  const data = await res.json();\n\n  await new Promise(resolve => setTimeout(resolve, 1000));\n\n  setVar('imageurl', data.url);\n  setVar('takingphoto', false);\n\n  return { status: 'success', output: data };\n}\n",
-          "metadata": {
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d70a51510a7.69727396.png",
-            "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}"
-          },
-          "lastPrompt": ""
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840604,
+            "nanoseconds": 972000000
+          }
         },
         {
           "id": "UsWhf6pyCDQW1nvcnHxa",
           "lastPrompt": "",
+          "name": "VisionAI",
+          "description": "input an image, and request image reading by vision AI model",
+          "url": "",
           "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg"
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d676cdb4814.43386951.jpg",
+            "cssStyle": ""
           },
           "function": "export async function processRequest(input, ctx) {\n  const {\n    imagePath,\n    prompt = '',\n    systemPrompt = '',\n  } = input || {};\n\n  if (!imagePath) {\n    return {\n      status: 'error',\n      message: 'imagePath is required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  const baseUrl = 'https://visionai.maxsolo.co.uk';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('imagePath', String(imagePath));\n  url.searchParams.set('prompt', String(prompt));\n  url.searchParams.set('systemprompt', String(systemPrompt));\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('visionai received error body', text);\n      return {\n        status: 'error',\n        message: `visionai error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const visionaiData = await res.json();\n\n    if (ctx && typeof ctx.setVar === 'function') {\n      ctx.setVar('visionaiData', visionaiData);\n    }\n\n    console.log('visionaiData ok', visionaiData);\n\n    return {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: visionaiData,\n    };\n  } catch (err) {\n    console.log('visionaiData fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
-          "description": "input an image, and request image reading by vision AI model",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771840006,
+            "nanoseconds": 714000000
+          },
           "tags": [
             "action"
           ],
@@ -8051,24 +8990,24 @@
             "type": "firestore/timestamp/1.0",
             "seconds": 1772808343,
             "nanoseconds": 629000000
-          },
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771840006,
-            "nanoseconds": 714000000
-          },
-          "url": "",
-          "name": "VisionAI"
+          }
         },
         {
           "id": "E5tInoIhMDck4CQq8Idt",
           "lastPrompt": "",
+          "name": "show Button",
+          "description": "create a button object to output view",
+          "url": "",
           "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png"
+            "image": "https://maxsolo.co.uk/images/uploads/img_699d673e54b775.95238463.png",
+            "cssStyle": ""
           },
           "function": "async function processRequest() {\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.log(\"no_container\");\n    return { error: 'no_container' };  \n  }\n\n  const buttonId = 'continue-btn-1';\n  \n  // 新增檢查：如果按鈕已存在，就不重複新增\n  if (document.getElementById(buttonId)) {\n    console.log('Button already exists, skipping creation');\n    return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n  }\n\n  const btn = document.createElement('button');\n  btn.id = buttonId;\n  btn.innerText = 'Continue workflow';\n  btn.className = 'ms-continue-btn';\n  btn.onclick = () => {\n    ctx.setVar('waiting_wait', false);\n    document.dispatchEvent(new CustomEvent('workflowResume', { detail: { nodeId: ctx.node?.id } }));\n    console.log('button click');\n  };\n\n  body.appendChild(btn);\n\n  // set waiting flag to pause workflow\n  ctx.setVar('waiting_wait', true);\n  console.log(\"set waiting wait\", true);\n  return { status: 'waiting_user_input', nodeId: ctx.node?.id || null, buttonId };\n}\n",
-          "description": "create a button object to output view",
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1771495135,
+            "nanoseconds": 814000000
+          },
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772808294,
@@ -8076,74 +9015,71 @@
           },
           "tags": [
             "object"
-          ],
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1771495135,
-            "nanoseconds": 814000000
-          },
-          "url": "",
-          "name": "show Button"
+          ]
         },
         {
           "id": "zJoNOauAnOf2nlglnlkf",
-          "name": "show Text",
-          "url": "",
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495123,
             "nanoseconds": 317000000
           },
+          "tags": [
+            "object"
+          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772808284,
             "nanoseconds": 833000000
           },
-          "tags": [
-            "object"
-          ],
-          "description": "create a text object to output view",
-          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
           "metadata": {
             "cssStyle": "",
             "image": "https://maxsolo.co.uk/images/uploads/img_699d67ce757812.13528197.jpg"
           },
+          "function": "function processRequest() {\n  console.log(\"show text Function\");\n\nconst body = document.querySelector('.ms-apiresults-body');\n  if (!body) return;\n\n  const componentID = 'text-' + Date.now();\n  const x = 20;\n  const y = 20;\n  const width = 'auto';\n  const height = 'auto';\n  const displayHTML = '<div style=\"font-size:14px;color:#fff;\">Hello from Text Component</div>';\n\n  const wrapper = document.createElement('div');\n  wrapper.className = 'ms-apiresults-item';\n  wrapper.id = componentID;\n  wrapper.style.position = 'absolute';\n  wrapper.style.left = x + 'px';\n  wrapper.style.top = y + 'px';\n  if (width !== 'auto') wrapper.style.width = width;\n  if (height !== 'auto') wrapper.style.height = height;\n\n  wrapper.innerHTML = displayHTML;\n  body.appendChild(wrapper);\n\n  return {\n    componentID,\n    x,\n    y,\n    width,\n    height,\n    displayHTML\n  };\n}",
+          "name": "show Text",
+          "description": "create a text object to output view",
+          "url": "",
           "lastPrompt": ""
         },
         {
           "id": "UNqCOI0lbGdZagC0kra5",
-          "lastPrompt": "",
           "metadata": {
             "cssStyle": "",
             "image": "https://maxsolo.co.uk/images/uploads/img_699d674fd8c1d7.58634075.png"
           },
           "function": "async function processRequest(ctx) {\n  console.log(\"show Image Function\", ctx.node?.id);\n\n  const body = document.querySelector('.ms-apiresults-body');\n  if (!body) {\n    console.warn('ms-apiresults-body not found');\n    return { error: 'no_container' };\n  }\n\n  const componentID = 'img-' + Date.now();\n  const x = 0;\n  const y = 0;\n  const width = '50px';\n  const height = '50px';\n  const imageURL = \"https://maxsolo.co.uk/images/uploads/img_69970ede6e00a3.96022462.jpg\";\n\n  try {\n    const wrapper = document.createElement('div');\n    wrapper.className = 'ms-apiresults-item';\n    wrapper.id = componentID;\n    wrapper.style.position = 'absolute';\n    wrapper.style.left = x + 'px';\n    wrapper.style.top = y + 'px';\n    wrapper.style.width = width;\n    wrapper.style.height = height;\n\n    const img = document.createElement('img');\n    img.src = imageURL;\n    img.style.width = '100%';\n    img.style.height = '100%';\n    img.style.objectFit = 'contain';\n\n    wrapper.appendChild(img);\n    body.appendChild(wrapper);\n\n    // Save a reference in storeVars for UI or later inspection\n    if (typeof ctx.setVar === 'function') {\n      ctx.setVar('last_api_component', { id: componentID, imageURL, nodeId: ctx.node?.id || null });\n    }\n\n    // Optionally pause the workflow (global flag used by runner)\n    // ctx.setVar('waiting_wait', true);\n\n    return { componentID, x, y, width, height, imageURL };\n  } catch (err) {\n    console.error('processRequest failed', err);\n    return { error: String(err) };\n  }\n}",
-          "description": "create a image to the outputview",
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772808267,
-            "nanoseconds": 262000000
-          },
-          "tags": [
-            "object"
-          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1771495005,
             "nanoseconds": 117000000
           },
+          "tags": [
+            "object"
+          ],
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772808267,
+            "nanoseconds": 262000000
+          },
+          "lastPrompt": "",
           "url": "",
+          "description": "create a image to the outputview",
           "name": "show Image"
         },
         {
           "id": "EqR1uSyCMk59JYM86lSw",
           "function": "",
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "name": "xAI(Ram)",
           "lastPrompt": "{prompt: \"2026 PC DDR5 Memory Price in the UK compare to 2025, only return **high** **normal** or **low**\"}",
+          "metadata": {
+            "image": "https://maxsolo.co.uk/images/uploads/img_69a04ecea9a4f7.38771203.jpg",
+            "cssStyle": ""
+          },
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
           "tags": [
             "action"
           ],
+          "name": "xAI(Ram)",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772113617,
@@ -8153,75 +9089,67 @@
             "type": "firestore/timestamp/1.0",
             "seconds": 1770218220,
             "nanoseconds": 600000000
-          },
-          "metadata": {
-            "cssStyle": "",
-            "image": "https://maxsolo.co.uk/images/uploads/img_69a04ecea9a4f7.38771203.jpg"
           }
         },
         {
           "id": "0FnnIKiR0PxZlv4MT9nm",
-          "description": "get weather information via openweather api\noutput: getVar(\"openweatherTemp\")",
           "function": "async function processRequest(input) {\n  // const { lat, lon } = input || {};\n\n  const lat = input.var.lat;\n  const lon = input.var.lon;\n\n  if (lat == null || lon == null) {\n    return {\n      status: 'error',\n      message: 'lat and lon are required',\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n\n  // TODO: move apiKey to env in real app\n  const apiKey = 'd916305cb39cede1a9bd6e2a340c2593';\n  const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';\n\n  const url = new URL(baseUrl);\n  url.searchParams.set('lat', String(lat));\n  url.searchParams.set('lon', String(lon));\n  url.searchParams.set('units', 'metric');\n  url.searchParams.set('lang', 'en');\n  url.searchParams.set('appid', apiKey);\n\n  try {\n    const res = await fetch(url.toString());\n\n    if (!res.ok) {\n      const text = await res.text();\n      console.log('openweatherAPIresult received error body', text);\n      return {\n        status: 'error',\n        message: `OpenWeather error: ${res.status} ${res.statusText}`,\n        input,\n        timestamp: new Date().toISOString(),\n        output: text,\n      };\n    }\n\n    const weather = await res.json();\n\n    const result = {\n      status: 'success',\n      message: 'Request processed',\n      input,\n      timestamp: new Date().toISOString(),\n      output: weather,\n    };\n\n  ctx.setVar('openweatherTemp', weather.main?.temp);\n  ctx.setVar('openweather_result', result);\n\n    console.log('openweatherAPIresult ok', weather);\nconsole.log('openweatherTemp ok', storeVars.openweatherTemp);\n\n    return result;\n  } catch (err) {\n    console.log('openweatherAPIresult fetch error', err?.message || err);\n    return {\n      status: 'error',\n      message: `Fetch failed: ${err?.message || String(err)}`,\n      input,\n      timestamp: new Date().toISOString(),\n      output: null,\n    };\n  }\n}\n",
           "metadata": {
             "cssStyle": ".api-node {\n    font-weight: 700;\n    color: #ffffff;\n    font-size: 14px;\n    line-height: 1.1;\n    text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.65);\n    transform: translateY(1px);\n}",
             "image": "https://maxsolo.co.uk/images/uploads/img_699cc8f5178c22.94950954.jpg",
             "size": "3:1"
           },
-          "lastPrompt": "",
           "functionInput": "{\n  lat: 53.537048,\n  lon: -2.010916\n}",
-          "name": "OpenWeather",
-          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "updatedAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1772838973,
+            "nanoseconds": 234000000
+          },
+          "tags": [
+            "action"
+          ],
           "createdAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1770215450,
             "nanoseconds": 531000000
           },
-          "tags": [
-            "action"
-          ],
-          "updatedAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1772838973,
-            "nanoseconds": 234000000
-          }
+          "lastPrompt": "",
+          "name": "OpenWeather",
+          "url": "https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&exclude=hourly,daily&appid=d916305cb39cede1a9bd6e2a340c2593",
+          "description": "get weather information via openweather api\noutput: getVar(\"openweatherTemp\")"
         },
         {
           "id": "rACQtq73fn2l4o7LHcQW",
-          "createdAt": {
-            "type": "firestore/timestamp/1.0",
-            "seconds": 1770213924,
-            "nanoseconds": 893000000
-          },
-          "metadata": {
-            "size": "2:1",
-            "cssStyle": ""
-          },
-          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }",
-          "tags": [
-            "action"
-          ],
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772113659,
             "nanoseconds": 748000000
           },
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m",
           "name": "Mission Check",
+          "tags": [
+            "action"
+          ],
+          "createdAt": {
+            "type": "firestore/timestamp/1.0",
+            "seconds": 1770213924,
+            "nanoseconds": 893000000
+          },
           "function": "async function processRequest(input) {\n  // Extract data from input\n  const { prompt, data } = input;\n\nconsole.log(\"mission check\", ctx.storeVars);\n\n  return {};\n}",
-          "url": "https://api.open-meteo.com/v1/forecast?latitude=53.48&longitude=-2.24&current_weather=true&hourly=temperature_2m"
+          "metadata": {
+            "size": "2:1",
+            "cssStyle": ""
+          },
+          "lastPrompt": "{ \"lat\": 53.48, \"lon\": -2.24 }"
         },
         {
           "id": "jJjkD9yPzcKD21Jljtqg",
           "function": "",
-          "description": "input a keyword, and then request answer from xAI(Grok)",
-          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
           "metadata": {
             "cssStyle": "",
             "image": "https://maxsolo.co.uk/images/uploads/img_69a04eec6f6c74.11574150.png",
             "size": "2:1"
           },
-          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback",
-          "name": "xAI",
           "updatedAt": {
             "type": "firestore/timestamp/1.0",
             "seconds": 1772808243,
@@ -8234,7 +9162,11 @@
             "type": "firestore/timestamp/1.0",
             "seconds": 1770212884,
             "nanoseconds": 535000000
-          }
+          },
+          "lastPrompt": "{prompt: \"current red apple supply in the uk, return **normal** or **issue**\"}",
+          "name": "xAI",
+          "description": "input a keyword, and then request answer from xAI(Grok)",
+          "url": "https://aichat.maxsolo.co.uk/api/chat/fallback"
         }
       ],
       "stepDelay": 1000
@@ -9335,6 +10267,28 @@
           "actions": []
         }
       ],
+      "edges": [],
+      "status": "stopped",
+      "storeVars": {},
+      "activeNodeId": null,
+      "activeEdgeId": null,
+      "apis": [],
+      "stepDelay": 1000
+    },
+    {
+      "projectId": "rule_1773072701534_zn3b60",
+      "nodes": [],
+      "edges": [],
+      "status": "stopped",
+      "storeVars": {},
+      "activeNodeId": null,
+      "activeEdgeId": null,
+      "apis": [],
+      "stepDelay": 1000
+    },
+    {
+      "projectId": "rule_1773072784923_v7utbp",
+      "nodes": [],
       "edges": [],
       "status": "stopped",
       "storeVars": {},

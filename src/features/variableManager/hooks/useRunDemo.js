@@ -98,7 +98,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     // New status payload format: [{ id, name, nodeNumber, edgeNumber, runningStatus }]
     socketRef.current.on('sendAllWorkflowStatus', (statusList) => {
       try {
-        console.log('[CLIENT] Received sendAllWorkflowStatus payload:', statusList);
+        //console.log('[CLIENT] Received sendAllWorkflowStatus payload:', statusList);
         if (!Array.isArray(statusList)) return;
 
         // If we've already loaded the full list once, ignore subsequent

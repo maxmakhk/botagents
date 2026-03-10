@@ -8,6 +8,7 @@
  */
 
 import projectManager from './projectManager.js';
+import db from './db.js';
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -420,11 +421,32 @@ async function runLoop({
   await runNodeById(startNode.id);
 }
 
-export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null }) {
+export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null, categoryId = null }) {
   // socket-run wrapper that uses runLoop
   const getNodes = (typeof nodes === 'function') ? nodes : () => (Array.isArray(nodes) ? nodes : []);
   const getEdges = (typeof edges === 'function') ? edges : () => (Array.isArray(edges) ? edges : []);
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
+
+  // If categoryId not provided, try to fetch it from database using projectId
+  let finalCategoryId = categoryId;
+  if (!finalCategoryId && projectId) {
+    try {
+      const rule = db.prepare('SELECT category_id FROM rules WHERE id = ? LIMIT 1').get(projectId);
+      if (rule && rule.category_id) {
+        finalCategoryId = rule.category_id;
+        console.log(`[workflowRunner] ✅ Found categoryId for projectId ${projectId}: ${finalCategoryId}`);
+      } else {
+        console.warn(`[workflowRunner] ⚠️ No rule found for projectId ${projectId} or rule has no category_id`);
+      }
+    } catch (e) {
+      console.warn('[workflowRunner] ❌ Failed to fetch categoryId from database:', e.message);
+    }
+  } else {
+    if (categoryId) {
+      console.log(`[workflowRunner] 📍 Using provided categoryId: ${categoryId}`);
+    }
+  }
+  console.log(`[workflowRunner] 🚀 Starting workflow - projectId: ${projectId}, finalCategoryId: ${finalCategoryId}, willBroadcast: ${!!finalCategoryId}`);
 
   let storeVars = { ...initialStoreVars };
   let abort = false;
@@ -438,7 +460,26 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
   }
 
   const broadcastLog = (event, data) => {
-    try { socket.emit(event, data); } catch (e) { /* ignore */ }
+    try { 
+      const payload = { ...data };
+      if (finalCategoryId) payload.categoryId = finalCategoryId;
+      
+      // For clientJS events, broadcast to all clients with matching projectcategoryId
+      if (event === 'client_js_exec') {
+        if (finalCategoryId) {
+          console.log(`[workflowRunner] 📤 Broadcasting clientJS (finalCategoryId: ${finalCategoryId})`);
+          console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
+          projectManager.broadcastToProjectCategory(finalCategoryId, event, payload);
+        } else {
+          console.warn(`[workflowRunner] ⚠️ CANNOT BROADCAST - finalCategoryId is NOT SET (projectId: ${projectId})`);
+          console.log(`[workflowRunner]    Sending to executing socket only (socket.emit)`);
+          socket.emit(event, payload);
+        }
+      } else {
+        // For other events, send directly to the executing socket
+        socket.emit(event, payload);
+      }
+    } catch (e) { console.warn(`[workflowRunner] ❌ broadcastLog error for ${event}:`, e.message); }
   };
   const broadcastState = (updates) => {
     if (projectId) projectManager.updateProjectState(projectId, updates);

@@ -1,14 +1,39 @@
 import React, { useEffect, useRef, useState } from 'react';
 import useRunDemo from '../features/variableManager/hooks/useRunDemo';
 
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+
 export default function PlayerView({ onBack }) {
   const { socketRef, allWorkflows, setGlobalVar, globalStoreVars, storeVars } = useRunDemo();
   const [lines, setLines] = useState([]);
   const containerRef = useRef(null);
-  const [currentProjectId, setCurrentProjectId] = useState(null);
-  const currentProjectIdRef = useRef(currentProjectId);
+  const selectedCategoryRef = useRef('all');
+  
+  // Category filtering state
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  useEffect(() => { currentProjectIdRef.current = currentProjectId; }, [currentProjectId]);
+  useEffect(() => { selectedCategoryRef.current = selectedCategory; }, [selectedCategory]);
+
+  // Load categories on mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const resp = await fetch(`${API_BASE}/api/rule-categories`);
+        if (!resp.ok) throw new Error('Failed to load categories');
+        const data = await resp.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     const push = (obj) => setLines((prev) => [...prev, { ts: Date.now(), ...obj }]);
@@ -18,15 +43,33 @@ export default function PlayerView({ onBack }) {
       if (!s) return;
 
       const onClientJS = (data) => {
-        // only capture events that include clientJS payload
-        if (!data) return;
+        if (!data) {
+          console.log('[PlayerView] ⚠️ Received empty clientJS data');
+          return;
+        }
         // try common locations for client JS code
         const code = data.clientJS || data.clientJs || data.client_code || (data.payload && (data.payload.clientJS || data.payload.clientJs));
-        if (!code || typeof code !== 'string' || !code.trim()) return;
+        if (!code || typeof code !== 'string' || !code.trim()) {
+          console.log('[PlayerView] ℹ️ Received event but no clientJS code found');
+          return;
+        }
+        console.log("[PlayerView] 📨 Received clientJS event:", { nodeId: data.nodeId, categoryId: data.categoryId, codeLength: code.length });
 
-        // optionally filter by project if payload contains projectId/workflowId
-        const pid = data?.projectId || data?.workflowId || data?.project || (data.payload && data.payload.projectId) || null;
-        if (pid && currentProjectIdRef.current && String(pid) !== String(currentProjectIdRef.current)) return;
+        // Filter by project category
+        // Extract category from data payload
+        const dataCategory = data?.categoryId || data?.category || data?.category_id || (data.payload && (data.payload.categoryId || data.payload.category || data.payload.category_id)) || null;
+        const currentCat = selectedCategoryRef.current;
+        
+        console.log(`[PlayerView] 🔍 Category check - Message categoryId: ${dataCategory}, Selected category: ${currentCat}`);
+        
+        // If a specific category is selected, only execute clientJS from that category
+        // If 'all' is selected, execute all clientJS regardless of category
+        if (currentCat && currentCat !== 'all') {
+          if (!dataCategory || String(dataCategory) !== String(currentCat)) {
+            console.log("[PlayerView] Skipping clientJS - category mismatch. Expected:", currentCat, "Got:", dataCategory);
+            return;
+          }
+        }
 
         const nodeId = data.nodeId || data.node_id || (data.payload && data.payload.nodeId) || null;
         const nodeName = data.nodeName || data.node_name || (data.payload && data.payload.nodeName) || null;
@@ -46,11 +89,12 @@ export default function PlayerView({ onBack }) {
 
         try {
           const fn = new Function('setGlobalVar', 'getGlobalVar', 'globalStoreVars', 'storeVars', code);
+          console.log("[PlayerView] Executing client JS for [nodeId]", nodeId, "[nodeName]", nodeName, "[category]", dataCategory, "[code]",code);
           // execute; don't capture/print source — only log execution
           fn(setGlobalVarForClientJS, getGlobalVar, globalStoreVars || {}, storeVars || {});
-          push({ type: 'client_js_exec', data: { nodeId, nodeName, message: 'executed' } });
+          push({ type: 'client_js_exec', data: { nodeId, nodeName, message: 'executed', category: dataCategory } });
         } catch (e) {
-          push({ type: 'client_js_exec_error', data: { nodeId, nodeName, error: String(e) } });
+          push({ type: 'client_js_exec_error', data: { nodeId, nodeName, error: String(e), category: dataCategory } });
         }
       };
 
@@ -80,31 +124,26 @@ export default function PlayerView({ onBack }) {
     };
   }, [socketRef]);
 
-  // emit watch/unwatch when currentProjectId changes
+  // Watch/unwatch category when it changes
   useEffect(() => {
     const s = socketRef?.current;
-    if (!s) return;
-    let previous = null;
-    try {
-      previous = currentProjectIdRef.current;
-    } catch (e) { previous = null; }
-
-    // unwatch previous
-    if (previous) {
-      try { s.emit('unwatch_project', { projectId: previous }); } catch (e) {}
+    if (!s) {
+      console.log('[PlayerView] ⚠️ Socket not available in effect');
+      return;
     }
 
-    if (currentProjectId) {
-      try {
-        s.emit('watch_project', { projectId: currentProjectId });
-        setLines((prev) => [...prev, { ts: Date.now(), type: 'info', data: `Watching project ${currentProjectId}` }]);
-      } catch (e) {}
+    if (selectedCategory && selectedCategory !== 'all') {
+      console.log(`[PlayerView] 📤 Emitting set_project_category with projectcategoryId: ${selectedCategory}`);
+      s.emit('set_project_category', { projectcategoryId: selectedCategory });
+    } else if (selectedCategory === 'all') {
+      console.log(`[PlayerView] ℹ️ Selected category is 'all', skipping set_project_category`);
     }
 
     return () => {
-      try { if (currentProjectId) s.emit('unwatch_project', { projectId: currentProjectId }); } catch (e) {}
+      // Optionally emit unwatch when component unmounts or category changes
+      // But since we're just filtering in the client, we can keep listening
     };
-  }, [currentProjectId, socketRef]);
+  }, [selectedCategory, socketRef]);
 
   useEffect(() => {
     // auto-scroll to bottom when new lines arrive
@@ -113,26 +152,46 @@ export default function PlayerView({ onBack }) {
     }
   }, [lines]);
 
-  const onSelectProject = (ev) => {
-    const id = ev?.target?.value || null;
-    setCurrentProjectId(id || null);
-  };
-
   return (
-    <div style={{height: '100vh', display: 'flex', flexDirection: 'column'}}>
-      <div style={{padding: 8, display:'flex', gap:8, alignItems:'center'}}>
+    <div 
+    id="outputview"
+    style={{height: '100vh', display: 'flex', flexDirection: 'column'}}>
+      <div style={{padding: 8, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap'}}>
         <button onClick={onBack}>Back</button>
-        <div style={{marginLeft:16}}>
-          <label style={{marginRight:8}}>Project:</label>
-          <select value={currentProjectId || ''} onChange={onSelectProject}>
-            <option value="">-- Select project --</option>
-            {(allWorkflows || []).map((w) => (
-              <option key={String(w.id)} value={String(w.id)}>{w.name || w.id} ({w.nodeNumber || 0} nodes)</option>
+        <div style={{marginLeft:16, display:'flex', gap:8, alignItems:'center'}}>
+          <label style={{marginRight:4}}>Category:</label>
+          <select 
+          id="playerViewProjectCategory"
+          value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#020617', color:'#e5e7eb'}}>
+            <option value="all">All Categories</option>
+            {(categories || []).map((c) => (
+              <option key={c.id} value={c.id}>{c.name || c.id}</option>
             ))}
           </select>
+          <button 
+            onClick={() => {
+              // Refresh categories
+              const loadCategories = async () => {
+                try {
+                  const resp = await fetch(`${API_BASE}/api/rule-categories`);
+                  if (resp.ok) {
+                    const data = await resp.json();
+                    setCategories(Array.isArray(data) ? data : []);
+                  }
+                } catch (err) {
+                  console.error('Failed to refresh categories:', err);
+                }
+              };
+              loadCategories();
+            }}
+            style={{padding:'6px 10px', background:'#0ea5b7', color:'#000', border:'none', borderRadius:4, cursor:'pointer'}}
+            title="Refresh categories"
+          >
+            ↻ Refresh
+          </button>
         </div>
       </div>
-      <div id="ms-apiresults-body" ref={containerRef} >
+      <div id="ms-apiresults-body" ref={containerRef} style={{flex:1, overflow:'auto', background:'#0f1419', padding:8, color:'#e5e7eb'}}>
       </div>
     </div>
   );

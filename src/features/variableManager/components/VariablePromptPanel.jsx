@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { saveRuleToFirebase } from '../services/firebase';
 import WorkflowGraph from './WorkflowGraph';
 import { formatDate } from '../utils/dateUtils';
 
@@ -9,9 +10,13 @@ const VariablePromptPanel = ({
   selectedRuleIndex,
   setSelectedRuleIndex,
   ruleNames,
+  setRuleNames,
+  ruleCategoryIds,
+  setRuleCategoryIds,
   rulePrompts,
   visibleRuleIndices,
   functionsList,
+  setFunctionsList,
   addNewWorkflow,
   deleteWorkflow,
   allProjectStatuses,
@@ -68,9 +73,29 @@ const VariablePromptPanel = ({
   cancelPreview,
   allWorkflows = []
   ,
-  updateNodeDetails
+  updateNodeDetails,
+  socketRef
 }) => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameCategoryId, setRenameCategoryId] = useState('');
+
+  // Notify server when selected project category changes
+  useEffect(() => {
+    if (!socketRef?.current) {
+      console.log('[VariablePromptPanel] ⚠️ Socket not available');
+      return;
+    }
+
+    if (selectedRuleCategoryId && selectedRuleCategoryId !== 'all') {
+      console.log(`[VariablePromptPanel] 📤 Emitting set_project_category with projectcategoryId: ${selectedRuleCategoryId}`);
+      socketRef.current.emit('set_project_category', { projectcategoryId: selectedRuleCategoryId });
+    } else if (selectedRuleCategoryId === 'all') {
+      console.log(`[VariablePromptPanel] ℹ️ Selected category is 'all', skipping set_project_category`);
+    }
+  }, [selectedRuleCategoryId, socketRef]);
+
   return (
     <div className="ai-prompt-form" style={{padding: 16, background: '#111827', borderRadius:'0 0 8px 8px'}}>
       <div style={{display:'flex', gap:8, alignItems:'center', marginBottom:10, flexWrap:'wrap'}}>
@@ -78,7 +103,19 @@ const VariablePromptPanel = ({
         <select
           id="projectSelect"
           value={selectedRuleCategoryId || 'all'}
-          onChange={e => { setSelectedRuleCategoryId(e.target.value); try { console.log('[Projects] onChange - received workflows array:', functionsList); } catch (e) {} }}
+          onChange={e => { 
+            const categoryId = e.target.value;
+            console.log(`[VariablePromptPanel] 🎯 Project dropdown changed to: ${categoryId}`);
+            
+            // Immediately emit set_project_category to server
+            if (socketRef?.current && categoryId && categoryId !== 'all') {
+              console.log(`[VariablePromptPanel] 📤 Immediately emit set_project_category: ${categoryId}`);
+              socketRef.current.emit('set_project_category', { projectcategoryId: categoryId });
+            }
+            
+            setSelectedRuleCategoryId(categoryId); 
+            try { console.log('[Projects] onChange - received workflows array:', functionsList); } catch (e) {} 
+          }}
           onClick={() => { try { console.log('[Projects] onClick - current workflows array:', functionsList); } catch (e) {} }}
           style={{padding: 6, borderRadius: 4, border:'1px solid #475569', background:'#020617', color:'#e5e7eb'}}
         >
@@ -211,6 +248,25 @@ const VariablePromptPanel = ({
                 Add New Workflow
               </button>
               <button
+                className="btn-secondary"
+                onClick={() => {
+                  try {
+                    const current = functionsList && functionsList[selectedRuleIndex];
+                    const currentName = current && (current.name || current.ruleName || ruleNames && ruleNames[selectedRuleIndex]) ? (current.name || ruleNames[selectedRuleIndex]) : '';
+                    setRenameValue(currentName || '');
+                    
+                    // Get current category
+                    const currentCat = ruleCategoryIds && ruleCategoryIds[selectedRuleIndex] ? ruleCategoryIds[selectedRuleIndex] : '';
+                    setRenameCategoryId(currentCat || '');
+                  } catch (e) {}
+                  setShowRenameModal(true);
+                }}
+                style={{padding:'8px 10px', background:'#0ea5b7', color:'#000'}}
+                title="Update workflow name"
+              >
+                Update WorkFlow
+              </button>
+              <button
                 className="btn-danger"
                 onClick={() => { if (typeof deleteWorkflow === 'function' && window.confirm('Delete this workflow? This cannot be undone.')) { deleteWorkflow(); } }}
                 style={{padding:'8px 10px', background:'#dc2626', color:'#fff'}}
@@ -227,6 +283,92 @@ const VariablePromptPanel = ({
           
         </div>
       )}
+
+        {showRenameModal && (
+          <div style={{position:'fixed', top:12, left:'50%', transform:'translateX(-50%)', zIndex:10001, background:'#001219', color:'#e6f6ff', padding:16, borderRadius:8, boxShadow:'0 6px 24px rgba(0,0,0,0.6)', minWidth:380}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+              <strong>Update WorkFlow</strong>
+              <button onClick={() => setShowRenameModal(false)} style={{background:'transparent', border:'none', color:'#9ca3af', cursor:'pointer', fontSize:'18px'}}>✕</button>
+            </div>
+            <div style={{display:'flex', flexDirection:'column', gap:12}}>
+              <div>
+                <label style={{display:'block', marginBottom:6, fontSize:'0.9rem'}}>WorkFlow Name:</label>
+                <input value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder="Workflow name" style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #29474d', background:'#021827', color:'#e5e7eb', boxSizing:'border-box'}} />
+              </div>
+              <div>
+                <label style={{display:'block', marginBottom:6, fontSize:'0.9rem'}}>Category:</label>
+                <select value={renameCategoryId} onChange={e => setRenameCategoryId(e.target.value)} style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #29474d', background:'#021827', color:'#e5e7eb', boxSizing:'border-box'}}>
+                  <option value="">-- No Category --</option>
+                  {(ruleCategories || []).map((c) => (
+                    <option key={c.id} value={c.id}>{c.name || c.id}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{display:'flex', gap:8, justifyContent:'flex-end'}}>
+                <button 
+                  onClick={() => setShowRenameModal(false)}
+                  style={{padding:'8px 14px', border:'1px solid #29474d', background:'transparent', color:'#e6f6ff', borderRadius:6, cursor:'pointer'}}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={async () => {
+                    try {
+                      const idx = selectedRuleIndex;
+                      if (idx === undefined || idx === null) return;
+                      const current = functionsList && functionsList[idx];
+                      const id = current && (current.ruleId || current.id);
+                      if (!id) {
+                        window.alert('Cannot determine workflow id');
+                        return;
+                      }
+                      const newName = String(renameValue || '').trim();
+                      const newCat = renameCategoryId || '';
+                      
+                      // Save both name and category to server
+                      await saveRuleToFirebase(null, { id, name: newName, categoryId: newCat });
+                      
+                      // Update local state immediately
+                      if (typeof setRuleNames === 'function') {
+                        setRuleNames((prev) => {
+                          const updated = [...prev];
+                          updated[idx] = newName;
+                          return updated;
+                        });
+                      }
+                      if (typeof setFunctionsList === 'function') {
+                        setFunctionsList((prev) => {
+                          if (!Array.isArray(prev)) return prev;
+                          const updated = [...prev];
+                          updated[idx] = { ...(updated[idx] || {}), name: newName, categoryId: newCat };
+                          return updated;
+                        });
+                      }
+                      if (typeof setRuleCategoryIds === 'function') {
+                        setRuleCategoryIds((prev) => {
+                          const updated = [...prev];
+                          updated[idx] = newCat;
+                          return updated;
+                        });
+                      }
+                      
+                      setShowRenameModal(false);
+                      try { window.alert('Workflow updated successfully'); } catch (e) {}
+                    } catch (err) {
+                      console.error('Update failed', err);
+                      try { window.alert('Failed to update workflow: ' + (err.message || 'unknown')); } catch (e) {}
+                    }
+                  }}
+                  disabled={String(renameValue || '').trim() === ''}
+                  style={{padding:'8px 16px'}}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       {workflowLoading && (
         <div style={{marginBottom:10, color:'#9fd6e1'}}>Generating workflow...</div>

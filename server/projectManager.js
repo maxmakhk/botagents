@@ -5,6 +5,7 @@
  */
 
 import { executeWorkflow } from './workflowRunner.js';
+import db from './db.js';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -18,6 +19,9 @@ class ProjectManager {
     
     // Map: projectId -> Set<clientId>
     this.projectWatchers = new Map();
+    
+    // Map: categoryId -> Set<clientId> (for category-based watching)
+    this.categoryWatchers = new Map();
     
     // Map: projectId -> { abortController, executing }
     this.runningProjects = new Map();
@@ -143,7 +147,7 @@ class ProjectManager {
    * Register a client connection
    */
   registerClient(clientId, socket) {
-    this.clients.set(clientId, { socket, projectId: null });
+    this.clients.set(clientId, { socket, projectId: null, projectcategoryId: null });
     //console.log(`[ProjectManager] Client registered: ${clientId}`);
   }
 
@@ -155,6 +159,15 @@ class ProjectManager {
     if (client && client.projectId) {
       this.unwatchProject(clientId, client.projectId);
     }
+    
+    // Clean up category watchers for this client
+    for (const [categoryId, watchers] of this.categoryWatchers.entries()) {
+      watchers.delete(clientId);
+      if (watchers.size === 0) {
+        this.categoryWatchers.delete(categoryId);
+      }
+    }
+    
     this.clients.delete(clientId);
     //console.log(`[ProjectManager] Client unregistered: ${clientId}`);
   }
@@ -224,6 +237,134 @@ class ProjectManager {
       }
     }
     this.log(`Client ${clientId} unwatched project ${projectId}`);
+  }
+
+  /**
+   * Client watches a category - receives all broadcasts for that category
+   */
+  watchCategory(clientId, categoryId) {
+    const client = this.clients.get(clientId);
+    if (!client) return;
+
+    // Initialize category watchers set if needed
+    if (!this.categoryWatchers.has(categoryId)) {
+      this.categoryWatchers.set(categoryId, new Set());
+    }
+    
+    this.categoryWatchers.get(categoryId).add(clientId);
+    this.log(`Client ${clientId} watching category ${categoryId}`);
+  }
+
+  /**
+   * Client stops watching a category
+   */
+  unwatchCategory(clientId, categoryId) {
+    const watchers = this.categoryWatchers.get(categoryId);
+    if (watchers) {
+      watchers.delete(clientId);
+      if (watchers.size === 0) {
+        this.categoryWatchers.delete(categoryId);
+      }
+    }
+    this.log(`Client ${clientId} unwatched category ${categoryId}`);
+  }
+
+  /**
+   * Broadcast event to all clients watching a category
+   */
+  broadcastToCategory(categoryId, event, data) {
+    const watchers = this.categoryWatchers.get(categoryId);
+    if (!watchers) {
+      this.log(`No watchers for category ${categoryId}, cannot broadcast ${event}`);
+      return;
+    }
+
+    this.log(`Broadcasting ${event} to ${watchers.size} watchers of category ${categoryId}`);
+
+    for (const clientId of watchers) {
+      const client = this.clients.get(clientId);
+      if (client && client.socket) {
+        client.socket.emit(event, data);
+      }
+    }
+  }
+
+  /**
+   * Set client's selected project category
+   */
+  setClientProjectCategory(clientId, projectcategoryId) {
+    const client = this.clients.get(clientId);
+    if (client) {
+      client.projectcategoryId = projectcategoryId;
+      console.log(`\n[ProjectManager] 🎯 Client ${clientId} changed projectcategoryId to: ${projectcategoryId}`);
+      
+      // Log all clients' current category status
+      console.log(`[ProjectManager] 📋 Current clients state:`);
+      for (const [cid, c] of this.clients.entries()) {
+        const cat = c?.projectcategoryId ? String(c.projectcategoryId) : 'UNSET';
+        const marker = cid === clientId ? '👈' : '  ';
+        const socketStatus = c?.socket ? '✓' : '✗';
+        console.log(`${marker} ${socketStatus} Client ${cid}: ${cat}`);
+      }
+      console.log('');
+    } else {
+      console.warn(`[ProjectManager] ⚠️ Client ${clientId} not found when trying to set projectcategoryId to ${projectcategoryId}`);
+    }
+  }
+
+  /**
+   * Broadcast to all clients with matching projectcategoryId
+   */
+  broadcastToProjectCategory(projectcategoryId, event, data) {
+    if (!projectcategoryId) {
+      console.log(`[ProjectManager] ⚠️ No projectcategoryId provided for broadcast, cannot send ${event}`);
+      return;
+    }
+
+    const projectcategoryIdStr = String(projectcategoryId);
+    console.log(`\n[ProjectManager] ═══════════════════════════════════════════`);
+    console.log(`[ProjectManager] 📢 BROADCAST: ${event} to projectcategoryId: ${projectcategoryIdStr}`);
+    console.log(`[ProjectManager] ═══════════════════════════════════════════`);
+    console.log(`[ProjectManager] 📊 Total clients connected: ${this.clients.size}`);
+    
+    const successfulClients = [];
+    const failedClients = [];
+    const skippedClients = [];
+    
+    for (const [clientId, client] of this.clients.entries()) {
+      const clientCategory = client?.projectcategoryId ? String(client.projectcategoryId) : 'UNSET';
+      const hasSocket = client && client.socket ? true : false;
+      
+      if (client && client.socket && String(client.projectcategoryId) === projectcategoryIdStr) {
+        try {
+          client.socket.emit(event, data);
+          successfulClients.push(clientId);
+          console.log(`[ProjectManager] ✅ SENT to client: ${clientId}`);
+        } catch (e) {
+          failedClients.push({ clientId, error: e.message });
+          console.log(`[ProjectManager] ❌ ERROR sending to ${clientId}: ${e.message}`);
+        }
+      } else {
+        let reason = '';
+        if (!client) reason = 'NO_CLIENT_DATA';
+        else if (!hasSocket) reason = 'NO_SOCKET';
+        else reason = `CATEGORY_MISMATCH (client: ${clientCategory} ≠ broadcast: ${projectcategoryIdStr})`;
+        
+        skippedClients.push({ clientId, reason });
+        console.log(`[ProjectManager] ⊘ SKIPPED client: ${clientId} | ${reason}`);
+      }
+    }
+    
+    console.log(`[ProjectManager] ───────────────────────────────────────────`);
+    console.log(`[ProjectManager] 📈 SUMMARY:`);
+    console.log(`[ProjectManager]    ✅ Sent to ${successfulClients.length} client(s): ${successfulClients.join(', ') || 'NONE'}`);
+    if (failedClients.length > 0) {
+      console.log(`[ProjectManager]    ❌ Failed to send to ${failedClients.length} client(s): ${failedClients.map(f => `${f.clientId}(${f.error})`).join(', ')}`);
+    }
+    if (skippedClients.length > 0) {
+      console.log(`[ProjectManager]    ⊘ Skipped ${skippedClients.length} client(s): ${skippedClients.map(s => `${s.clientId}(${s.reason})`).join(', ')}`);
+    }
+    console.log(`[ProjectManager] ═══════════════════════════════════════════\n`);
   }
 
   /**
@@ -781,6 +922,20 @@ class ProjectManager {
     //console.log(`[ProjectManager] executeProject: created runInfo for ${projectId}`, this.runningProjects.get(projectId));
     this.log(`Starting execution: ${projectId}`);
 
+    // Fetch categoryId for this project early so broadcast knows it
+    let categoryId = null;
+    try {
+      const rule = db.prepare('SELECT category_id FROM rules WHERE id = ? LIMIT 1').get(projectId);
+      if (rule && rule.category_id) {
+        categoryId = rule.category_id;
+        console.log(`[ProjectManager] 📍 Fetched categoryId for project ${projectId}: ${categoryId}`);
+      } else {
+        console.warn(`[ProjectManager] ⚠️ No categoryId found for project ${projectId}`);
+      }
+    } catch (e) {
+      console.warn(`[ProjectManager] ❌ Failed to fetch categoryId:`, e.message);
+    }
+
     try {
       // Read customStartNodeId if set (for forced jump or initial node override)
       const startNodeId = project.customStartNodeId || null;
@@ -800,7 +955,23 @@ class ProjectManager {
         startNodeId: startNodeId,
         waitResolvers: waitResolvers,
         broadcastCallback: (event, data) => {
-          this.broadcastToProject(projectId, event, { projectId, ...data });
+          // Special handling for clientJS events
+          if (event === 'client_js_exec') {
+            console.log(`[ProjectManager] 📤 Broadcasting clientJS (categoryId: ${categoryId || 'NONE'})`);
+            
+            // 1. Broadcast to all clients with matching categoryId (if categoryId exists)
+            if (categoryId) {
+              console.log(`[ProjectManager]    - Sending to category watchers`);
+              this.broadcastToProjectCategory(categoryId, event, { projectId, ...data });
+            }
+            
+            // 2. ALSO broadcast to project watchers (editor/executor always gets their own clientJS)
+            console.log(`[ProjectManager]    - Also sending to project watchers`);
+            this.broadcastToProject(projectId, event, { projectId, ...data });
+          } else {
+            // For other events, use the standard project broadcast (to watchers of this specific project)
+            this.broadcastToProject(projectId, event, { projectId, ...data });
+          }
         },
         updateStateCallback: (updates) => {
           this.updateProjectState(projectId, updates);

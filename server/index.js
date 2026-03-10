@@ -159,7 +159,7 @@ app.get('/trigger/:workflowName/:nodeLabel', async (req, res) => {
   try {
     const { workflowName, nodeLabel } = req.params;
     const result = projectManager.findWorkflowByName(workflowName);
-    console.log("[trigger/:workflowName/:nodeLabel]", result, "[workflowName/]", workflowName, "[nodeLabel/]", nodeLabel);
+    //console.log("[trigger/:workflowName/:nodeLabel]", result, "[workflowName/]", workflowName, "[nodeLabel/]", nodeLabel);
     if (!result) {
       return res.status(404).json({ success: false, error: 'Workflow not found' });
     }
@@ -264,6 +264,7 @@ app.get('/run/:workflowID', async (req, res) => {
     // Resolve projectId
     let projectId = workflowID;
     const result = projectManager.findWorkflowByName(workflowID);
+    //console.log("[/run/:workflowID] findWorkflowByName result:", result, "workflowID", workflowID);
     if (result) projectId = result.projectId;
 
     const project = projectManager.getProject(projectId);
@@ -978,16 +979,17 @@ app.get('/worlds', (req, res) => {
 
 // ------------------ Socket.IO Workflow Execution -------------------------
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log(`[Socket] ✅ Client connected: ${socket.id}`);
 
   // Register client with ProjectManager
   projectManager.registerClient(socket.id, socket);
+  console.log(`[Socket] 📝 Client ${socket.id} registered - initial projectcategoryId: UNSET`);
 
   // Send all project statuses immediately on connect
   const allStatuses = projectManager.getAllProjectStatuses();
   socket.emit('all_project_statuses', allStatuses);
   socket.emit('sendAllWorkflowStatus', projectManager.getAllWorkflowStatus());
-  console.log(`[Socket] Sent all project statuses to ${socket.id}:`, allStatuses);
+  //console.log(`[Socket] Sent all project statuses to ${socket.id}:`, allStatuses);
 
   // Client wants to watch a project
   socket.on('watch_project', (data) => {
@@ -1004,6 +1006,33 @@ io.on('connection', (socket) => {
       projectManager.unwatchProject(socket.id, client.projectId);
       client.projectId = null;
     }
+  });
+
+  // Client wants to watch a category for clientJS broadcasts
+  socket.on('watch_category', (data) => {
+    const { categoryId } = data || {};
+    if (!categoryId) return;
+    console.log(`[Socket] Client ${socket.id} wants to watch category ${categoryId}`);
+    projectManager.watchCategory(socket.id, categoryId);
+  });
+
+  // Client wants to unwatch a category
+  socket.on('unwatch_category', (data) => {
+    const { categoryId } = data || {};
+    if (!categoryId) return;
+    console.log(`[Socket] Client ${socket.id} wants to unwatch category ${categoryId}`);
+    projectManager.unwatchCategory(socket.id, categoryId);
+  });
+
+  // Client updates its selected project category
+  socket.on('set_project_category', (data) => {
+    const { projectcategoryId } = data || {};
+    if (!projectcategoryId) {
+      console.warn(`[Socket] ⚠️ Client ${socket.id} sent empty projectcategoryId`);
+      return;
+    }
+    console.log(`[Socket] 📨 Received 'set_project_category' from Client ${socket.id} with projectcategoryId: ${projectcategoryId}`);
+    projectManager.setClientProjectCategory(socket.id, projectcategoryId);
   });
 
   // Client triggers run/stop for a project
@@ -1359,7 +1388,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log(`[Socket] ❌ Client disconnected: ${socket.id}`);
     projectManager.unregisterClient(socket.id);
   });
 });

@@ -3622,11 +3622,16 @@ const edges = [
             selectedRuleIndex={selectedRuleIndex}
             setSelectedRuleIndex={setSelectedRuleIndex}
             ruleNames={ruleNames}
+            setRuleNames={setRuleNames}
+            ruleCategoryIds={ruleCategoryIds}
+            setRuleCategoryIds={setRuleCategoryIds}
             rulePrompts={rulePrompts}
             visibleRuleIndices={visibleRuleIndices}
             functionsList={functionsList}
+            setFunctionsList={setFunctionsList}
             allWorkflows={allWorkflows}
             updateNodeDetails={updateNodeDetails}
+            socketRef={socketRef}
             addNewWorkflow={addNewWorkflow}
             deleteWorkflow={async () => {
               try {
