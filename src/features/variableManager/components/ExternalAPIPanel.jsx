@@ -674,7 +674,7 @@ const ExternalAPIPanel = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1010
         }}>
           <div style={{
             background: '#111827',

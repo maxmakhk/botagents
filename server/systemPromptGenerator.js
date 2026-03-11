@@ -107,6 +107,9 @@ function generateSystemPrompt({ userPrompt = '', functionsList = [], apis = [], 
           tags: obj.tags || []
         }));
 
+    const objectVariablesB = globalStoreVars.objects || {};
+    const panelobjectVariables = globalStoreVars.panelobjects || {};
+
     const actionComponents = [];
     if (Array.isArray(apis)) {
       apis.forEach((api) => {
@@ -236,7 +239,10 @@ Rules:
 - edges can have optional "expression" field to indicate execution conditions (e.g., "varA > 10"), but if not provided, assume always true. the variables is collected from globalStoreVars, which is the memory of current workflow, it can be updated by each node execution, and it can be used for condition judgement for edges.
 
 Your Physical objects here (JSON array):
-${JSON.stringify(objectVariables, null, 2)}
+${JSON.stringify(objectVariablesB, null, 2)}
+
+Panel objects here (JSON array):
+${JSON.stringify(panelobjectVariables, null, 2)}
 
 Available action components (JSON):
 ${JSON.stringify(actionComponents, null, 2)}
