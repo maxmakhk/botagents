@@ -23,8 +23,15 @@ class ProjectManager {
     // Map: categoryId -> Set<clientId> (for category-based watching)
     this.categoryWatchers = new Map();
     
-    // Map: projectId -> { abortController, executing }
+    // Map: runId -> { executing, abort, waitResolvers }
+    // Changed from projectId key to runId key for multi-instance support
     this.runningProjects = new Map();
+    
+    // NEW: Map: runId -> { runId, projectId, nodes[], edges[], status, storeVars, activeNodeId, activeEdgeId, apis, stepDelay, createdAt, pausedAt, paused_wait }
+    this.run_instances = new Map();
+    
+    // NEW: Map: projectId -> Set<runId> for quick lookup of all runs for a project
+    this.runsByProjectId = new Map();
     
     // Socket.IO instance for broadcasting
     this.io = null;
@@ -42,6 +49,91 @@ class ProjectManager {
 
     // Debounced workflow-structure broadcast timers (projectId -> Timeout)
     this.sendNodesTimers = new Map();
+  }
+
+  // NEW: Generate a unique runId
+  generateRunId(projectId) {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${projectId}_${timestamp}_${random}`;
+  }
+
+  // NEW: Create a new run instance from a project template
+  createRunInstance(projectId) {
+    const project = this.projects.get(projectId);
+    if (!project) {
+      console.error(`[ProjectManager] Cannot create run instance: project ${projectId} not found`);
+      return null;
+    }
+
+    const runId = this.generateRunId(projectId);
+    const runInstance = {
+      runId,
+      projectId,
+      nodes: JSON.parse(JSON.stringify(project.nodes || [])), // Deep copy
+      edges: JSON.parse(JSON.stringify(project.edges || [])), // Deep copy
+      apis: project.apis || [],
+      stepDelay: project.stepDelay || 1000,
+      status: 'running',
+      storeVars: JSON.parse(JSON.stringify(project.storeVars || {})), // Deep copy
+      activeNodeId: null,
+      activeEdgeId: null,
+      createdAt: new Date().toISOString(),
+      pausedAt: null,
+      paused_wait: false
+    };
+
+    // Store in run_instances
+    this.run_instances.set(runId, runInstance);
+
+    // Track in runsByProjectId
+    if (!this.runsByProjectId.has(projectId)) {
+      this.runsByProjectId.set(projectId, new Set());
+    }
+    this.runsByProjectId.get(projectId).add(runId);
+
+    // Initialize waitResolvers for this run
+    this.runningProjects.set(runId, { executing: false, abort: false, waitResolvers: {} });
+
+    this.log(`Created run instance ${runId} for project ${projectId}`);
+    return runInstance;
+  }
+
+  // NEW: Get all running instances
+  getAllRunInstances() {
+    const instances = [];
+    for (const [runId, instance] of this.run_instances.entries()) {
+      instances.push({
+        runId,
+        projectId: instance.projectId,
+        status: instance.status,
+        activeNodeId: instance.activeNodeId,
+        createdAt: instance.createdAt,
+        pausedAt: instance.pausedAt,
+        isPaused: instance.paused_wait
+      });
+    }
+    return instances;
+  }
+
+  // NEW: Get all run instances for a specific project
+  getProjectRunInstances(projectId) {
+    const runIds = this.runsByProjectId.get(projectId) || new Set();
+    const instances = [];
+    for (const runId of runIds) {
+      const instance = this.run_instances.get(runId);
+      if (instance) {
+        instances.push({
+          runId,
+          status: instance.status,
+          activeNodeId: instance.activeNodeId,
+          createdAt: instance.createdAt,
+          pausedAt: instance.pausedAt,
+          isPaused: instance.paused_wait
+        });
+      }
+    }
+    return instances;
   }
 
   // Global store var helpers

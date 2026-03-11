@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-11T15:18:05.561Z",
+  "savedAt": "2026-03-11T19:50:30.769Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -1826,18 +1826,18 @@
       "projectId": "rule_1772537005255_7j7ed8",
       "nodes": [
         {
-          "id": "api_1772555180349",
+          "id": "api_1772710436206",
           "position": {
-            "x": 52.85714285714286,
-            "y": -141.4285714285715
+            "x": 94,
+            "y": -44
           },
           "type": "api",
           "metadata": {
-            "apiId": "49hAqx8nk9kywqpDbIYl",
-            "apiName": "Input Text Machine",
+            "apiId": "t18j2BxNlpLTRPNRpXZu",
+            "apiName": "createObjects",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1845,18 +1845,19 @@
             ]
           },
           "data": {
-            "labelText": "Input Text Machine",
+            "labelText": "createObjects",
             "description": "api",
-            "label": "Input Text Machine",
-            "nodeLabel": "start",
-            "fnString": "async function processRequest(input) {\n\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START2B\", input, input.var.a);\n\n  const clientJS = `\n    console.log(\"clientJS input form START [A]\", input.var.a);\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\nfetch('http://localhost:3001/run/FileAI2')\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 1000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
             "actions": [],
             "metadata": {
-              "apiId": "49hAqx8nk9kywqpDbIYl",
-              "apiName": "Input Text Machine",
+              "apiId": "t18j2BxNlpLTRPNRpXZu",
+              "apiName": "createObjects",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"inputtext\") || {};\n  console.log(\"input form START\");\n\n  const clientJS = `\n    console.log(\"clientJS input form START\");\n    \n    let formContainer = document.getElementById('inputFormContainer');\n    if (formContainer) {\n      console.log(\"form already exists\");\n      return;\n    }\n\n    formContainer = document.createElement('div');\n    formContainer.id = 'inputFormContainer';\n    formContainer.style.cssText = \\`\n      width: 400px; \n      height: 300px; \n      background: #2c3e50; \n      border: 2px solid #34495e; \n      border-radius: 8px; \n      padding: 20px; \n      font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n      color: white;\n    \\`;\n    \n    const title = document.createElement('h3');\n    title.textContent = 'Data Input Form';\n    title.style.cssText = 'margin: 0 0 20px 0; color: #ecf0f1; text-align: center;';\n    formContainer.appendChild(title);\n\n    const input = document.createElement('textarea');\n    input.id = 'userInputData';\n    input.placeholder = 'Enter your data here...';\n    input.rows = 8;\n    input.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      border: 1px solid #7f8c8d; \n      border-radius: 4px; \n      background: #34495e; \n      color: #ecf0f1; \n      font-family: monospace; \n      font-size: 14px;\n      resize: vertical;\n      box-sizing: border-box;\n    \\`;\n    formContainer.appendChild(input);\n\n    const submitBtn = document.createElement('button');\n    submitBtn.textContent = 'Save to Global Store';\n    submitBtn.style.cssText = \\`\n      width: 100%; \n      padding: 12px; \n      margin-top: 15px; \n      background: #3498db; \n      color: white; \n      border: none; \n      border-radius: 4px; \n      font-size: 16px; \n      font-weight: bold; \n      cursor: pointer;\n      transition: background 0.3s;\n    \\`;\n\n    const statusDiv = document.createElement('div');\n    statusDiv.id = 'formStatus';\n    statusDiv.style.cssText = 'margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; text-align: center; display: none;';\n\n    submitBtn.onclick = () => {\n      const inputValue = input.value.trim();\n      if (!inputValue) {\n        statusDiv.textContent = 'Please enter some data!';\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n        return;\n      }\n\n      try {\n        setGlobalVar(\"inputtext\", inputValue);\n;\n        statusDiv.textContent = '✅ Data saved to global var: inputtext';\n        statusDiv.style.background = '#27ae60';\n        statusDiv.style.display = 'block';\n\n        setTimeout(() => {\n          statusDiv.style.display = 'none';\n        }, 3000);\n      } catch (error) {\n        statusDiv.textContent = 'Error: ' + error.message;\n        statusDiv.style.background = '#e74c3c';\n        statusDiv.style.display = 'block';\n      }\n    };\n\n    formContainer.appendChild(submitBtn);\n    formContainer.appendChild(statusDiv);\n\n    const container = document.getElementById('ms-apiresults-body');\n    if (!container) {\n      console.error('Container not found');\n      return;\n    }\n    container.appendChild(formContainer);\n\n    const existingData = ${JSON.stringify(printoutdata)};\n    if (existingData && Object.keys(existingData).length > 0) {\n      input.value = JSON.stringify(existingData, null, 2);\n    }\n\n    console.log(\"clientJS input form finish\");\n  `;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -1878,18 +1879,18 @@
           "height": 64
         },
         {
-          "id": "api_1772625567112",
+          "id": "api_1772717386732",
           "position": {
-            "x": 260,
-            "y": 200
+            "x": -33,
+            "y": -200
           },
           "type": "api",
           "metadata": {
-            "apiId": "T7sJl75flCKvuLNb2053",
-            "apiName": "Jump",
+            "apiId": "9ciuxQlkizKAipN9n2Xb",
+            "apiName": "cleanOutputView",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  try {\n    const response = await fetch('http://localhost:3001/trigger/'+ input.var.target);\n    if (!response.ok) {\n      throw new Error(`HTTP error! status: ${response.status}`);\n    }\n    const data = await response.text();\n    console.log('Workflow triggered:', data);\n  } catch (error) {\n    console.error('Trigger failed:', error);\n  }\n  return {};\n}",
+            "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -1897,18 +1898,19 @@
             ]
           },
           "data": {
-            "labelText": "Jump",
+            "labelText": "cleanOutputView",
             "description": "api",
-            "label": "Jump",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log(\"run jump\");\n\n  try {\n    console.log('about to fetch');\n    const res = await fetch('http://localhost:3001/trigger/FileAI2/start', {\n      method: 'GET',\n    });\n    console.log('status', res.status);\n    const text = await res.text();\n    console.log('body', text);\n\nfetch('http://localhost:3001/run/FileAI2')\n  } catch (e) {\n    console.error('fetch error', e);\n  }\n\n  return {};\n}\n",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "",
             "actions": [],
             "metadata": {
-              "apiId": "T7sJl75flCKvuLNb2053",
-              "apiName": "Jump",
+              "apiId": "9ciuxQlkizKAipN9n2Xb",
+              "apiName": "cleanOutputView",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n  try {\n    const response = await fetch('http://localhost:3001/trigger/'+ input.var.target);\n    if (!response.ok) {\n      throw new Error(`HTTP error! status: ${response.status}`);\n    }\n    const data = await response.text();\n    console.log('Workflow triggered:', data);\n  } catch (error) {\n    console.error('Trigger failed:', error);\n  }\n  return {};\n}",
+              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -1930,99 +1932,44 @@
           "height": 64
         },
         {
-          "id": "api_1772636918871",
+          "id": "api_1773144798781",
           "position": {
-            "x": 485.71428571428567,
-            "y": 230
+            "x": 329,
+            "y": -22
           },
           "type": "api",
           "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "wait10s",
+            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "apiName": "createPanelObjects",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "wait10s",
-            "description": "api",
-            "label": "wait10s",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n\nconsole.log(\"waiting fn\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\nawait fetch('http://localhost:3001/run/FileAI2')\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "wait10s",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  storeVars.waiting_wait = true;\nconsole.log(\"waiting fn 10.0\")\n  await new Promise(resolve => setTimeout(resolve, 10000));\n  storeVars.waiting_wait = false;\n  return {\n    status: 'done',\n    message: 'Waited 10s',\n    input,\n    timestamp: new Date().toISOString(),\n    output: { waitMs: 10000 }\n  };\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1772700229256",
-          "position": {
-            "x": 338.57142857142856,
-            "y": -91.42857142857144
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "JGSx9JbLTukDp0LGA8TY",
-            "apiName": "Print Search Result Machine",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
               "object",
-              "output"
+              "panel"
             ]
           },
           "data": {
-            "labelText": "Print Search Result Machine",
+            "labelText": "createPanelObjects",
             "description": "api",
-            "label": "Print Search Result Machine",
+            "label": "createPanelObjects",
             "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "fnString": "//CreatePanelController\nasync function processRequest(input) {\n  const objects = input.var.objects || [];\n\nsetVar(\"panelobjects\", objects);\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
             "actions": [],
             "metadata": {
-              "apiId": "JGSx9JbLTukDp0LGA8TY",
-              "apiName": "Print Search Result Machine",
+              "apiId": "Q4iDabdthrTztYd8uIrt",
+              "apiName": "createPanelObjects",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n  const printoutdata = getVar(\"askresponse\") || {};\n\n  const clientJS = `\nconsole.log(\"clientJS running...\");\nconsole.log(\"printoutdata =\", ${JSON.stringify(printoutdata, null, 2)});\n\nconst root = document.getElementById(\"ms-apiresults-body\");\n\nif (!root) {\n  console.warn(\"ms-apiresults-body not found\");\n} else {\n  let container = document.getElementById(\"SearchResult\");\n  if (!container) {\n    container = document.createElement(\"div\");\n    container.id = \"SearchResult\";\n    root.appendChild(container);\n  }\n  container.innerHTML = \"\";\n\n  container.style.border = \"1px solid red\";\n  container.style.padding = \"8px\";\n  container.style.margin = \"8px 0\";\n\n  const title = document.createElement(\"h2\");\n  title.textContent = \"Search Result\";\n  container.appendChild(title);\n\n  let summaryText = ${JSON.stringify(printoutdata.answer_summary || \"\")};\n\n  if (!summaryText) {\n    const rawAnswer = ${JSON.stringify(printoutdata.answer || \"\")};\n    try {\n      const parsed = JSON.parse(rawAnswer);\n      if (parsed && typeof parsed.content === \"string\") {\n        summaryText = parsed.content;\n      } else {\n        summaryText = rawAnswer;\n      }\n    } catch (e) {\n      console.warn(\"Failed to parse answer JSON\", e);\n      summaryText = rawAnswer;\n    }\n  }\n\n  const summaryP = document.createElement(\"p\");\n  summaryP.textContent = summaryText || \"\";\n  container.appendChild(summaryP);\n\n  const data = ${JSON.stringify(printoutdata)};\n  if (Array.isArray(data.document_details)) {\n    const listTitle = document.createElement(\"h3\");\n    listTitle.textContent = \"Documents:\";\n    container.appendChild(listTitle);\n\n    data.document_details.forEach((doc, index) => {\n      const docBox = document.createElement(\"div\");\n      docBox.style.border = \"1px solid #ccc\";\n      docBox.style.margin = \"4px 0\";\n      docBox.style.padding = \"4px\";\n\n      const header = document.createElement(\"div\");\n      const rank = doc.rank != null ? doc.rank : index + 1;\n      header.textContent =\n        \"#\" + rank + \" - \" + (doc.filename || \"\") +\n        \" (freq: \" + (doc.keyword_freq ?? 0) + \")\";\n      docBox.appendChild(header);\n\n      if (doc.preview) {\n        const previewEl = document.createElement(\"pre\");\n        previewEl.textContent = doc.preview;\n        docBox.appendChild(previewEl);\n      }\n\n      if (doc.file_path) {\n        const pathEl = document.createElement(\"div\");\n        pathEl.textContent = doc.file_path;\n        docBox.appendChild(pathEl);\n      }\n\n      container.appendChild(docBox);\n    });\n  }\n}\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
                 "object",
-                "output"
+                "panel"
               ]
             },
             "width": 128,
@@ -2038,95 +1985,21 @@
           },
           "width": 128,
           "height": 64
-        },
-        {
-          "id": "api_1772706895463",
-          "position": {
-            "x": 143,
-            "y": -43
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "sBBs3o16YtuUQQiChhu6",
-            "apiName": "File AI",
-            "apiUrl": null,
-            "image": null,
-            "function": "//File AI\nasync function processRequest(input) {\n  const inputtext = getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action"
-            ]
-          },
-          "data": {
-            "labelText": "File AI",
-            "description": "api",
-            "label": "File AI",
-            "nodeLabel": "",
-            "fnString": "//File AI\nasync function processRequest(input) {\n  const inputtext = getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "sBBs3o16YtuUQQiChhu6",
-              "apiName": "File AI",
-              "apiUrl": null,
-              "image": null,
-              "function": "//File AI\nasync function processRequest(input) {\n  const inputtext = getVar(\"inputtext\");\n\n  console.log(\"Received Ask START\", inputtext);\n\n  const body = { query: inputtext };\n\n  const resp = await fetch('https://fileai.maxsolo.co.uk/ask', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(body),\n  });\n\n  const askData = await resp.json();\n  console.log(\"Received Ask Response\", askData);\n\n  setVar('AskResponse', askData);\n  return { status: 'success'};\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64,
-          "selected": true,
-          "positionAbsolute": {
-            "x": 147.28571428571428,
-            "y": -34.28571428571422
-          },
-          "dragging": true
         }
       ],
       "edges": [
         {
-          "id": "edge_1772636925938",
-          "source": "api_1772625567112",
-          "target": "api_1772636918871",
+          "id": "edge_1772717392085",
+          "source": "api_1772717386732",
+          "target": "api_1772710436206",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         },
         {
-          "id": "edge_1772704356575",
-          "source": "api_1772700229256",
-          "target": "api_1772625567112",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1772706912486",
-          "source": "api_1772555180349",
-          "target": "api_1772706895463",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1772706914119",
-          "source": "api_1772706895463",
-          "target": "api_1772700229256",
+          "id": "edge_1773144802614",
+          "source": "api_1772710436206",
+          "target": "api_1773144798781",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
@@ -7224,11 +7097,11 @@
           },
           "data": {
             "labelText": "createPanelObjects",
+            "description": "api",
             "label": "createPanelObjects",
-            "description": "external api",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "Q4iDabdthrTztYd8uIrt",
               "apiName": "createPanelObjects",
@@ -7242,22 +7115,19 @@
                 "panel"
               ]
             },
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n"
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
+            "minHeight": 64,
+            "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": true,
-          "positionAbsolute": {
-            "x": 685.7142857142858,
-            "y": 61.428571428571445
-          },
-          "dragging": true
+          "height": 64
         }
       ],
       "edges": [
@@ -7297,19 +7167,19 @@
       "status": "running",
       "storeVars": {
         "rule_1770846786680_c7l65u__node_api_1773070948933_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773242284715,
+        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773258623305,
         "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773242283702,
+        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773258622286,
         "rule_1770846786680_c7l65u__node_api_1773095254293_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773242275636,
+        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773258629333,
         "rule_1770846786680_c7l65u__node_api_1773095208776_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773242276658,
+        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773258630347,
         "rule_1770846786680_c7l65u__node_api_1773095301904_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773242282682,
-        "rule_1770846786680_c7l65u__queued_next_node": "api_1773095254293",
-        "queued_next_node": "api_1773095254293"
+        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773258621266,
+        "rule_1770846786680_c7l65u__queued_next_node": "api_1773095301904",
+        "queued_next_node": "api_1773095301904"
       },
-      "activeNodeId": "api_1773070948933",
+      "activeNodeId": "api_1773095208776",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000
@@ -7645,8 +7515,7 @@
             "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": true
+          "height": 64
         },
         {
           "id": "api_1772717386732",
@@ -7754,9 +7623,7 @@
             "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": false,
-          "dragging": false
+          "height": 64
         }
       ],
       "edges": [
@@ -7777,7 +7644,7 @@
           "targetHandle": "left"
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {
         "rule_1770846786680_w27k1f__node_api_1772710563049_status": "waiting_user_input",
         "rule_1770846786680_w27k1f__node_api_1772710563049_wait_start": 1772710722588,
@@ -7796,7 +7663,7 @@
           }
         ],
         "rule_1770846786680_w27k1f__node_api_1772710436206_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710436206_wait_start": 1773237744286,
+        "rule_1770846786680_w27k1f__node_api_1772710436206_wait_start": 1773245867868,
         "rule_1770846786680_w27k1f__node_api_1772710441814_status": "waiting_user_input",
         "rule_1770846786680_w27k1f__node_api_1772710441814_wait_start": 1773071043978,
         "objects": [
@@ -7814,13 +7681,13 @@
           }
         ],
         "rule_1770846786680_w27k1f__node_api_1772717386732_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773237743251,
+        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773245866844,
         "rule_1770846786680_w27k1f__node_api_1772710436206_error": "Cannot read properties of undefined (reading 'objects')",
         "rule_1770846786680_w27k1f__node_api_1773065477779_status": "waiting_user_input",
         "rule_1770846786680_w27k1f__node_api_1773065477779_wait_start": 1773071045000,
         "rule_1770846786680_w27k1f__node_api_1773144798781_error": "Cannot read properties of undefined (reading 'objects')",
         "rule_1770846786680_w27k1f__node_api_1773144798781_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1773144798781_wait_start": 1773237745317,
+        "rule_1770846786680_w27k1f__node_api_1773144798781_wait_start": 1773245859708,
         "panelobjects": [
           {
             "id": "panelContainer1",
@@ -7906,7 +7773,7 @@
           }
         ]
       },
-      "activeNodeId": "api_1773144798781",
+      "activeNodeId": null,
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000
