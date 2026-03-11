@@ -421,7 +421,7 @@ async function runLoop({
   await runNodeById(startNode.id);
 }
 
-export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null, categoryId = null }) {
+export async function runWorkflow(socket, { projectId, runflowId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null, categoryId = null }) {
   // socket-run wrapper that uses runLoop
   const getNodes = (typeof nodes === 'function') ? nodes : () => (Array.isArray(nodes) ? nodes : []);
   const getEdges = (typeof edges === 'function') ? edges : () => (Array.isArray(edges) ? edges : []);
@@ -543,6 +543,10 @@ export async function runWorkflow(socket, { projectId, nodes, edges, apis = [], 
             }
           }
           finalInput.var = (defaultFnInput && typeof defaultFnInput === 'object') ? defaultFnInput : {};
+        }
+        // Add runflowId to input for fnString clientJS access
+        if (runflowId) {
+          finalInput.runflowId = runflowId;
         }
         return { ...currentNode, data: { ...data, input: finalInput } };
       } catch (e) { return currentNode; }

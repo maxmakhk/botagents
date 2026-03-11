@@ -1322,8 +1322,10 @@ io.on('connection', (socket) => {
   // Allow starting a run via socket (convenience)
   socket.on('run.start', (data) => {
     try {
-      const run = runManager.startRun(data || {});
-      socket.emit('run.started', { runId: run.runId, projectId: run.projectId });
+      const { projectId, workflowId, nodes, edges, apis, options } = data || {};
+      if (!projectId || !workflowId) return socket.emit('run_error', { message: 'projectId and workflowId required' });
+      const run = runManager.startRun({ projectId, workflowId, nodes: nodes || [], edges: edges || [], apis: apis || [], options: options || {} });
+      socket.emit('run.started', { runflowId: run.runId, runId: run.runId, projectId: run.projectId, workflowId: run.workflowId });
     } catch (e) { socket.emit('run_error', { message: String(e) }); }
   });
 
@@ -1402,10 +1404,10 @@ projectManager.init(io);
 // ------------------ Run Control REST API --------------------------------
 app.post('/api/run/start', (req, res) => {
   try {
-    const { projectId, nodes, edges, apis, options } = req.body || {};
-    if (!projectId) return res.status(400).json({ error: 'projectId required' });
-    const run = runManager.startRun({ projectId, nodes, edges, apis, options });
-    res.json({ success: true, runId: run.runId });
+    const { projectId, workflowId, nodes, edges, apis, options } = req.body || {};
+    if (!projectId || !workflowId) return res.status(400).json({ error: 'projectId and workflowId required' });
+    const run = runManager.startRun({ projectId, workflowId, nodes: nodes || [], edges: edges || [], apis: apis || [], options: options || {} });
+    res.json({ success: true, runflowId: run.runId, runId: run.runId });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
@@ -1434,6 +1436,13 @@ app.get('/api/run/status', (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
+app.get('/api/run/list', (req, res) => {
+  try {
+    const runflows = runManager.getAllRunflows();
+    res.json({ runflows });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
 app.get('/api/projects/statuses', (req, res) => {
   try {
     const statuses = projectManager.getAllProjectStatuses();
@@ -1451,8 +1460,25 @@ app.get('/api/workflows/statuses', (req, res) => {
 app.get('/api/workflows/:workflowId', (req, res) => {
   try {
     const workflowId = req.params.workflowId;
-    const workflow = projectManager.getWorkflowData(workflowId);
+    // Support both direct workflowId and runflowId (runId) lookup
+    let finalWorkflowId = workflowId;
+    
+    // Check if this looks like a runflowId (run_uuid format)
+    if (workflowId.startsWith('run_')) {
+      const runflow = runManager.getRun(workflowId);
+      if (runflow) {
+        finalWorkflowId = runflow.workflowId;
+      }
+    }
+    
+    const workflow = projectManager.getWorkflowData(finalWorkflowId);
     if (!workflow) return res.status(404).json({ error: 'not_found' });
+    
+    // Include runflowId info if this was looked up via runflow
+    if (workflowId.startsWith('run_')) {
+      workflow.runflowId = workflowId;
+    }
+    
     res.json(workflow);
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
@@ -1462,9 +1488,21 @@ app.patch('/api/workflows/:workflowId/style', (req, res) => {
     const workflowId = req.params.workflowId;
     const nodes = req.body?.nodes;
     const edges = req.body?.edges;
-    const updated = projectManager.updateWorkflowStyle(workflowId, nodes, edges);
+    
+    // Support both direct workflowId and runflowId (runId) lookup
+    let finalWorkflowId = workflowId;
+    
+    // Check if this looks like a runflowId (run_uuid format)
+    if (workflowId.startsWith('run_')) {
+      const runflow = runManager.getRun(workflowId);
+      if (runflow) {
+        finalWorkflowId = runflow.workflowId;
+      }
+    }
+    
+    const updated = projectManager.updateWorkflowStyle(finalWorkflowId, nodes, edges);
     if (!updated) return res.status(404).json({ error: 'not_found' });
-    res.json({ success: true, workflowId });
+    res.json({ success: true, workflowId: finalWorkflowId, runflowId: workflowId !== finalWorkflowId ? workflowId : undefined });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 

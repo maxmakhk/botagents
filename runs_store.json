@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-11T19:50:30.769Z",
+  "savedAt": "2026-03-11T22:21:46.274Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -2043,7 +2043,7 @@
         "rule_1772537005255_7j7ed8__node_api_1772706895463_wait_start": 1772710590252,
         "rule_1772537005255_7j7ed8__node_api_1772700229256_error": "Unexpected token ':'"
       },
-      "activeNodeId": "api_1772555180349",
+      "activeNodeId": "api_1772717386732",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000
@@ -7167,19 +7167,17 @@
       "status": "running",
       "storeVars": {
         "rule_1770846786680_c7l65u__node_api_1773070948933_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773258623305,
+        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773267693531,
         "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773258622286,
+        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773267692511,
         "rule_1770846786680_c7l65u__node_api_1773095254293_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773258629333,
+        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773267699542,
         "rule_1770846786680_c7l65u__node_api_1773095208776_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773258630347,
+        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773267700561,
         "rule_1770846786680_c7l65u__node_api_1773095301904_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773258621266,
-        "rule_1770846786680_c7l65u__queued_next_node": "api_1773095301904",
-        "queued_next_node": "api_1773095301904"
+        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773267691493
       },
-      "activeNodeId": "api_1773095208776",
+      "activeNodeId": "api_1773095301904",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000
@@ -7646,134 +7644,12 @@
       ],
       "status": "stopped",
       "storeVars": {
-        "rule_1770846786680_w27k1f__node_api_1772710563049_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710563049_wait_start": 1772710722588,
-        "moveobjects": [
-          {
-            "selector": "#box1",
-            "targetX": 50,
-            "targetY": 50,
-            "speed": 200
-          },
-          {
-            "selector": "#box2",
-            "targetX": 150,
-            "targetY": 100,
-            "speed": 200
-          }
-        ],
-        "rule_1770846786680_w27k1f__node_api_1772710436206_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710436206_wait_start": 1773245867868,
-        "rule_1770846786680_w27k1f__node_api_1772710441814_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772710441814_wait_start": 1773071043978,
-        "objects": [
-          {
-            "selector": "#box1",
-            "x": 50,
-            "y": 50,
-            "speed": 200
-          },
-          {
-            "selector": "#box2",
-            "x": 150,
-            "y": 100,
-            "speed": 200
-          }
-        ],
         "rule_1770846786680_w27k1f__node_api_1772717386732_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773245866844,
-        "rule_1770846786680_w27k1f__node_api_1772710436206_error": "Cannot read properties of undefined (reading 'objects')",
-        "rule_1770846786680_w27k1f__node_api_1773065477779_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1773065477779_wait_start": 1773071045000,
-        "rule_1770846786680_w27k1f__node_api_1773144798781_error": "Cannot read properties of undefined (reading 'objects')",
-        "rule_1770846786680_w27k1f__node_api_1773144798781_status": "waiting_user_input",
-        "rule_1770846786680_w27k1f__node_api_1773144798781_wait_start": 1773245859708,
-        "panelobjects": [
-          {
-            "id": "panelContainer1",
-            "type": "container",
-            "parent": "ms-apiresults-body",
-            "x": 0,
-            "y": 200,
-            "width": 300,
-            "height": 200,
-            "color": "rgba(0,0,0,0.5)",
-            "zIndex": 999
-          },
-          {
-            "id": "panelContainer2",
-            "type": "container",
-            "parent": "ms-apiresults-body",
-            "x": 320,
-            "y": 200,
-            "width": 300,
-            "height": 200,
-            "color": "rgba(255,255,255,0.1)",
-            "zIndex": 999
-          },
-          {
-            "id": "btnToggle1",
-            "type": "button",
-            "parent": "panelContainer1",
-            "x": 0,
-            "y": 0,
-            "width": 120,
-            "height": 50,
-            "color": "orange",
-            "label": "Toggle C1/C2",
-            "onclick": {
-              "type": "js",
-              "code": "\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        "
-            }
-          },
-          {
-            "id": "btnToggle2",
-            "type": "button",
-            "parent": "panelContainer2",
-            "x": 0,
-            "y": 0,
-            "width": 120,
-            "height": 50,
-            "color": "purple",
-            "label": "Toggle C2/C1",
-            "onclick": {
-              "type": "js",
-              "code": "\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        "
-            }
-          },
-          {
-            "id": "btn22",
-            "type": "button",
-            "parent": "panelContainer1",
-            "x": 130,
-            "y": 0,
-            "width": 80,
-            "height": 50,
-            "color": "blue",
-            "label": "Custom JS",
-            "onclick": {
-              "type": "js",
-              "code": "\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        "
-            }
-          },
-          {
-            "id": "btn3",
-            "type": "button",
-            "parent": "panelContainer1",
-            "x": 220,
-            "y": 0,
-            "width": 80,
-            "height": 50,
-            "color": "green",
-            "label": "Test JS",
-            "onclick": {
-              "type": "js",
-              "code": "\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        "
-            }
-          }
-        ]
+        "rule_1770846786680_w27k1f__node_api_1772717386732_wait_start": 1773267694793,
+        "rule_1770846786680_w27k1f__node_api_1772710436206_error": "setVar is not defined",
+        "rule_1770846786680_w27k1f__node_api_1773144798781_error": "setVar is not defined"
       },
-      "activeNodeId": null,
+      "activeNodeId": "api_1773144798781",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000

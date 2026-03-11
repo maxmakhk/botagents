@@ -26,6 +26,7 @@ import applyRemodelResponseUtil from './variableManager/utils/applyRemodelRespon
 import StoreVarsFloating from './variableManager/components/StoreVarsFloating';
 import ApiResultsFloating from './variableManager/components/ApiResultsFloating';
 import ApiNodesFloating from './variableManager/components/ApiNodesFloating';
+import RunningListFloating from './variableManager/components/RunningListFloating';
 import { getTimeAgo, formatDate } from './variableManager/utils/dateUtils';
 import { parseMaybeJson } from './variableManager/utils/jsonUtils';
 import { getSingleFieldValue, renderSignalSummary } from './variableManager/utils/variableUtils';
@@ -213,6 +214,9 @@ const VariableManager = ({ onBack }) => {
 
   // API nodes floating picker visibility
   const [showApiNodes, setShowApiNodes] = useState(false);
+  
+  // Running list floating box visibility
+  const [showRunningList, setShowRunningList] = useState(false);
 
   useEffect(() => {
     try {
@@ -222,8 +226,17 @@ const VariableManager = ({ onBack }) => {
           else setShowApiNodes(!!val);
         } catch (e) { /* ignore */ }
       };
+      window.vm_toggleRunningList = (val) => {
+        try {
+          if (typeof val === 'undefined') setShowRunningList((s) => !s);
+          else setShowRunningList(!!val);
+        } catch (e) { /* ignore */ }
+      };
     } catch (e) { }
-    return () => { try { delete window.vm_toggleApiNodes; } catch (e) { } };
+    return () => { 
+      try { delete window.vm_toggleApiNodes; } catch (e) { } 
+      try { delete window.vm_toggleRunningList; } catch (e) { }
+    };
   }, []);
 
   // Reload APIs when API nodes panel is opened
@@ -3453,11 +3466,22 @@ const edges = [
         />
       )}
 
+      {showRunningList && (
+        <RunningListFloating
+          socket={socketRef && socketRef.current ? socketRef.current : null}
+          onClose={() => setShowRunningList(false)}
+        />
+      )}
+
       {/* CONTROLS SECTION (now full-width with table as first tab) */}
       <div className="variable-page-controls-section">
 
         {/* TAB NAVIGATION */}
-        <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+        <TabNavigation 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          onShowRunningList={() => setShowRunningList(true)}
+        />
 
         {/* TAB CONTENT */}
         {activeTab === 'variableTable' && (

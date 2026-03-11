@@ -1,4 +1,34 @@
 {
-  "savedAt": "2026-02-24T14:11:02.554Z",
-  "projects": []
+  "runs": [
+    {
+      "runId": "run_b542fb2d-6085-471b-b0a8-493116c2c73e",
+      "projectId": "rule_1772537005255_7j7ed8",
+      "workflowId": "rule_1772537005255_7j7ed8",
+      "status": "stopped",
+      "startedAt": "2026-03-11T22:08:20.691Z",
+      "currentNodeId": "api_1772717386732",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-11T22:08:20.697Z"
+    },
+    {
+      "runId": "run_95018715-03be-427f-b14a-6a85b64b9f33",
+      "projectId": "rule_1772537005255_7j7ed8",
+      "workflowId": "rule_1772537005255_7j7ed8",
+      "status": "stopped",
+      "startedAt": "2026-03-11T22:08:26.035Z",
+      "currentNodeId": "api_1772717386732",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-11T22:08:26.039Z"
+    },
+    {
+      "runId": "run_9fe7d4a8-5fd7-4500-b034-fd97b5a0fd9d",
+      "projectId": "rule_1770846786680_w27k1f",
+      "workflowId": "rule_1770846786680_w27k1f",
+      "status": "completed",
+      "startedAt": "2026-03-11T22:21:34.772Z",
+      "currentNodeId": "api_1773144798781",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-11T22:21:38.698Z"
+    }
+  ]
 }

@@ -504,20 +504,18 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     });
   };
 
-  // Trigger backend execution
-  // Note: This only sets project status on server, doesn't wait for execution
-  // Server's execution loop will pick up the project and run it independently
-  async function runProject() {
+// Trigger backend execution
+  // Note: This now starts a new runflow via /api/run/start which supports multiple concurrent runs
+  async function runProject(workflowId = null) {
     if (!currentProjectId) {
       console.warn('[ProjectSync] No projectId set');
       return;
     }
 
     if (runActive) {
-      // Stop project - only sets status to 'stopped'
-      console.log('[ProjectSync] Requesting project stop');
+      // Stop runflow - send stop signal via run.control
+      console.log('[ProjectSync] Requesting run stop');
       
-      // Store runId before clearing it
       const rid = runIdRef.current;
       
       // Optimistically update UI immediately
@@ -527,43 +525,75 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       setActiveEdgeId(null);
       runIdRef.current = null;
       
-      // Send stop command to server
-      socketRef.current?.emit('project_control', {
-        projectId: currentProjectId,
-        action: 'stop'
-      });
-      
-      // Also try to stop via run.control if we have a runId
+      // Send stop command to server via run.control
       if (rid && socketRef.current) {
-        socketRef.current.emit('run.control', { runId: rid, event: 'stop_workflow', payload: {} });
+        socketRef.current.emit('run.control', { 
+          runflowId: rid, 
+          event: 'stop', 
+          payload: {} 
+        });
       }
       
       return;
     }
 
-    // Start project - only sets status to 'running'
-    // Server will pick up the project and execute it independently
-    console.log('[ProjectSync] Requesting project start');
+    // Start runflow - use new /api/run/start endpoint
+    console.log('[ProjectSync] Requesting runflow start');
     console.log('[ProjectSync] Current runActive:', runActive);
     
-    // Optimistically update UI immediately
-    console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');
-    setRunActive(true);
-    setActiveNodeId(null);
-    setActiveEdgeId(null);
-
     const validNodes = (rfNodes || []).filter(n => n && n.id);
     const validEdges = (rfEdges || []).filter(e => e && e.id);
-
-    // Send run command to server
-    socketRef.current?.emit('project_control', {
-      projectId: currentProjectId,
-      action: 'run',
-      nodes: validNodes,
-      edges: validEdges,
-      apis: apis,
-      stepDelay: stepDelay
-    });
+    
+    // Use provided workflowId or default to projectId
+    const finalWorkflowId = workflowId || currentProjectId;
+    
+    try {
+      // Call new REST endpoint to start runflow
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log('[ProjectSync] Calling POST', `${backendUrl}/api/run/start`);
+      const response = await fetch(`${backendUrl}/api/run/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: currentProjectId,
+          workflowId: finalWorkflowId,
+          nodes: validNodes,
+          edges: validEdges,
+          apis: apis,
+          options: { stepDelay }
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[ProjectSync] POST failed with status:', response.status, 'body:', errorText);
+        throw new Error(`Failed to start runflow: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const newRunflowId = data.runflowId || data.runId;
+      
+      console.log('[ProjectSync] ✅ Runflow started with ID:', newRunflowId);
+      console.log('[ProjectSync] Response data:', data);
+      runIdRef.current = newRunflowId;
+      
+      // Optimistically update UI
+      console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');
+      setRunActive(true);
+      setActiveNodeId(null);
+      setActiveEdgeId(null);
+      
+      // Join socket room for this runflow to receive updates
+      if (socketRef.current) {
+        console.log('[ProjectSync] Emitting join_runflow with runflowId:', newRunflowId);
+        socketRef.current.emit('join_runflow', { runflowId: newRunflowId });
+      }
+      
+    } catch (err) {
+      console.error('[ProjectSync] ❌ Failed to start runflow:', err);
+      setRunActive(false);
+      runIdRef.current = null;
+    }
   }
 
   const setProjectId = useCallback((id) => {

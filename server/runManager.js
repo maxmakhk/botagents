@@ -24,7 +24,7 @@ class RunManager {
     try {
       // ensure directory exists
       try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); } catch (e) { }
-      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, status: r.status, startedAt: r.startedAt, currentNodeId: r.currentNodeId, lastHeartbeat: r.lastHeartbeat }));
+      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status, startedAt: r.startedAt, currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, lastHeartbeat: r.lastHeartbeat }));
       fs.writeFileSync(STORE_PATH, JSON.stringify({ runs: data }, null, 2));
     } catch (e) { console.warn('Failed to persist runs:', e); }
   }
@@ -44,8 +44,8 @@ class RunManager {
             loadedStatus = 'stopped';
           }
           this.runs[r.runId] = {
-            runId: r.runId, projectId: r.projectId, status: loadedStatus,
-            startedAt: r.startedAt || null, currentNodeId: r.currentNodeId || null,
+            runId: r.runId, projectId: r.projectId, workflowId: r.workflowId || null, status: loadedStatus,
+            startedAt: r.startedAt || null, currentNodeId: r.currentNodeId || null, currentEdgeId: r.currentEdgeId || null,
             lastHeartbeat: r.lastHeartbeat || null
           };
         });
@@ -53,13 +53,11 @@ class RunManager {
     } catch (e) { console.warn('Failed to load runs from disk:', e); }
   }
 
-  startRun({ projectId, nodes = [], edges = [], apis = [], options = {} }) {
+  startRun({ projectId, workflowId, nodes = [], edges = [], apis = [], options = {} }) {
     if (!projectId) throw new Error('projectId required');
+    if (!workflowId) throw new Error('workflowId required');
 
-    // If there's already a running run for this project, return it
-    const existing = Object.values(this.runs).find(r => r.projectId === projectId && r.status === 'running');
-    if (existing) return existing;
-
+    // Allow multiple concurrent runs for the same workflow
     const runId = 'run_' + randomUUID();
     const room = `run:${runId}`;
 
@@ -77,6 +75,12 @@ class RunManager {
           }
           if (event === 'node_start' && payload && payload.nodeId) {
             runObj.currentNodeId = payload.nodeId;
+            runObj.currentEdgeId = null;
+            runObj.lastHeartbeat = new Date().toISOString();
+            this._persist();
+          }
+          if (event === 'edge_start' && payload && payload.edgeId) {
+            runObj.currentEdgeId = payload.edgeId;
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
           }
@@ -84,11 +88,19 @@ class RunManager {
             runObj.status = 'running';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
+            this._broadcastRunningList();
           }
           if (event === 'run_completed' || event === 'workflow_complete') {
             runObj.status = 'completed';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
+            this._broadcastRunningList();
+          }
+          if (event === 'run_error') {
+            runObj.status = 'error';
+            runObj.lastHeartbeat = new Date().toISOString();
+            this._persist();
+            this._broadcastRunningList();
           }
           if (this.io) this.io.to(room).emit(event, payload);
         } catch (e) { }
@@ -105,11 +117,13 @@ class RunManager {
     const runObj = {
       runId,
       projectId,
+      workflowId,
       room,
       status: 'starting',
       startedAt: new Date().toISOString(),
       lastHeartbeat: new Date().toISOString(),
       currentNodeId: null,
+      currentEdgeId: null,
       storeVars: {},
       nodes,
       edges,
@@ -122,28 +136,30 @@ class RunManager {
     this.runs[runId] = runObj;
     this._persist();
 
-    console.log(`[RunManager] startRun -> projectId=${projectId} runId=${runId} nodes=${(nodes || []).length} edges=${(edges || []).length}`);
+    console.log(`[RunManager] startRun -> projectId=${projectId} workflowId=${workflowId} runId=${runId} nodes=${(nodes || []).length} edges=${(edges || []).length}`);
 
     // run asynchronously
     (async () => {
       try {
         runObj.status = 'running';
         this._persist();
-        runObj.fakeSocket.emit('run_started', { runId, projectId });
+        runObj.fakeSocket.emit('run_started', { runId, projectId, workflowId });
 
         // supply socket-like object to existing runWorkflow implementation
-        // Ensure we pass projectId so the runner can register its waitResolvers with ProjectManager
-        await runWorkflow(runObj.fakeSocket, { projectId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
+        // Ensure we pass projectId and runflowId so the runner can register its waitResolvers and track runflow
+        await runWorkflow(runObj.fakeSocket, { projectId, runflowId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
 
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();
         this._persist();
+        this._broadcastRunningList();
         runObj.fakeSocket.emit('run_completed', { runId });
       } catch (err) {
         console.error('Run failed:', err);
         runObj.status = 'error';
         runObj.fakeSocket.emit('run_error', { runId, message: err?.message || String(err) });
         this._persist();
+        this._broadcastRunningList();
       }
     })();
 
@@ -160,8 +176,35 @@ class RunManager {
     r.status = 'stopped';
     r.stoppedAt = new Date().toISOString();
     this._persist();
+    this._broadcastRunningList();
     try { r.fakeSocket.emit('run_stopped', { runId }); } catch (e) { }
     return r;
+  }
+
+  getAllRunflows() {
+    // Only return active/running runflows (exclude stopped, completed, error)
+    return Object.values(this.runs)
+      .filter(r => r.status === 'running' || r.status === 'starting')
+      .map(r => ({
+        runflowId: r.runId,
+        projectId: r.projectId,
+        workflowId: r.workflowId,
+        status: r.status,
+        startedAt: r.startedAt,
+        currentNodeId: r.currentNodeId,
+        currentEdgeId: r.currentEdgeId,
+        lastHeartbeat: r.lastHeartbeat
+      }));
+  }
+
+  _broadcastRunningList() {
+    try {
+      if (this.io) {
+        const runningList = this.getAllRunflows();
+        this.io.emit('running_list_update', { runflows: runningList });
+        console.log(`[RunManager] 📡 Broadcast running_list_update: ${runningList.length} runflows`);
+      }
+    } catch (e) { console.warn('Failed to broadcast running list:', e); }
   }
 
   getRunStatusByProject(projectId) {
@@ -169,8 +212,8 @@ class RunManager {
     if (!r) return null;
     const isRunning = r.status === 'running' || r.status === 'starting';
     return {
-      runId: r.runId, projectId: r.projectId, status: r.status,
-      currentNodeId: r.currentNodeId, startedAt: r.startedAt,
+      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status,
+      currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, startedAt: r.startedAt,
       lastHeartbeat: r.lastHeartbeat, storeVars: r.storeVars || {},
       nodes: isRunning ? (r.nodes || []) : undefined,
       edges: isRunning ? (r.edges || []) : undefined
@@ -182,8 +225,8 @@ class RunManager {
     if (!r) return null;
     const isRunning = r.status === 'running' || r.status === 'starting';
     return {
-      runId: r.runId, projectId: r.projectId, status: r.status,
-      currentNodeId: r.currentNodeId, startedAt: r.startedAt,
+      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status,
+      currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, startedAt: r.startedAt,
       lastHeartbeat: r.lastHeartbeat, storeVars: r.storeVars || {},
       nodes: isRunning ? (r.nodes || []) : undefined,
       edges: isRunning ? (r.edges || []) : undefined
