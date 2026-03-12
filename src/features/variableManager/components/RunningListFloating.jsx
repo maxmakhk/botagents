@@ -129,6 +129,21 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
     }
   };
 
+  const handleDeleteRunflow = async (runflowId) => {
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${backendUrl}/api/run/${encodeURIComponent(runflowId)}`, { method: 'DELETE' });
+      if (res.ok) {
+        console.log(`[RunningListFloating] Deleted run ${runflowId}`);
+        setRunflows((prev) => prev.filter((rf) => rf.runflowId !== runflowId));
+      } else {
+        console.warn('[RunningListFloating] Failed to delete runflow', runflowId, res.status);
+      }
+    } catch (e) {
+      console.error('[RunningListFloating] Error deleting runflow:', e);
+    }
+  };
+
   const formatTime = (isoString) => {
     if (!isoString) return '-';
     try {
@@ -138,6 +153,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       return isoString;
     }
   };
+
 
   return (
     <div 
@@ -164,6 +180,8 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                 <th>RunflowID</th>
                 <th>WorkflowID</th>
                 <th>ProjectID</th>
+                <th>Node</th>
+                <th>Index</th>
                 <th>Status</th>
                 <th>StartedAt</th>
                 <th>Action</th>
@@ -177,6 +195,14 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                   </td>
                   <td title={rf.workflowId}>{rf.workflowId}</td>
                   <td title={rf.projectId}>{rf.projectId}</td>
+                  <td title={rf.currentNodeName || rf.currentNodeId} className="running-list-node">
+                    {rf.currentNodeName ? (
+                      <span>{rf.currentNodeName} <small style={{opacity:0.7}}>({String(rf.currentNodeId || '').substring(0,8)}...)</small></span>
+                    ) : (
+                      <span style={{opacity:0.7}}>—</span>
+                    )}
+                  </td>
+                  <td className="running-list-node-index">{rf.currentNodeIndex && rf.currentNodeIndex > 0 ? rf.currentNodeIndex : '-'}</td>
                   <td className={`running-list-status status-${rf.status}`}>
                     <span className="status-badge">{rf.status}</span>
                   </td>
@@ -191,6 +217,13 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                         Stop
                       </button>
                     )}
+                    <button
+                      className="running-list-delete-btn"
+                      onClick={() => handleDeleteRunflow(rf.runflowId)}
+                      title="Delete this runflow from server"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

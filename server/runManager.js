@@ -54,8 +54,12 @@ class RunManager {
   }
 
   startRun({ projectId, workflowId, nodes = [], edges = [], apis = [], options = {} }) {
+
+    console.log(`[RunManager] startRun called with projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} options=${JSON.stringify(options)}`);
+    
     if (!projectId) throw new Error('projectId required');
     if (!workflowId) throw new Error('workflowId required');
+
 
     // Allow multiple concurrent runs for the same workflow
     const runId = 'run_' + randomUUID();
@@ -147,7 +151,9 @@ class RunManager {
 
         // supply socket-like object to existing runWorkflow implementation
         // Ensure we pass projectId and runflowId so the runner can register its waitResolvers and track runflow
-        await runWorkflow(runObj.fakeSocket, { projectId, runflowId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
+        // Extract startNodeId from options if provided
+        const startNodeId = options.startNodeId || null;
+        await runWorkflow(runObj.fakeSocket, { projectId, runflowId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {}, startNodeId });
 
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();
@@ -182,19 +188,37 @@ class RunManager {
   }
 
   getAllRunflows() {
-    // Only return active/running runflows (exclude stopped, completed, error)
+    // Return all runs and preserve them until manually deleted.
+    // Include lightweight current node metadata to allow UI to show where the run is executing.
     return Object.values(this.runs)
-      .filter(r => r.status === 'running' || r.status === 'starting')
-      .map(r => ({
-        runflowId: r.runId,
-        projectId: r.projectId,
-        workflowId: r.workflowId,
-        status: r.status,
-        startedAt: r.startedAt,
-        currentNodeId: r.currentNodeId,
-        currentEdgeId: r.currentEdgeId,
-        lastHeartbeat: r.lastHeartbeat
-      }));
+      .map(r => {
+        const nodeList = Array.isArray(r.nodes) ? r.nodes : [];
+        const nodeCount = nodeList.length;
+        const currentNodeId = r.currentNodeId || null;
+        let currentNodeName = null;
+        let currentNodeIndex = -1;
+        if (currentNodeId && nodeCount) {
+          const idx = nodeList.findIndex(n => String(n.id) === String(currentNodeId));
+          if (idx >= 0) {
+            currentNodeIndex = idx + 1; // 1-based index for UI
+            const n = nodeList[idx];
+            currentNodeName = (n && (n.data?.label || n.label || n.data?.labelText)) || String(n?.id || '') || null;
+          }
+        }
+        return {
+          runflowId: r.runId,
+          projectId: r.projectId,
+          workflowId: r.workflowId,
+          status: r.status,
+          startedAt: r.startedAt,
+          currentNodeId: currentNodeId,
+          currentEdgeId: r.currentEdgeId,
+          lastHeartbeat: r.lastHeartbeat,
+          nodeCount,
+          currentNodeName,
+          currentNodeIndex
+        };
+      });
   }
 
   _broadcastRunningList() {
@@ -231,6 +255,23 @@ class RunManager {
       nodes: isRunning ? (r.nodes || []) : undefined,
       edges: isRunning ? (r.edges || []) : undefined
     };
+  }
+
+  // Remove a run from memory (manual delete). If the run is active, attempt to stop it first.
+  deleteRun(runId) {
+    const r = this.runs[runId];
+    if (!r) return false;
+    try {
+      if (r && (r.status === 'running' || r.status === 'starting')) {
+        r.abort = true;
+        try { r.fakeSocket.__call('stop_workflow'); } catch (e) { }
+        try { r.fakeSocket.emit('run_stopped', { runId }); } catch (e) { }
+      }
+      delete this.runs[runId];
+      this._persist();
+      this._broadcastRunningList();
+      return true;
+    } catch (e) { return false; }
   }
 
   // called by server when a client sends a control message

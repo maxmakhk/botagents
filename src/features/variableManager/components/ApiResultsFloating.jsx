@@ -67,7 +67,7 @@ export default function ApiResultsFloating({ content = null, setContent = null, 
           <button className="ms-apiresults-toggle" onClick={() => setVisible(false)} title="Collapse">▾</button>
         </div>
       </div>
-      <div id="ms-apiresults-body-edit" className="ms-apiresults-body">
+      <div id="ms-apiresults-body" className="ms-apiresults-body">
         {content ? (
           // If content is a React node, render it directly; if string, render as HTML
           typeof content === 'string' ? (

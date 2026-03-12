@@ -258,6 +258,10 @@ app.get('/wait/:workflowID/:status', (req, res) => {
 // Convenience endpoint to resume workflow: check jumpID first, else find next node by edges
 app.get('/run/:workflowID', async (req, res) => {
   try {
+
+    console.log(`[Run Endpoint] /run/${req.params.workflowID} HOLD`);
+    return false;
+
     const { workflowID } = req.params;
     //console.log(`/run/ ${workflowID} requested resume`);
 
@@ -1440,6 +1444,16 @@ app.get('/api/run/list', (req, res) => {
   try {
     const runflows = runManager.getAllRunflows();
     res.json({ runflows });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// Delete a run (manual cleanup)
+app.delete('/api/run/:runId', (req, res) => {
+  try {
+    const runId = req.params.runId;
+    const ok = runManager.deleteRun(runId);
+    if (!ok) return res.status(404).json({ error: 'not_found' });
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 

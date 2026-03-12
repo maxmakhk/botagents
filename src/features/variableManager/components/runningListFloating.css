@@ -27,6 +27,48 @@
   font-size: 14px;
 }
 
+.running-list-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.running-list-show-data-btn {
+  background: #0ea5e9;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.running-list-show-data-btn:hover {
+  background: #0891b2;
+  opacity: 0.9;
+}
+
+.running-list-show-data-btn:active {
+  background: #06b6d4;
+}
+
+.running-list-delete-btn {
+  background: rgba(239,68,68,0.12);
+  color: #fecaca;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.running-list-delete-btn:hover:not(:disabled) {
+  background: rgba(239,68,68,0.18);
+}
+
 .running-list-close-btn {
   background: none;
   border: none;

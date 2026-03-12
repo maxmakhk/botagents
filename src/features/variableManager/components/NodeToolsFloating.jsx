@@ -51,6 +51,49 @@ export default function NodeToolsFloating({
     e.preventDefault();
   };
 
+  const handleShowData = async () => {
+    console.log('%c====== [SHOW DATA] Fetching comprehensive workflow data ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+      console.log('%c📊 Fetching running workflows...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+      const runListRes = await fetch(`${backendUrl}/api/run/list`);
+      const runListData = runListRes.ok ? await runListRes.json() : { error: 'Failed to fetch' };
+      console.log('%c✓ Running Workflows:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', runListData);
+
+      console.log('%c📊 Fetching project statuses...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+      const projectStatusRes = await fetch(`${backendUrl}/api/projects/statuses`);
+      const projectStatusData = projectStatusRes.ok ? await projectStatusRes.json() : { error: 'Failed to fetch' };
+      console.log('%c✓ Project Categories/Statuses:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', projectStatusData);
+
+      console.log('%c📊 Fetching workflow statuses...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+      const workflowStatusRes = await fetch(`${backendUrl}/api/workflows/statuses`);
+      const workflowStatusData = workflowStatusRes.ok ? await workflowStatusRes.json() : { error: 'Failed to fetch' };
+      console.log('%c✓ Workflow Statuses:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', workflowStatusData);
+
+      console.log('%c📊 Fetching connecting clients...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+      const globalSocket = typeof window !== 'undefined' ? (window.socket || window.ioSocket || null) : null;
+      const clientsCount = globalSocket && globalSocket.connected ? (globalSocket.engine?.clientsCount || 1) : 0;
+      const clientsData = {
+        socketPresent: !!globalSocket,
+        socketConnected: !!globalSocket && !!globalSocket.connected,
+        socketId: globalSocket?.id || 'N/A',
+        clientsCount,
+      };
+      console.log('%c✓ Connected Clients:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', clientsData);
+
+      console.log('%c====== [DATA SUMMARY] ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;',{
+        runningWorkflows: runListData.runflows?.length || 0,
+        projects: Object.keys(projectStatusData || {}).length,
+        workflows: Object.keys(workflowStatusData || {}).length,
+        connectedClients: clientsCount,
+      });
+      console.log('%c====== [END DATA] ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+    } catch (err) {
+      console.error('❌ Error fetching data:', err);
+    }
+  };
+
   return (
     <div
       ref={nodeRef}
@@ -85,9 +128,9 @@ export default function NodeToolsFloating({
             <button 
               className="ms-nodetools-btn ms-nodetools-btn-run" 
               onClick={() => { try { if (typeof onRun === 'function') onRun(); } catch(e){} }}
-              title={runActive ? 'Stop run' : 'Run workflow'}
+              title={runActive ? 'Stop run' : 'Run new workflow'}
             >
-              {runActive ? '■ Stop' : '▶ Run'}
+              {runActive ? '■ Stop' : '▶ Run New'}
             </button>
             <button
               className="ms-nodetools-btn ms-nodetools-btn-api"
@@ -180,6 +223,14 @@ export default function NodeToolsFloating({
             title="Generate function from workflow"
           >
             Flow → Fn
+          </button>
+
+          <button
+            className="ms-nodetools-btn ms-nodetools-btn-show"
+            onClick={handleShowData}
+            title="Show running workflows, project categories, and connecting clients data"
+          >
+            Show Data
           </button>
         </div>
 

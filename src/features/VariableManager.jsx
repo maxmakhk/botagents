@@ -3422,13 +3422,14 @@ const edges = [
       },
     };
     
+    /*
     console.log('✅ Global store diagnostics available at: window.globalStoreDiagnostics');
     console.log('📖 Available methods:');
     console.log('  - testUpdate(key, value) - Test updating a global variable');
     console.log('  - checkSocket() - Check socket connection status');
     console.log('  - getCurrentState() - Display current globalStoreVars state');
     console.log('  - forceGlobalVarUpdate(vars) - Simulate a socket update');
-    
+    */
     return () => {
       delete window.globalStoreDiagnostics;
     };

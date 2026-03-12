@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-11T22:21:46.274Z",
+  "savedAt": "2026-03-12T15:36:58.703Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -2043,7 +2043,7 @@
         "rule_1772537005255_7j7ed8__node_api_1772706895463_wait_start": 1772710590252,
         "rule_1772537005255_7j7ed8__node_api_1772700229256_error": "Unexpected token ':'"
       },
-      "activeNodeId": "api_1772717386732",
+      "activeNodeId": "api_1773144798781",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000
@@ -7167,17 +7167,17 @@
       "status": "running",
       "storeVars": {
         "rule_1770846786680_c7l65u__node_api_1773070948933_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773267693531,
-        "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773267692511,
+        "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773329800616,
         "rule_1770846786680_c7l65u__node_api_1773095254293_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773267699542,
+        "rule_1770846786680_c7l65u__node_api_1773095254293_wait_start": 1773329791518,
         "rule_1770846786680_c7l65u__node_api_1773095208776_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773267700561,
+        "rule_1770846786680_c7l65u__node_api_1773095208776_wait_start": 1773329792538,
         "rule_1770846786680_c7l65u__node_api_1773095301904_status": "waiting_user_input",
-        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773267691493
+        "rule_1770846786680_c7l65u__node_api_1773095301904_wait_start": 1773329798575,
+        "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
+        "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773329799597
       },
-      "activeNodeId": "api_1773095301904",
+      "activeNodeId": "api_1773070948933",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000

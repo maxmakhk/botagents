@@ -138,6 +138,8 @@ async function runLoop({
     broadcastLog('store_vars_update', { storeVars, projectId });
     broadcastState({ storeVars, projectId });
   };
+  // stable alias for runner-level setVar to avoid shadowing inside makeCtx
+  const runnerSetVar = setVar;
 
   const evaluateEdgeCondition = (edgeLabel) => {
     if (!edgeLabel) return null;
@@ -253,15 +255,15 @@ async function runLoop({
       try {
         const wrapper = new Function('ctx', `
           return (async (ctx) => {
-            // compatibility aliases
-            const storeVars = ctx.storeVars;
-            const setVar = ctx.setVar;
-            const getVar = ctx.getVar;
-            const node = ctx.node;
-            const apis = ctx.apis;
-            const fetch = ctx.fetch;
-            const console = ctx.console;
-            // convenience aliases for waiting control (allow calling setWaiting(...) directly)
+            // compatibility aliases (safe wrappers)
+            const storeVars = ctx && ctx.storeVars;
+            const setVar = (typeof ctx?.setVar === 'function') ? ((...a) => ctx.setVar(...a)) : ((...a) => {});
+            const getVar = (typeof ctx?.getVar === 'function') ? ((k) => ctx.getVar(k)) : (() => undefined);
+            const node = ctx && ctx.node;
+            const apis = ctx && ctx.apis;
+            const fetch = ctx && ctx.fetch;
+            const console = ctx && ctx.console ? ctx.console : global.console;
+            // convenience aliases for waiting control (safe wrappers)
             const setWaiting = async (flag) => { if (ctx && typeof ctx.setWaiting === 'function') return await ctx.setWaiting(flag); };
             const waiting_wait = async (flag) => { if (ctx && typeof ctx.waiting_wait === 'function') return await ctx.waiting_wait(flag); };
             const workflowRun = async (...args) => { if (ctx && typeof ctx.workflowRun === 'function') return await ctx.workflowRun(...args); };
@@ -554,8 +556,8 @@ export async function runWorkflow(socket, { projectId, runflowId, nodes, edges, 
     storeVars: storeVars,
     globalStoreVars: projectManager.getGlobalVars(),
     setVar: (n, v) => {
-      // use runner-level setVar so namespacing and broadcasts are consistent
-      setVar(n, v);
+      // use stable runnerSetVar reference to avoid accidental recursion/shadowing
+      try { runnerSetVar(n, v); } catch (e) { /* ignore */ }
     },
     // helper to read vars: checks global store first, then local storeVars
     getVar: (k) => {
