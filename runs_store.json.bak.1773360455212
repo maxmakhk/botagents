@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-13T14:24:47.670Z",
+  "savedAt": "2026-03-13T00:07:20.662Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -8843,8 +8843,8 @@
         {
           "id": "api_1773360389840",
           "position": {
-            "x": 270,
-            "y": -150
+            "x": 227,
+            "y": -129
           },
           "type": "api",
           "metadata": {
@@ -8879,7 +8879,7 @@
               ]
             },
             "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "nodeLabel": "end"
+            "nodeLabel": "start"
           },
           "style": {
             "borderRadius": 10,
@@ -8891,8 +8891,8 @@
           "height": 64,
           "selected": true,
           "positionAbsolute": {
-            "x": 261.2857142857143,
-            "y": -146.14285714285717
+            "x": 227,
+            "y": -124.28571428571428
           },
           "dragging": true
         },
@@ -8918,7 +8918,7 @@
           "data": {
             "labelText": "cleanOutputView",
             "label": "cleanOutputView",
-            "description": "api",
+            "description": "external api",
             "actions": [],
             "width": 128,
             "height": 64,
@@ -8934,10 +8934,7 @@
                 "action"
               ]
             },
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "nodeLabel": "start",
-            "functionInput": "",
-            "scale": "2:1"
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n"
           },
           "style": {
             "borderRadius": 10,
@@ -8966,17 +8963,6 @@
           "type": "next"
         }
       ],
-      "status": "stopped",
-      "storeVars": {},
-      "activeNodeId": "api_1773360428322",
-      "activeEdgeId": null,
-      "apis": [],
-      "stepDelay": 1000
-    },
-    {
-      "projectId": "rule_1773360383383_n0u551",
-      "nodes": [],
-      "edges": [],
       "status": "stopped",
       "storeVars": {},
       "activeNodeId": null,

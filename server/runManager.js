@@ -44,8 +44,13 @@ class RunManager {
             loadedStatus = 'stopped';
           }
           this.runs[r.runId] = {
-            runId: r.runId, projectId: r.projectId, workflowId: r.workflowId || null, status: loadedStatus,
-            startedAt: r.startedAt || null, currentNodeId: r.currentNodeId || null, currentEdgeId: r.currentEdgeId || null,
+            runId: r.runId, 
+            projectId: r.projectId, 
+            workflowId: r.workflowId || null, 
+            status: loadedStatus,
+            startedAt: r.startedAt || null, 
+            currentNodeId: r.currentNodeId || null, 
+            currentEdgeId: r.currentEdgeId || null,
             lastHeartbeat: r.lastHeartbeat || null
           };
         });
@@ -54,9 +59,12 @@ class RunManager {
   }
 
   startRun({ projectId, workflowId, nodes = [], edges = [], apis = [], options = {} }) {
+    console.log('--------------------------------');
+    console.log('--------------------------------');
+    console.log('--------------------------------');
+    console.log(`[RunManager] startRun called with projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} `);
+    console.log(`[RunManager] options:`, options);
 
-    console.log(`[RunManager] startRun called with projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} options=${JSON.stringify(options)}`);
-    
     if (!projectId) throw new Error('projectId required');
     if (!workflowId) throw new Error('workflowId required');
 
@@ -152,8 +160,9 @@ class RunManager {
         // supply socket-like object to existing runWorkflow implementation
         // Ensure we pass projectId and runflowId so the runner can register its waitResolvers and track runflow
         // Extract startNodeId from options if provided
-        const startNodeId = options.startNodeId || null;
-        await runWorkflow(runObj.fakeSocket, { projectId, runflowId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {}, startNodeId });
+        //const startNodeId = options.startNodeId || null;
+        // Prefer new `runId` field when invoking runner (runner will also accept legacy `runflowId`)
+        await runWorkflow(runObj.fakeSocket, { projectId, runId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
 
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();

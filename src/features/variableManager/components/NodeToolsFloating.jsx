@@ -71,6 +71,22 @@ export default function NodeToolsFloating({
       const workflowStatusData = workflowStatusRes.ok ? await workflowStatusRes.json() : { error: 'Failed to fetch' };
       console.log('%c✓ Workflow Statuses:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', workflowStatusData);
 
+        // Fetch full workflow objects for a brief list (limit to first 50 to avoid heavy load)
+        try {
+          if (Array.isArray(workflowStatusData) && workflowStatusData.length) {
+            console.log('%c📋 Fetching full workflow list (limited to first 50)...', 'background:#2E8B57; color:#fff; padding:2px 6px; border-radius:4px;');
+            const limit = 999;
+            const toFetch = workflowStatusData.slice(0, limit).map(w => w.id);
+            const fetches = toFetch.map(id => fetch(`${backendUrl}/api/workflows/${encodeURIComponent(id)}`).then(r => r.ok ? r.json() : { id, error: 'fetch_failed' }).catch(e => ({ id, error: String(e) })));
+            const fullWorkflows = await Promise.all(fetches);
+            console.log('%c✓ Full Workflows (sample):', 'background:#2E8B57; color:#fff; padding:2px 6px; border-radius:4px;', fullWorkflows);
+          } else {
+            console.log('%cℹ️ No workflow statuses array returned to fetch full workflows from.', 'background:#999; color:#fff; padding:2px 6px; border-radius:4px;');
+          }
+        } catch (e) {
+          console.warn('Failed to fetch full workflows list:', e);
+        }
+
       console.log('%c📊 Fetching connecting clients...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
       const globalSocket = typeof window !== 'undefined' ? (window.socket || window.ioSocket || null) : null;
       const clientsCount = globalSocket && globalSocket.connected ? (globalSocket.engine?.clientsCount || 1) : 0;

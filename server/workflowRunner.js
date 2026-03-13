@@ -50,8 +50,11 @@ async function runLoop({
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
   const findStartNode = () => {
+    console.log("----------------------------------------");
     const nodesArr = getNodes();
     const edgesArr = getEdges();
+    
+    console.log('[findStartNode] Finding start node among nodes:', nodesArr.length);
     const incoming = {};
     edgesArr.forEach((e) => {
       if (!e) return;
@@ -59,7 +62,28 @@ async function runLoop({
       if (!t) return;
       incoming[t] = (incoming[t] || 0) + 1;
     });
+    // Prefer an explicit node whose data.nodeLabel is 'start' (case-insensitive)
+    try {
+      const byNodeLabel = nodesArr.find((n) => {
+        const nodeLabel = String((n && n.data?.nodeLabel) || '').trim().toLowerCase();
+        return nodeLabel === 'start';
+      });
+      if (byNodeLabel) return byNodeLabel;
+    } catch (e) { /* ignore nodeLabel parsing errors */ }
+
+    // Fallback: prefer an explicit node whose label (or labelText) is 'start' (case-insensitive)
+    try {
+      const byLabelStart = nodesArr.find((n) => {
+        const lbl = String((n && (n.data?.label || n.label || n.data?.labelText)) || '').trim().toLowerCase();
+        return lbl === 'start';
+      });
+      if (byLabelStart) return byLabelStart;
+    } catch (e) { /* ignore label parsing errors */ }
+
     const startNodes = nodesArr.filter((n) => !incoming[String(n.id)]);
+
+    console.log("--------------------END FIND START NODE---------------");
+    console.log("------------------------------------------------------");
     return startNodes.length ? startNodes[0] : nodesArr[0];
   };
 
@@ -77,6 +101,17 @@ async function runLoop({
   } else {
     startNode = findStartNode();
   }
+
+  try {
+    const startNodeName = startNode && ((startNode.data && (startNode.data.label || startNode.data.labelText)) || startNode.label) || '';
+    console.log(`[runLoop] chosen startNode id=${startNode?.id} name="${startNodeName}" startNodeIdParam=${startNodeId}`);
+  } catch (e) { /* ignore */ }
+
+  try {
+    const nodesArrForLog = (getNodes && typeof getNodes === 'function') ? getNodes() : [];
+    const brief = (Array.isArray(nodesArrForLog) ? nodesArrForLog.map(n => ({ id: n?.id, label: (n?.data?.label || n?.label || n?.data?.labelText || '') })) : []);
+    console.log('[runLoop] all nodes:', JSON.stringify(brief));
+  } catch (e) { /* ignore */ }
 
   if (!startNode) {
     broadcastLog('workflow_complete', {});
@@ -215,7 +250,9 @@ async function runLoop({
     const currentNode = nodesArr.find((n) => String(n.id) === String(nodeId));
     if (!currentNode) return;
 
-    broadcastLog('node_start', { nodeId: currentNode.id });
+    const nodeName = (currentNode && (currentNode.data?.label || currentNode.label || currentNode.data?.labelText)) || '';
+    console.log(`[runNodeByID] node=${currentNode.id} name="${nodeName}"`);
+    broadcastLog('node_start', { nodeId: currentNode.id, nodeName });
     broadcastState({ activeNodeId: currentNode.id, activeEdgeId: null });
     //console.log(`Running node: ${currentNode.id}`);
 
@@ -253,6 +290,7 @@ async function runLoop({
 
     if (source) {
       try {
+        console.log("[runNodeByID]--------", nodeId);
         const wrapper = new Function('ctx', `
           return (async (ctx) => {
             // compatibility aliases (safe wrappers)
@@ -281,9 +319,16 @@ async function runLoop({
           })(ctx);
         `);
 
+        console.log("[processRequest FUNCTION]", wrapper);
+
         const startTs = Date.now();
         //console.log(`Node ${currentNode.id} fn start - ${new Date(startTs).toISOString()}`);
-        broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn start', new Date(startTs).toISOString()] });
+        broadcastLog('node_log', { 
+          nodeId: currentNode.id, 
+          level: 'log', 
+          args: ['fn start', new Date(startTs).toISOString()] 
+          }
+        );
         // Log ctx snapshot before execution
         try {
           const baseCtx = makeCtx(currentNode);
@@ -295,8 +340,9 @@ async function runLoop({
         const result = await wrapper(proxiedMakeCtx(currentNode));
 
         // Check if result contains clientJS and broadcast it
+        console.log('[runNodeById] preparing clientJS', result.clientJS, typeof result.clientJS, typeof result);
         if (result && typeof result === 'object' && result.clientJS && typeof result.clientJS === 'string') {
-          console.log(`clientJS:`, result.clientJS.length, currentNode.id);
+          console.log(`[runNodeById] broadcast confirm - clientJS:`, result.clientJS.length, currentNode.id);
           broadcastLog('client_js_exec', { nodeId: currentNode.id, clientJS: result.clientJS });
         }
 
@@ -423,7 +469,9 @@ async function runLoop({
   await runNodeById(startNode.id);
 }
 
-export async function runWorkflow(socket, { projectId, runflowId, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null, categoryId = null }) {
+export async function runWorkflow(socket, { projectId, runflowId, runId = null, nodes, edges, apis = [], stepDelay = 1000, initialStoreVars = {}, startNodeId = null, categoryId = null }) {
+  // Support both new `runId` and legacy `runflowId` (canonicalize to `runflowId`)
+  if (runId) runflowId = runId;
   // socket-run wrapper that uses runLoop
   const getNodes = (typeof nodes === 'function') ? nodes : () => (Array.isArray(nodes) ? nodes : []);
   const getEdges = (typeof edges === 'function') ? edges : () => (Array.isArray(edges) ? edges : []);
@@ -546,9 +594,11 @@ export async function runWorkflow(socket, { projectId, runflowId, nodes, edges, 
           }
           finalInput.var = (defaultFnInput && typeof defaultFnInput === 'object') ? defaultFnInput : {};
         }
-        // Add runflowId to input for fnString clientJS access
+        // Add run identifiers to input for fnString clientJS access
+        // Prefer `runId` but keep `runflowId` for backwards compatibility
         if (runflowId) {
           finalInput.runflowId = runflowId;
+          finalInput.runId = runflowId;
         }
         return { ...currentNode, data: { ...data, input: finalInput } };
       } catch (e) { return currentNode; }

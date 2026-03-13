@@ -1,14 +1,24 @@
 {
   "runs": [
     {
-      "runId": "run_a4ac4106-3169-4288-8adc-2542cd530841",
-      "projectId": "rule_1770846786680_w27k1f",
-      "workflowId": "rule_1770846786680_w27k1f",
+      "runId": "run_9b5e5dde-091f-4a9b-8a79-23b8f157c0b0",
+      "projectId": "rule_1773360377217_1n6l7n",
+      "workflowId": "rule_1773360377217_1n6l7n",
       "status": "running",
-      "startedAt": "2026-03-12T15:58:55.994Z",
-      "currentNodeId": "api_1772710436206",
+      "startedAt": "2026-03-13T19:21:26.014Z",
+      "currentNodeId": "api_1773360428322",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-12T15:58:55.997Z"
+      "lastHeartbeat": "2026-03-13T19:21:26.019Z"
+    },
+    {
+      "runId": "run_c749f288-b50f-42f1-b083-0da10d4e18b9",
+      "projectId": "rule_1773360377217_1n6l7n",
+      "workflowId": "rule_1773360377217_1n6l7n",
+      "status": "running",
+      "startedAt": "2026-03-13T19:23:07.985Z",
+      "currentNodeId": "api_1773360428322",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-13T19:23:17.517Z"
     }
   ]
 }

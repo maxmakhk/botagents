@@ -43,6 +43,7 @@ export default function PlayerView({ onBack }) {
       if (!s) return;
 
       const onClientJS = (data) => {
+        console.log(`[PlayerView] A`, data);
         if (!data) {
           console.log('[PlayerView] ⚠️ Received empty clientJS data');
           return;
@@ -88,8 +89,9 @@ export default function PlayerView({ onBack }) {
         };
 
         try {
+          console.log("[PlayerView] clientJS", nodeId, code);
           const fn = new Function('setGlobalVar', 'getGlobalVar', 'globalStoreVars', 'storeVars', code);
-          console.log("[PlayerView] Executing client JS for [nodeId]", nodeId, "[nodeName]", nodeName, "[category]", dataCategory, "[code]",code);
+          console.log("[PlayerView] B ", nodeId, code);
           // execute; don't capture/print source — only log execution
           fn(setGlobalVarForClientJS, getGlobalVar, globalStoreVars || {}, storeVars || {});
           push({ type: 'client_js_exec', data: { nodeId, nodeName, message: 'executed', category: dataCategory } });

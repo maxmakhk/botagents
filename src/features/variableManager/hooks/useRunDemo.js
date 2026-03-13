@@ -393,9 +393,10 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
     // Execute clientJS immediately when received, without checking OutputView
     socketRef.current.on('client_js_exec', (data) => {
+      console.log(`[useRunDemo] A`, data);
       try {
         if (data && data.clientJS && typeof data.clientJS === 'string') {
-          //console.log(`[useRunDemo] Executing clientJS from node ${data.nodeId}:`, data.clientJS);
+          console.log(`[useRunDemo] B [clientJS]`, data.clientJS);
 
           const getGlobalVar = (key) => {
             try {
@@ -563,6 +564,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     const validNodes = (rfNodes || []).filter(n => n && n.id);
     const validEdges = (rfEdges || []).filter(e => e && e.id);
     
+    /*
     // Find start node: first look for node with label 'start', otherwise use first node
     let startNodeId = null;
     const startNode = validNodes.find(n => {
@@ -576,6 +578,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       startNodeId = validNodes[0].id;
       console.log('[ProjectSync] 🎯 No START node found, using first node:', startNodeId);
     }
+      */
     
     // Use provided workflowId or default to projectId
     const finalWorkflowId = workflowId || currentProjectId;
@@ -593,7 +596,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
           nodes: validNodes,
           edges: validEdges,
           apis: apis,
-          options: { stepDelay, startNodeId }
+          options: { stepDelay}
         })
       });
       
@@ -613,7 +616,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       // Optimistically update UI
       console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');
       setRunActive(true);
-      setActiveNodeId(startNodeId);
+      //setActiveNodeId(startNodeId);
       setActiveEdgeId(null);
       
       // Join socket room for this runflow to receive updates

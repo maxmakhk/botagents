@@ -144,6 +144,17 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
     }
   };
 
+  const handleRunNext = (runflowId) => {
+    console.log(`[RunningListFloating] Requesting next for runflowId: ${runflowId}`);
+    if (socket && socket.connected) {
+      // server expects `runId` and `event` fields
+      socket.emit('run.control', { runId: runflowId, event: 'next', payload: {} });
+      console.log('[RunningListFloating] ✅ Sent run.control next event to server');
+    } else {
+      console.warn('[RunningListFloating] Socket not connected, next event not sent');
+    }
+  };
+
   const formatTime = (isoString) => {
     if (!isoString) return '-';
     try {
@@ -223,6 +234,14 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                       title="Delete this runflow from server"
                     >
                       Delete
+                    </button>
+
+                    <button
+                      className="runNextBtn"
+                      title="Next Node"
+                      onClick={() => handleRunNext(rf.runflowId)}
+                    >
+                      Next
                     </button>
                   </td>
                 </tr>

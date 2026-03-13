@@ -1318,6 +1318,14 @@ io.on('connection', (socket) => {
     try {
       const { runId, event, payload } = data || {};
       if (!runId || !event) return socket.emit('run_control_ack', { ok: false, message: 'runId and event required' });
+
+      // Log receipt for debugging: print runId, event and payload
+      try {
+        console.log(`[Socket] 🛠 Received 'run.control' from ${socket.id}: runId=${runId}, event=${event}, payload=${JSON.stringify(payload)}`);
+      } catch (e) {
+        console.log(`[Socket] 🛠 Received 'run.control' from ${socket.id}: runId=${runId}, event=${event} (payload stringify failed)`);
+      }
+
       const ok = runManager.receiveClientEvent(runId, event, payload);
       socket.emit('run_control_ack', { ok });
     } catch (e) { socket.emit('run_control_ack', { ok: false, message: String(e) }); }
@@ -1407,6 +1415,9 @@ projectManager.init(io);
 
 // ------------------ Run Control REST API --------------------------------
 app.post('/api/run/start', (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ /api/run/start ************************');
+  console.log('****************************************************************')
   try {
     const { projectId, workflowId, nodes, edges, apis, options } = req.body || {};
     if (!projectId || !workflowId) return res.status(400).json({ error: 'projectId and workflowId required' });
