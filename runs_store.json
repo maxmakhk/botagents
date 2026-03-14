@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-14T11:55:29.053Z",
+  "savedAt": "2026-03-14T19:07:45.295Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -8916,7 +8916,7 @@
             "description": "api",
             "label": "cleanOutputView",
             "nodeLabel": "start",
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "functionInput": "",
             "actions": [],
             "metadata": {
@@ -9022,7 +9022,7 @@
       ],
       "status": "stopped",
       "storeVars": {},
-      "activeNodeId": "api_1773360428322",
+      "activeNodeId": "api_1773485137224",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000

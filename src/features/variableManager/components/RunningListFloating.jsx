@@ -169,6 +169,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
   return (
     <div 
       ref={nodeRef}
+      id="running-list-floating"
       className="running-list-floating"
       style={{ right: `${pos.right}px`, top: `${pos.top}px` }}
     >

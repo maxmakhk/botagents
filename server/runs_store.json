@@ -4,11 +4,31 @@
       "runId": "run_546cc7bb-c6a1-436f-87b4-fa172c91df0f",
       "projectId": "rule_1773360377217_1n6l7n",
       "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "running",
+      "status": "stopped",
       "startedAt": "2026-03-14T12:06:07.360Z",
       "currentNodeId": "api_1773485137224",
       "currentEdgeId": null,
       "lastHeartbeat": "2026-03-14T12:06:31.839Z"
+    },
+    {
+      "runId": "run_8c80e826-a4fa-4d1b-96c3-dd73cc055384",
+      "projectId": "rule_1773360377217_1n6l7n",
+      "workflowId": "rule_1773360377217_1n6l7n",
+      "status": "running",
+      "startedAt": "2026-03-14T19:05:52.525Z",
+      "currentNodeId": "api_1773485137224",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-14T19:06:36.796Z"
+    },
+    {
+      "runId": "run_756f1aad-429a-47a0-8c28-9691f2913142",
+      "projectId": "rule_1773360377217_1n6l7n",
+      "workflowId": "rule_1773360377217_1n6l7n",
+      "status": "running",
+      "startedAt": "2026-03-14T19:07:57.879Z",
+      "currentNodeId": "api_1773360389840",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-14T19:08:02.451Z"
     }
   ]
 }
