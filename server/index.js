@@ -1326,6 +1326,38 @@ io.on('connection', (socket) => {
         console.log(`[Socket] 🛠 Received 'run.control' from ${socket.id}: runId=${runId}, event=${event} (payload stringify failed)`);
       }
 
+      // Print workflow status with current position
+      const run = runManager.getRun(runId);
+      if (run && run.nodes) {
+        console.log(`\n========== WORKFLOW STATUS ==========`);
+        //console.log(run);
+        console.log(`RunID: ${runId}`);
+        console.log(`Status: ${run.status}`);
+        console.log(`Nodes:`);
+        run.nodes.forEach((node, index) => {
+          //console.log(`  node[${index}] metadata:`, node.metadata);
+          const marker = node.id === run.currentNodeId ? ' <--- here' : '';
+          console.log(`  node[${index}]: ${node.metadata.apiName} ${marker}`);
+        });
+        console.log(`====================================\n`);
+      } else if (run) {
+        console.log(`\n[RunControl] RunID: ${runId} - Status: ${run.status} (nodes not available for running status)`);
+      } else {
+        console.log(`\n[RunControl] RunID: ${runId} - Not found`);
+      }
+
+      // Print global vars
+      const globalVars = projectManager.getGlobalVars();
+      console.log(`=========== GLOBAL VARS ============`);
+      if (Object.keys(globalVars).length === 0) {
+        console.log(`(no global vars)`);
+      } else {
+        Object.entries(globalVars).forEach(([key, value]) => {
+          console.log(`${key} = ${JSON.stringify(value)}`);
+        });
+      }
+      console.log(`====================================\n`);
+
       const ok = runManager.receiveClientEvent(runId, event, payload);
       socket.emit('run_control_ack', { ok });
     } catch (e) { socket.emit('run_control_ack', { ok: false, message: String(e) }); }

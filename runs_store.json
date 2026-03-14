@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-13T14:24:47.670Z",
+  "savedAt": "2026-03-14T10:45:47.276Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -8861,11 +8861,11 @@
           },
           "data": {
             "labelText": "createObjects",
+            "description": "api",
             "label": "createObjects",
-            "description": "external api",
+            "nodeLabel": "end",
+            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "t18j2BxNlpLTRPNRpXZu",
               "apiName": "createObjects",
@@ -8878,23 +8878,19 @@
                 "object"
               ]
             },
-            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "nodeLabel": "end"
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
+            "minHeight": 64,
+            "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": true,
-          "positionAbsolute": {
-            "x": 261.2857142857143,
-            "y": -146.14285714285717
-          },
-          "dragging": true
+          "height": 64
         },
         {
           "id": "api_1773360428322",
@@ -8917,11 +8913,12 @@
           },
           "data": {
             "labelText": "cleanOutputView",
-            "label": "cleanOutputView",
             "description": "api",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "9ciuxQlkizKAipN9n2Xb",
               "apiName": "cleanOutputView",
@@ -8934,10 +8931,59 @@
                 "action"
               ]
             },
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "nodeLabel": "start",
-            "functionInput": "",
+            "width": 128,
+            "height": 64,
             "scale": "2:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64,
+            "height": 64
+          },
+          "width": 128,
+          "height": 64
+        },
+        {
+          "id": "api_1773485137224",
+          "position": {
+            "x": 576,
+            "y": -171
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "T7sJl75flCKvuLNb2053",
+            "apiName": "JumpToNodeByLabel",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "JumpToNodeByLabel",
+            "label": "JumpToNodeByLabel",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "T7sJl75flCKvuLNb2053",
+              "apiName": "JumpToNodeByLabel",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}"
           },
           "style": {
             "borderRadius": 10,
@@ -8947,10 +8993,10 @@
           },
           "width": 128,
           "height": 64,
-          "selected": false,
+          "selected": true,
           "positionAbsolute": {
-            "x": 9.999999999999986,
-            "y": -137.1428571428571
+            "x": 518.5714285714286,
+            "y": -158.5714285714286
           },
           "dragging": true
         }
@@ -8960,6 +9006,14 @@
           "id": "edge_1773360432372",
           "source": "api_1773360428322",
           "target": "api_1773360389840",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1773485142263",
+          "source": "api_1773360389840",
+          "target": "api_1773485137224",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left",

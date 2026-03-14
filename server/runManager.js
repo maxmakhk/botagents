@@ -62,7 +62,7 @@ class RunManager {
     console.log('--------------------------------');
     console.log('--------------------------------');
     console.log('--------------------------------');
-    console.log(`[RunManager] startRun called with projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} `);
+    console.log(`[RunManager] startRun [New Project] projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} `);
     console.log(`[RunManager] options:`, options);
 
     if (!projectId) throw new Error('projectId required');
