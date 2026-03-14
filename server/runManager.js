@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { runWorkflow } from './workflowRunner.js';
+import projectManager from './projectManager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STORE_PATH = path.join(__dirname, 'runs_store.json');
@@ -156,6 +157,13 @@ class RunManager {
         runObj.status = 'running';
         this._persist();
         runObj.fakeSocket.emit('run_started', { runId, projectId, workflowId });
+
+        // Clear old activeNodeId since this is a new run (not a resume)
+        const proj = projectManager.getProject(projectId);
+        if (proj) {
+          proj.activeNodeId = null;
+          proj.activeEdgeId = null;
+        }
 
         // supply socket-like object to existing runWorkflow implementation
         // Ensure we pass projectId and runflowId so the runner can register its waitResolvers and track runflow

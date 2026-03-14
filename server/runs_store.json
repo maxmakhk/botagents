@@ -1,34 +1,14 @@
 {
   "runs": [
     {
-      "runId": "run_a27092fe-889a-43a3-8979-5a0640e250ab",
+      "runId": "run_546cc7bb-c6a1-436f-87b4-fa172c91df0f",
       "projectId": "rule_1773360377217_1n6l7n",
       "workflowId": "rule_1773360377217_1n6l7n",
       "status": "running",
-      "startedAt": "2026-03-14T10:44:52.350Z",
-      "currentNodeId": "api_1773360428322",
+      "startedAt": "2026-03-14T12:06:07.360Z",
+      "currentNodeId": "api_1773485137224",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T10:44:53.711Z"
-    },
-    {
-      "runId": "run_6048bacd-2344-44ea-8c3f-784e1cffa53e",
-      "projectId": "rule_1773360377217_1n6l7n",
-      "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "running",
-      "startedAt": "2026-03-14T10:45:49.129Z",
-      "currentNodeId": "api_1773360428322",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T10:45:52.601Z"
-    },
-    {
-      "runId": "run_62074e17-bf9e-46ce-ace6-2b258376f514",
-      "projectId": "rule_1773360377217_1n6l7n",
-      "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "running",
-      "startedAt": "2026-03-14T10:50:01.487Z",
-      "currentNodeId": "api_1773360428322",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T10:50:03.153Z"
+      "lastHeartbeat": "2026-03-14T12:06:31.839Z"
     }
   ]
 }

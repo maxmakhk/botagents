@@ -45,7 +45,8 @@ async function runLoop({
   makeCtx,
   projectId = null,
   waitResolvers,
-  startNodeId = null
+  startNodeId = null,
+  runflowId = null
 }) {
   const getApis = (typeof apis === 'function') ? apis : () => (Array.isArray(apis) ? apis : []);
   // Find start node
@@ -87,7 +88,7 @@ async function runLoop({
     return startNodes.length ? startNodes[0] : nodesArr[0];
   };
 
-  // Use provided startNodeId or fallback to findStartNode()
+  // Every run is new - always start fresh from startNodeId or findStartNode()
   let startNode = null;
   if (startNodeId) {
     const nodesArr = getNodes();
@@ -117,6 +118,39 @@ async function runLoop({
     broadcastLog('workflow_complete', {});
     return;
   }
+
+  // Set currentNodeId to startNode and broadcast it
+  let currentNodeId = startNode.id;
+  broadcastLog('node_start', { nodeId: startNode.id, nodeName: (startNode.data?.label || startNode.label || startNode.data?.labelText || '') });
+
+  // Print workflow status function
+  const printWorkflowStatus = () => {
+    try {
+      console.log(`\n========== WORKFLOW STATUS ==========`);
+      if (runflowId) console.log(`RunID: ${runflowId}`);
+      console.log(`Status: running`);
+      console.log(`Nodes:`);
+      const nodesList = nodesArrHolder.getNodes();
+      nodesList.forEach((node, index) => {
+        const marker = node.id === currentNodeId ? ' <--- here' : '';
+        const nodeName = node.data?.label || node.label || node.data?.labelText || node.id;
+        console.log(`  node[${index}]: ${nodeName}${marker}`);
+      });
+      console.log(`====================================`);
+      
+      // Print global vars
+      const globalVars = projectManager.getGlobalVars();
+      console.log(`=========== GLOBAL VARS ============`);
+      if (Object.keys(globalVars).length === 0) {
+        console.log(`(no global vars)`);
+      } else {
+        Object.entries(globalVars).forEach(([key, value]) => {
+          console.log(`${key} = ${JSON.stringify(value)}`);
+        });
+      }
+      console.log(`====================================\n`);
+    } catch (e) { console.warn('[printWorkflowStatus] error:', e); }
+  };
 
   const getFromStoreNorm = (name, path) => {
     const key = String(name || '').toLowerCase().replace(/\./g, '_');
@@ -250,10 +284,16 @@ async function runLoop({
     const currentNode = nodesArr.find((n) => String(n.id) === String(nodeId));
     if (!currentNode) return;
 
+    // Update currentNodeId for tracking and display
+    currentNodeId = nodeId;
+    
     const nodeName = (currentNode && (currentNode.data?.label || currentNode.label || currentNode.data?.labelText)) || '';
     console.log(`[runNodeByID] node=${currentNode.id} name="${nodeName}"`);
     broadcastLog('node_start', { nodeId: currentNode.id, nodeName });
     broadcastState({ activeNodeId: currentNode.id, activeEdgeId: null });
+    
+    // Print workflow status when entering a new node
+    printWorkflowStatus();
     //console.log(`Running node: ${currentNode.id}`);
 
     const resolveApiFnFromApis = (node) => {
@@ -465,6 +505,9 @@ async function runLoop({
 
     await runNodeById(nextNode.id);
   };
+
+  // Print initial workflow status
+  printWorkflowStatus();
 
   await runNodeById(startNode.id);
 }
@@ -720,6 +763,47 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
     const resolver = waitResolvers[String(nodeId)]; if (typeof resolver === 'function') { try { resolver(); } catch (e) {} }
   });
 
+  socket.on('next', (data) => {
+    // Resume from current activeNodeId (allows stepping through nodes)
+    console.log(`[workflowRunner] 'next' event received`);
+    try {
+      const proj = projectManager.getProject(projectId);
+      console.log(`[workflowRunner] 'next' event: projectId=${projectId}, activeNodeId=${proj?.activeNodeId}`);
+      
+      if (proj && proj.activeNodeId) {
+        const currentNodeId = proj.activeNodeId;
+        console.log(`[workflowRunner] 'next' event: resuming node ${currentNodeId}`);
+        
+        storeVars['waiting_wait'] = false;
+        storeVars['node_' + String(currentNodeId) + '_status'] = 'user_continued';
+        broadcastLog('store_vars_update', { storeVars });
+        
+        // Try manual resolver first, then legacy resolver
+        const manualKey = `manual_${currentNodeId}`;
+        console.log(`[workflowRunner] 'next' event: looking for resolver ${manualKey}`);
+        const manualResolver = waitResolvers[manualKey];
+        if (typeof manualResolver === 'function') { 
+          console.log(`[workflowRunner] 'next' event: calling manual resolver`);
+          try { manualResolver(); } catch (e) { console.error('Error resolving manual:', e); } 
+        } else {
+          console.log(`[workflowRunner] 'next' event: manual resolver not found`);
+          const legacyResolver = waitResolvers[String(currentNodeId)];
+          if (typeof legacyResolver === 'function') { 
+            console.log(`[workflowRunner] 'next' event: calling legacy resolver`);
+            try { legacyResolver(); } catch (e) { console.error('Error resolving legacy:', e); } 
+          } else {
+            console.log(`[workflowRunner] 'next' event: no resolver found for ${currentNodeId}`);
+            console.log(`[workflowRunner] 'next' event: available waitResolvers:`, Object.keys(waitResolvers));
+          }
+        }
+      } else {
+        console.log(`[workflowRunner] 'next' event: no active project or activeNodeId`);
+      }
+    } catch (e) {
+      console.error('[workflowRunner] Error handling next event:', e);
+    }
+  });
+
   await runLoop({
     getNodes, getEdges, apis, stepDelay, storeVars,
     broadcastLog, broadcastState,
@@ -727,7 +811,8 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
     makeCtx,
     projectId,
     waitResolvers,
-    startNodeId
+    startNodeId,
+    runflowId
   });
 
   broadcastLog('workflow_complete', {});

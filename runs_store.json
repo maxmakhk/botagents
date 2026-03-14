@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-14T10:45:47.276Z",
+  "savedAt": "2026-03-14T11:55:29.053Z",
   "projects": [
     {
       "projectId": "rule_1771926252531_56yjbx",
@@ -7164,7 +7164,7 @@
           "targetHandle": "left"
         }
       ],
-      "status": "running",
+      "status": "stopped",
       "storeVars": {
         "rule_1770846786680_c7l65u__node_api_1773070948933_status": "waiting_user_input",
         "rule_1770846786680_c7l65u__node_api_1773070948933_wait_start": 1773329800616,
@@ -7177,7 +7177,7 @@
         "rule_1770846786680_c7l65u__node_api_1773070981232_status": "waiting_user_input",
         "rule_1770846786680_c7l65u__node_api_1773070981232_wait_start": 1773329799597
       },
-      "activeNodeId": "api_1773070948933",
+      "activeNodeId": null,
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000

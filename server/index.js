@@ -1315,6 +1315,9 @@ io.on('connection', (socket) => {
 
   // Client-side control messages forwarded to run manager
   socket.on('run.control', (data) => {
+    console.log("---------------------------------");
+    console.log("------------NEXT NODE-------------");
+    console.log("---------------------------------");
     try {
       const { runId, event, payload } = data || {};
       if (!runId || !event) return socket.emit('run_control_ack', { ok: false, message: 'runId and event required' });
