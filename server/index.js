@@ -255,7 +255,31 @@ app.get('/wait/:workflowID/:status', (req, res) => {
   }
 });
 
-// Convenience endpoint to resume workflow: check jumpID first, else find next node by edges
+app.get('/next/:runID', async (req, res) => {
+  console.log("-----------------------------------");
+  console.log("--------NEXT NODE(endpoint)--------");
+  console.log(`----/next/  ${req.params.runID}----`);
+  console.log("-----------------------------------");
+    try {
+      const { runID } = req.params;
+      if (!runID) return res.status(400).json({ success: false, error: 'runID required' });
+
+      // Forward 'next' control to RunManager
+      try {
+        const ok = runManager.receiveClientEvent(runID, 'next', {});
+        if (!ok) return res.status(404).json({ success: false, error: 'run not found or not running' });
+        return res.json({ success: true, runID });
+      } catch (e) {
+        console.error('[/next/:runID] Forward to runManager failed:', e);
+        return res.status(500).json({ success: false, error: String(e) });
+      }
+    } catch (err) {
+      console.error('[/next/:runID] Error:', err);
+      res.status(500).json({ success: false, error: String(err) });
+    }
+
+  });
+
 app.get('/run/:workflowID', async (req, res) => {
   try {
 
@@ -1316,7 +1340,7 @@ io.on('connection', (socket) => {
   // Client-side control messages forwarded to run manager
   socket.on('run.control', (data) => {
     console.log("---------------------------------");
-    console.log("------------NEXT NODE-------------");
+    console.log("--------NEXT NODE(socket)--------");
     console.log("---------------------------------");
     try {
       const { runId, event, payload } = data || {};

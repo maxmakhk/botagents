@@ -15,7 +15,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
         const res = await fetch(`${backendUrl}/api/run/list`);
         if (res.ok) {
           const data = await res.json();
-          console.log('[RunningListFloating] Fetched runflows:', data.runflows);
+          console.log('[RunningListFloating] 📥 Fetched runflows from API:', data.runflows);
           setRunflows(data.runflows || []);
         } else {
           console.warn('[RunningListFloating] Failed to fetch runflows, status:', res.status);
@@ -30,24 +30,52 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
 
   // Listen for running_list_update socket events
   useEffect(() => {
+    console.log('🔄 [RunningListFloating] useEffect EXECUTED - socket:', socket);
     if (!socket) {
       console.warn('[RunningListFloating] Socket not available');
       return;
     }
     
-    console.log('[RunningListFloating] Socket connected, listening for updates. Connected:', socket.connected);
+    console.log('✅ [RunningListFloating] Socket connected, listening for updates. Connected:', socket.connected);
     
     const handleRunningListUpdate = (data) => {
-      console.log('[RunningListFloating] Received running_list_update:', data);
+      console.log('📡 [RunningListFloating] Received running_list_update (from API broadcast):', data);
       if (data && data.runflows) {
+        console.log('   > Updating runflows from running_list_update, count:', data.runflows.length);
         setRunflows(data.runflows);
       }
     };
+
+    const handleWorkflowStatusUpdate = (data) => {
+      console.log('🔄 [RunningListFloating] Received workflow_status_update (from printWorkflowStatus):', data);
+      if (data) {
+        // Update the specific runflow with new node information
+        setRunflows((prev) => {
+          const updated = prev.map((rf) => {
+            if (rf.runflowId === data.runflowId) {
+              console.log(`   > Updated node for runflow ${data.runflowId.substring(0,12)}: ${data.currentNodeName}`);
+              return {
+                ...rf,
+                currentNodeId: data.currentNodeId,
+                currentNodeName: data.currentNodeName,
+                currentNodeIndex: data.currentNodeIndex
+              };
+            }
+            return rf;
+          });
+          return updated;
+        });
+      }
+    };
     
+    console.log('   > Registering event listeners...');
     socket.on('running_list_update', handleRunningListUpdate);
+    socket.on('workflow_status_update', handleWorkflowStatusUpdate);
     
     return () => {
+      console.log('🧹 [RunningListFloating] Cleanup: Removing event listeners');
       socket.off('running_list_update', handleRunningListUpdate);
+      socket.off('workflow_status_update', handleWorkflowStatusUpdate);
     };
   }, [socket]);
 
@@ -111,18 +139,19 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
   };
 
   const handleStopRunflow = (runflowId) => {
-    console.log(`[RunningListFloating] Stopping runflowId: ${runflowId}`);
+    console.log(`🛑 [RunningListFloating] handleStopRunflow called for: ${runflowId}`);
     
     // Immediately remove from list (no real pause feature, just removal)
     setRunflows((prev) => {
       const updated = prev.filter((rf) => rf.runflowId !== runflowId);
-      console.log(`[RunningListFloating] Removed runflowId from list. Remaining: ${updated.length}`);
+      console.log(`   > Removed from local list (Stop action). Remaining: ${updated.length}`);
       return updated;
     });
     
     // Send stop event to server
     if (socket && socket.connected) {
       socket.emit('run.control', { runflowId, event: 'stop', payload: {} });
+      console.log(`[RunningListFloating] ✅ Sent run.control stop event to server`);
       console.log(`[RunningListFloating] ✅ Sent run.control stop event to server`);
     } else {
       console.warn(`[RunningListFloating] Socket not connected, stop event not sent`);
@@ -134,8 +163,12 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(`${backendUrl}/api/run/${encodeURIComponent(runflowId)}`, { method: 'DELETE' });
       if (res.ok) {
-        console.log(`[RunningListFloating] Deleted run ${runflowId}`);
-        setRunflows((prev) => prev.filter((rf) => rf.runflowId !== runflowId));
+        console.log(`🗑️ [RunningListFloating] Deleted run ${runflowId}`);
+        setRunflows((prev) => {
+          const updated = prev.filter((rf) => rf.runflowId !== runflowId);
+          console.log(`   > Removed from local list (Delete action). Remaining: ${updated.length}`);
+          return updated;
+        });
       } else {
         console.warn('[RunningListFloating] Failed to delete runflow', runflowId, res.status);
       }
@@ -152,6 +185,22 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       console.log('[RunningListFloating] ✅ Sent run.control next event to server');
     } else {
       console.warn('[RunningListFloating] Socket not connected, next event not sent');
+    }
+  };
+
+  const handleRunNextEndpoint = async (runflowId) => {
+    console.log(`[RunningListFloating] Requesting NEXT endpoint for runflowId: ${runflowId}`);
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    try {
+      const res = await fetch(`${backendUrl}/next/${encodeURIComponent(runflowId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('[RunningListFloating] Next(EndPoint) response:', data);
+      } else {
+        console.warn('[RunningListFloating] Next(EndPoint) failed', res.status);
+      }
+    } catch (e) {
+      console.error('[RunningListFloating] Next(EndPoint) error', e);
     }
   };
 
@@ -194,7 +243,6 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                 <th>ProjectID</th>
                 <th>Node</th>
                 <th>Index</th>
-                <th>Status</th>
                 <th>StartedAt</th>
                 <th>Action</th>
               </tr>
@@ -215,9 +263,6 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                     )}
                   </td>
                   <td className="running-list-node-index">{rf.currentNodeIndex && rf.currentNodeIndex > 0 ? rf.currentNodeIndex : '-'}</td>
-                  <td className={`running-list-status status-${rf.status}`}>
-                    <span className="status-badge">{rf.status}</span>
-                  </td>
                   <td className="running-list-time">{formatTime(rf.startedAt)}</td>
                   <td className="running-list-action">
                     {rf.status === 'running' && (
@@ -243,6 +288,14 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                       onClick={() => handleRunNext(rf.runflowId)}
                     >
                       Next
+                    </button>
+                    <button
+                      className="runNextEndpointBtn"
+                      title="Next (EndPoint)"
+                      onClick={() => handleRunNextEndpoint(rf.runflowId)}
+                      style={{ marginLeft: 6 }}
+                    >
+                      Next(EndPoint)
                     </button>
                   </td>
                 </tr>

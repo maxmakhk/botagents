@@ -25,7 +25,7 @@ class RunManager {
     try {
       // ensure directory exists
       try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); } catch (e) { }
-      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status, startedAt: r.startedAt, currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, lastHeartbeat: r.lastHeartbeat }));
+      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, startedAt: r.startedAt, currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, lastHeartbeat: r.lastHeartbeat }));
       fs.writeFileSync(STORE_PATH, JSON.stringify({ runs: data }, null, 2));
     } catch (e) { console.warn('Failed to persist runs:', e); }
   }
@@ -78,8 +78,16 @@ class RunManager {
     const handlers = {};
     const fakeSocket = {
       id: `backend_${runId}`,
+      io: this.io,  // Attach io for broadcast capability
       emit: (event, payload) => {
         try {
+          // Broadcast workflow_status_update to ALL clients (not just room)
+          if (event === 'workflow_status_update' && this.io) {
+            console.log(`[RunManager] 📡 Broadcasting workflow_status_update to ALL clients via io.emit`);
+            this.io.emit(event, payload);
+            return;
+          }
+          
           // update run metadata for introspection
           if (event === 'store_vars_update') {
             runObj.storeVars = payload || runObj.storeVars || {};
@@ -101,19 +109,19 @@ class RunManager {
             runObj.status = 'running';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            this._broadcastRunningList();
+            //this._broadcastRunningList();
           }
           if (event === 'run_completed' || event === 'workflow_complete') {
             runObj.status = 'completed';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            this._broadcastRunningList();
+            //this._broadcastRunningList();
           }
           if (event === 'run_error') {
             runObj.status = 'error';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            this._broadcastRunningList();
+            //this._broadcastRunningList();
           }
           if (this.io) this.io.to(room).emit(event, payload);
         } catch (e) { }
@@ -175,14 +183,14 @@ class RunManager {
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();
         this._persist();
-        this._broadcastRunningList();
+        //this._broadcastRunningList();
         runObj.fakeSocket.emit('run_completed', { runId });
       } catch (err) {
         console.error('Run failed:', err);
         runObj.status = 'error';
         runObj.fakeSocket.emit('run_error', { runId, message: err?.message || String(err) });
         this._persist();
-        this._broadcastRunningList();
+        //this._broadcastRunningList();
       }
     })();
 
@@ -199,7 +207,7 @@ class RunManager {
     r.status = 'stopped';
     r.stoppedAt = new Date().toISOString();
     this._persist();
-    this._broadcastRunningList();
+    //this._broadcastRunningList();
     try { r.fakeSocket.emit('run_stopped', { runId }); } catch (e) { }
     return r;
   }
@@ -226,7 +234,6 @@ class RunManager {
           runflowId: r.runId,
           projectId: r.projectId,
           workflowId: r.workflowId,
-          status: r.status,
           startedAt: r.startedAt,
           currentNodeId: currentNodeId,
           currentEdgeId: r.currentEdgeId,
@@ -253,7 +260,7 @@ class RunManager {
     if (!r) return null;
     const isRunning = r.status === 'running' || r.status === 'starting';
     return {
-      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status,
+      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId,
       currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, startedAt: r.startedAt,
       lastHeartbeat: r.lastHeartbeat, storeVars: r.storeVars || {},
       nodes: isRunning ? (r.nodes || []) : undefined,
@@ -266,7 +273,7 @@ class RunManager {
     if (!r) return null;
     const isRunning = r.status === 'running' || r.status === 'starting';
     return {
-      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, status: r.status,
+      runId: r.runId, projectId: r.projectId, workflowId: r.workflowId,
       currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, startedAt: r.startedAt,
       lastHeartbeat: r.lastHeartbeat, storeVars: r.storeVars || {},
       nodes: isRunning ? (r.nodes || []) : undefined,
@@ -286,7 +293,7 @@ class RunManager {
       }
       delete this.runs[runId];
       this._persist();
-      this._broadcastRunningList();
+      //this._broadcastRunningList();
       return true;
     } catch (e) { return false; }
   }

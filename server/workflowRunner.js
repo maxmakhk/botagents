@@ -149,6 +149,40 @@ async function runLoop({
         });
       }
       console.log(`====================================\n`);
+      
+      // Broadcast workflow status update to all clients
+      try {
+        console.log('--------------- broadcastLog to all clients ---------------');
+        //const nodesList = nodesArrHolder.getNodes();
+        //const currentNodeIndex = nodesList.findIndex(n => n.id === currentNodeId);
+        //const currentNode = currentNodeIndex >= 0 ? nodesList[currentNodeIndex] : null;
+        //const currentNodeName = currentNode ? (currentNode.data?.label || currentNode.label || currentNode.data?.labelText) : null;
+                
+        // broadcast full running list via RunManager (dynamic import to avoid circular import)
+        ;(async () => {
+          try {
+            const rm = await import('./runManager.js');
+            const runManager = rm.default || rm;
+            if (runManager && typeof runManager._broadcastRunningList === 'function') {
+              runManager._broadcastRunningList();
+              console.log('[printWorkflowStatus] ▶ broadcasted running_list_update via RunManager');
+            }
+          } catch (e) {
+            console.warn('[printWorkflowStatus] failed to broadcast running list:', e);
+          }
+        })();
+
+        /*
+        broadcastLog('workflow_status_update', {
+          runflowId,
+          currentNodeId,
+          currentNodeName,
+          currentNodeIndex: currentNodeIndex >= 0 ? currentNodeIndex + 1 : -1,
+          globalVars
+        });
+        */
+
+      } catch (e) { console.warn('[printWorkflowStatus] broadcasting error:', e); }
     } catch (e) { console.warn('[printWorkflowStatus] error:', e); }
   };
 
@@ -557,14 +591,42 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       const payload = { ...data };
       if (finalCategoryId) payload.categoryId = finalCategoryId;
       
+      // For workflow_status_update, always broadcast to ALL clients (not category-limited)
+      // This is needed for RunningListFloating to receive updates regardless of category
+      if (event === 'workflow_status_update') {
+        console.log(`[workflowRunner] 📤 Broadcasting ${event} to ALL clients`);
+        console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
+        console.log(`[workflowRunner] 🔍 Checking io object: socket?.io=${!!socket?.io}, global.io=${!!global.io}`);
+        
+        // Try to get io object and broadcast to all clients
+        try {
+          const ioInstance = socket?.io || global.io;
+          if (ioInstance) {
+            console.log(`[workflowRunner] ✅ Found io instance, calling io.emit('${event}', ...)`);
+            ioInstance.emit(event, payload);
+            console.log(`[workflowRunner] ✅ Successfully emitted via io.emit`);
+          } else {
+            console.warn(`[workflowRunner] ⚠️ io instance NOT FOUND (socket.io=${socket?.io}, global.io=${global.io})`);
+            throw new Error('io not available');
+          }
+        } catch (e) {
+          console.warn(`[workflowRunner] ⚠️ Failed to broadcast via io: ${e.message}, falling back to socket.emit`);
+          if (socket) {
+            socket.emit(event, payload);
+            console.log(`[workflowRunner] 📤 Emitted via socket.emit (fallback)`);
+          } else {
+            console.error(`[workflowRunner] ❌ Socket also not available, cannot broadcast`);
+          }
+        }
+      }
       // For clientJS events, broadcast to all clients with matching projectcategoryId
-      if (event === 'client_js_exec') {
+      else if (event === 'client_js_exec') {
         if (finalCategoryId) {
-          console.log(`[workflowRunner] 📤 Broadcasting clientJS (finalCategoryId: ${finalCategoryId})`);
+          console.log(`[workflowRunner] 📤 Broadcasting ${event} (finalCategoryId: ${finalCategoryId})`);
           console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
           projectManager.broadcastToProjectCategory(finalCategoryId, event, payload);
         } else {
-          console.warn(`[workflowRunner] ⚠️ CANNOT BROADCAST - finalCategoryId is NOT SET (projectId: ${projectId})`);
+          console.warn(`[workflowRunner] ⚠️ CANNOT BROADCAST ${event} - finalCategoryId is NOT SET (projectId: ${projectId})`);
           console.log(`[workflowRunner]    Sending to executing socket only (socket.emit)`);
           socket.emit(event, payload);
         }

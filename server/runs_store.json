@@ -1,34 +1,22 @@
 {
   "runs": [
     {
-      "runId": "run_546cc7bb-c6a1-436f-87b4-fa172c91df0f",
+      "runId": "run_3374993d-4a5a-44c2-8aa1-16c25ccf2f3f",
       "projectId": "rule_1773360377217_1n6l7n",
       "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "stopped",
-      "startedAt": "2026-03-14T12:06:07.360Z",
+      "startedAt": "2026-03-14T23:44:54.394Z",
       "currentNodeId": "api_1773485137224",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T12:06:31.839Z"
+      "lastHeartbeat": "2026-03-14T23:45:04.873Z"
     },
     {
-      "runId": "run_8c80e826-a4fa-4d1b-96c3-dd73cc055384",
+      "runId": "run_05486470-4000-4b2a-9545-ae90f33deabf",
       "projectId": "rule_1773360377217_1n6l7n",
       "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "running",
-      "startedAt": "2026-03-14T19:05:52.525Z",
+      "startedAt": "2026-03-14T23:45:08.342Z",
       "currentNodeId": "api_1773485137224",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T19:06:36.796Z"
-    },
-    {
-      "runId": "run_756f1aad-429a-47a0-8c28-9691f2913142",
-      "projectId": "rule_1773360377217_1n6l7n",
-      "workflowId": "rule_1773360377217_1n6l7n",
-      "status": "running",
-      "startedAt": "2026-03-14T19:07:57.879Z",
-      "currentNodeId": "api_1773360389840",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-14T19:08:02.451Z"
+      "lastHeartbeat": "2026-03-14T23:46:39.880Z"
     }
   ]
 }
