@@ -124,6 +124,7 @@ db.exec(`
   );
 `);
 
+/*
 app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
@@ -204,7 +205,9 @@ app.get('/stop/:workflowName', (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+*/
 
+/*
 // Update workflow waiting state (supports both workflow name and ID)
 app.get('/wait/:workflowID/:status', (req, res) => {
   try {
@@ -254,6 +257,16 @@ app.get('/wait/:workflowID/:status', (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+*/
+
+app.get('/go/:runID/:nodeLabel', async (req, res) => {
+  console.log("------------------------------------------");
+  console.log("--------GO NODE BY LABEL(endpoint)--------");
+  console.log(`----runID  ${req.params.runID}----`);
+  console.log(`----nodeLabel ${req.params.nodeLabel}----`);
+  console.log("------------------------------------------");
+});
+
 
 app.get('/next/:runID', async (req, res) => {
   console.log("-----------------------------------");
@@ -280,6 +293,7 @@ app.get('/next/:runID', async (req, res) => {
 
   });
 
+  /*
 app.get('/run/:workflowID', async (req, res) => {
   try {
 
@@ -331,6 +345,7 @@ app.get('/run/:workflowID', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+*/
 
 // Load persisted runs_store.json (if present) before initializing runtime
 (async () => {
@@ -1472,6 +1487,7 @@ runManager.init(io);
 // Initialize project manager with io and start execution loop
 projectManager.init(io);
 
+/*
 // ------------------ Run Control REST API --------------------------------
 app.post('/api/run/start', (req, res) => {
   console.log('****************************************************************')
@@ -1526,6 +1542,7 @@ app.delete('/api/run/:runId', (req, res) => {
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
+*/
 
 app.get('/api/projects/statuses', (req, res) => {
   try {
@@ -1535,11 +1552,13 @@ app.get('/api/projects/statuses', (req, res) => {
 });
 
 // ------------------ Workflow Management API -----------------------------
+/*
 app.get('/api/workflows/statuses', (req, res) => {
   try {
     res.json(projectManager.getAllWorkflowStatus());
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
+
 
 app.get('/api/workflows/:workflowId', (req, res) => {
   try {
@@ -1589,6 +1608,7 @@ app.patch('/api/workflows/:workflowId/style', (req, res) => {
     res.json({ success: true, workflowId: finalWorkflowId, runflowId: workflowId !== finalWorkflowId ? workflowId : undefined });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
+*/
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
