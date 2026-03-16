@@ -109,19 +109,19 @@ class RunManager {
             runObj.status = 'running';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            //this._broadcastRunningList();
+            try { this._broadcastRunningList(); } catch (e) { }
           }
           if (event === 'run_completed' || event === 'workflow_complete') {
             runObj.status = 'completed';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            //this._broadcastRunningList();
+            try { this._broadcastRunningList(); } catch (e) { }
           }
           if (event === 'run_error') {
             runObj.status = 'error';
             runObj.lastHeartbeat = new Date().toISOString();
             this._persist();
-            //this._broadcastRunningList();
+            try { this._broadcastRunningList(); } catch (e) { }
           }
           if (this.io) this.io.to(room).emit(event, payload);
         } catch (e) { }
@@ -161,6 +161,7 @@ class RunManager {
 
     this.runs[runId] = runObj;
     this._persist();
+    try { this._broadcastRunningList(); } catch (e) { }
 
     console.log(`[RunManager] startRun -> projectId=${projectId} workflowId=${workflowId} runId=${runId} categoryId=${categoryId} nodes=${(nodes || []).length} edges=${(edges || []).length}`);
     console.log('project data:', proj?.categoryId, proj?.name);
@@ -213,7 +214,7 @@ class RunManager {
     r.status = 'stopped';
     r.stoppedAt = new Date().toISOString();
     this._persist();
-    //this._broadcastRunningList();
+    try { this._broadcastRunningList(); } catch (e) { }
     try { r.fakeSocket.emit('run_stopped', { runId }); } catch (e) { }
     return r;
   }
@@ -300,7 +301,7 @@ class RunManager {
       }
       delete this.runs[runId];
       this._persist();
-      //this._broadcastRunningList();
+      try { this._broadcastRunningList(); } catch (e) { }
       return true;
     } catch (e) { return false; }
   }

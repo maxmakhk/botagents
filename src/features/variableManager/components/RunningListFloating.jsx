@@ -39,7 +39,6 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
     console.log('✅ [RunningListFloating] Socket connected, listening for updates. Connected:', socket.connected);
     
     const handleRunningListUpdate = (data) => {
-      console.log('📡 [RunningListFloating] Received running_list_update (from API broadcast):', data);
       if (data && data.runflows) {
         console.log('   > Updating runflows from running_list_update, count:', data.runflows.length);
         setRunflows(data.runflows);
@@ -265,7 +264,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
               <tr>
                 <th>RunflowID</th>
                 <th>WorkflowID</th>
-                <th>ProjectID</th>
+                <th>Category</th>
                 <th>Node</th>
                 <th>Index</th>
                 <th>StartedAt</th>
@@ -279,7 +278,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                     {rf.runflowId.substring(0, 12)}...
                   </td>
                   <td title={rf.workflowId}>{rf.workflowId}</td>
-                  <td title={rf.projectId}>{rf.projectId}</td>
+                  <td title={rf.categoryId || rf.projectId}>{rf.categoryId || rf.projectId || '-'}</td>
                   <td title={rf.currentNodeName || rf.currentNodeId} className="running-list-node">
                     {rf.currentNodeName ? (
                       <span>{rf.currentNodeName} <small style={{opacity:0.7}}>({String(rf.currentNodeId || '').substring(0,8)}...)</small></span>
@@ -308,27 +307,12 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                     </button>
 
                     <button
-                      className="runNextBtn"
-                      title="Next Node"
-                      onClick={() => handleRunNext(rf.runflowId)}
-                    >
-                      Next
-                    </button>
-                    <button
                       className="runNextEndpointBtn"
-                      title="Next (EndPoint)"
+                      title="Next"
                       onClick={() => handleRunNextEndpoint(rf.runflowId)}
                       style={{ marginLeft: 6 }}
                     >
-                      Next(EndPoint)
-                    </button>
-                    <button
-                      className="goToNodeBtn"
-                      title="Go to Node by Label"
-                      onClick={() => handleGoToNodeByLabel(rf.runflowId)}
-                      style={{ marginLeft: 6 }}
-                    >
-                      Go(Label)
+                      Next
                     </button>
                   </td>
                 </tr>

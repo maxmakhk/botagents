@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-16T15:13:03.796Z",
+  "savedAt": "2026-03-16T16:57:30.230Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -16,7 +16,7 @@
             "apiName": "createObjects",
             "apiUrl": null,
             "image": null,
-            "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -36,7 +36,7 @@
               "apiName": "createObjects",
               "apiUrl": null,
               "image": null,
-              "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\nconst resp = fetch('http://localhost:3001/run/main');\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -69,7 +69,7 @@
             "apiName": "cleanOutputView",
             "apiUrl": null,
             "image": null,
-            "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -89,7 +89,7 @@
               "apiName": "cleanOutputView",
               "apiUrl": null,
               "image": null,
-              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const clientJS = `\nconsole.log(\"cleanOutputView running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/run/main');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -113,8 +113,8 @@
         {
           "id": "api_1773485137224",
           "position": {
-            "x": 805,
-            "y": -130
+            "x": 794,
+            "y": -113
           },
           "type": "api",
           "metadata": {
@@ -122,7 +122,7 @@
             "apiName": "JumpToNodeByLabel",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -142,7 +142,7 @@
               "apiName": "JumpToNodeByLabel",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/trigger/'+ input.var.targetWorkflowID +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -161,19 +161,13 @@
             "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": false,
-          "dragging": true,
-          "positionAbsolute": {
-            "x": 801.7142857142857,
-            "y": -129.57142857142856
-          }
+          "height": 64
         },
         {
-          "id": "api_1773673816127",
+          "id": "api_1773678537842",
           "position": {
-            "x": 490,
-            "y": -123
+            "x": 507,
+            "y": -130
           },
           "type": "api",
           "metadata": {
@@ -181,7 +175,7 @@
             "apiName": "workflow waiting",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
+            "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
             "cssStyle": null,
             "size": "2:1",
             "tags": [
@@ -192,17 +186,18 @@
           },
           "data": {
             "labelText": "workflow waiting",
+            "description": "api",
             "label": "workflow waiting",
-            "description": "external api",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  console.log(\"waiting [S]\", input.var?.waitingTime);\n  const url = `http://localhost:3001/next/${input.runId}`;\n}",
+            "functionInput": "{\nwaitingTime:2000\n}",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "dmWZ28QrPYOoWQ2pcOyU",
               "apiName": "workflow waiting",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
+              "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
               "cssStyle": null,
               "size": "2:1",
               "tags": [
@@ -211,23 +206,21 @@
                 "open"
               ]
             },
-            "fnString": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/next/'+ input.runId);\n  return {\n    status: 'done'\n  };\n}",
-            "functionInput": "{\nwaitingTime:2000\n}"
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
+            "minHeight": 64,
+            "height": 64
           },
           "width": 128,
           "height": 64,
           "selected": true,
-          "positionAbsolute": {
-            "x": 490.1428571428572,
-            "y": -126.21428571428572
-          },
-          "dragging": true
+          "dragging": false
         }
       ],
       "edges": [
@@ -240,48 +233,37 @@
           "targetHandle": "left"
         },
         {
-          "id": "edge_1773485142263__a_1773673824630",
+          "id": "edge_1773678541604",
           "source": "api_1773360389840",
-          "target": "api_1773673816127",
+          "target": "api_1773678537842",
           "label": "",
           "sourceHandle": "right",
-          "targetHandle": "left",
-          "type": "smoothstep",
-          "pathOptions": {
-            "offset": 40,
-            "borderRadius": 20
-          },
-          "style": {},
-          "selected": false
+          "targetHandle": "left"
         },
         {
-          "id": "edge_1773485142263__b_1773673824630",
-          "source": "api_1773673816127",
+          "id": "edge_1773678543645",
+          "source": "api_1773678537842",
           "target": "api_1773485137224",
           "label": "",
           "sourceHandle": "right",
-          "targetHandle": "left",
-          "type": "smoothstep",
-          "pathOptions": {
-            "offset": 40,
-            "borderRadius": 20
-          },
-          "style": {},
-          "selected": false
+          "targetHandle": "left"
         }
       ],
       "status": "stopped",
       "storeVars": {
         "rule_1773360377217_1n6l7n__node_api_1773360428322_status": "waiting_user_input",
-        "rule_1773360377217_1n6l7n__node_api_1773360428322_wait_start": 1773658818867,
+        "rule_1773360377217_1n6l7n__node_api_1773360428322_wait_start": 1773679921505,
         "waiting_wait": false,
         "node_api_1773360428322_status": "user_continued",
-        "rule_1773360377217_1n6l7n__node_api_1773360389840_error": "Cannot read properties of undefined (reading 'filter')",
+        "rule_1773360377217_1n6l7n__node_api_1773360389840_status": "waiting_user_input",
+        "rule_1773360377217_1n6l7n__node_api_1773360389840_wait_start": 1773679923378,
+        "node_api_1773360389840_status": "user_continued",
+        "rule_1773360377217_1n6l7n__node_api_1773678537842_error": "Cannot use 'import.meta' outside a module",
         "rule_1773360377217_1n6l7n__node_api_1773485137224_status": "waiting_user_input",
-        "rule_1773360377217_1n6l7n__node_api_1773485137224_wait_start": 1773658817841,
+        "rule_1773360377217_1n6l7n__node_api_1773485137224_wait_start": 1773679920486,
         "node_api_1773485137224_status": "user_continued"
       },
-      "activeNodeId": "api_1773485137224",
+      "activeNodeId": "api_1773678537842",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000,

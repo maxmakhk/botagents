@@ -148,9 +148,9 @@ export default function NodeToolsFloating({
             <button 
               className="ms-nodetools-btn ms-nodetools-btn-run" 
               onClick={() => { try { if (typeof onRun === 'function') onRun(); } catch(e){} }}
-              title={runActive ? 'Stop run' : 'Run new workflow'}
+              title="Run new workflow"
             >
-              {runActive ? '■ Stop' : '▶ Run New'}
+              ▶ Run New
             </button>
             <button
               className="ms-nodetools-btn ms-nodetools-btn-api"

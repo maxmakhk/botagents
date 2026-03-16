@@ -362,10 +362,26 @@ async function runLoop({
     // Sanitize to remove ES module syntax that's invalid inside new Function
     if (source) source = sanitizeSource(source);
 
+    // Provide a small shim for `import.meta.env` usage inside evaluated node code.
+    // Many user-written fnStrings reference `import.meta.env.VITE_*` which fails
+    /*
+    if (source && source.includes('import.meta')) {
+      try {
+        source = source.replace(/import\.meta/g, 'import_meta');
+        // Collect only safe, likely-needed env keys to expose
+        const envKeys = Object.keys(process.env || {}).filter(k => k.startsWith('VITE_') || k.startsWith('FIREBASE') || k === 'PORT' || k.startsWith('NODE_'));
+        const envObj = {};
+        for (const k of envKeys) envObj[k] = process.env[k];
+        // Create a JSON string representing { env: { ... } }
+      } catch (e) {
+      }
+    }
+      */
+
     if (source) {
       try {
         console.log("[runNodeByID]--------", nodeId);
-        const wrapper = new Function('ctx', `
+        const wrapper = new Function('ctx', 'src', `
           return (async (ctx) => {
             // compatibility aliases (safe wrappers)
             const storeVars = ctx && ctx.storeVars;
@@ -380,7 +396,8 @@ async function runLoop({
             const waiting_wait = async (flag) => { if (ctx && typeof ctx.waiting_wait === 'function') return await ctx.waiting_wait(flag); };
             const workflowRun = async (...args) => { if (ctx && typeof ctx.workflowRun === 'function') return await ctx.workflowRun(...args); };
 
-            ${source}
+            // Execute the user-provided source in this local scope
+            try { eval(src); } catch(e) { console.error('Error evaluating node source:', e); throw e; }
 
             const _arg = (ctx && ctx.node && ctx.node.data && (ctx.node.data.input ?? ctx.node.data.config ?? ctx.node.data.payload)) || ctx.config || ctx;
 
@@ -411,7 +428,7 @@ async function runLoop({
           //console.log(`[Runner] ctx.globalStoreVars keys:`, Object.keys(baseCtx.globalStoreVars || {}));
         } catch (e) { /* ignore logging errors */ }
 
-        const result = await wrapper(proxiedMakeCtx(currentNode));
+        const result = await wrapper(proxiedMakeCtx(currentNode), source);
 
         // Check if result contains clientJS and broadcast it
         console.log('[runNodeById] preparing clientJS', result.clientJS, typeof result.clientJS, typeof result);

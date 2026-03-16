@@ -100,7 +100,7 @@ const VariablePromptPanel = ({
   return (
     <div className="ai-prompt-form" style={{padding: 16, background: '#111827', borderRadius:'0 0 8px 8px'}}>
       <div style={{display:'flex', gap:8, alignItems:'center', marginBottom:10, flexWrap:'wrap'}}>
-        { (console.log('[VariablePromptPanel] render debug:', { functionsListLength: (functionsList||[]).length, ruleNamesLength: (ruleNames||[]).length, visibleRuleIndices: visibleRuleIndices })) }
+
         <label style={{fontWeight:'bold'}}>Project</label>
         <select
           id="projectSelect"

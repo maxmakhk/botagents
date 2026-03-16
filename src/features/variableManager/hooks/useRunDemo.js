@@ -113,7 +113,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         // non-runtime updates. Allow runtime updates (when any workflow is running).
         const hasRunning = (statusList || []).some(i => !!(i && i.runningStatus));
         if (hasReceivedAllWorkflowsRef.current && !hasRunning) {
-          console.log('[CLIENT] Ignoring redundant sendAllWorkflowStatus (no running workflows)');
           return;
         }
 
@@ -185,7 +184,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     // Receive execution STATE updates (只更新執行細節，不影響按鈕)
     socketRef.current.on('execution_state', (data) => {
       try {
-        console.log('⚙️ [CLIENT EXECUTION UPDATE] Received execution_state:', data);
         if (data.activeNodeId !== undefined) setActiveNodeId(data.activeNodeId);
         if (data.activeEdgeId !== undefined) setActiveEdgeId(data.activeEdgeId);
         if (data.storeVars) setStoreVars((prev) => ({ ...(prev || {}), ...(data.storeVars || {}) }));

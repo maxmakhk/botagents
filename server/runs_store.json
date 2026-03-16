@@ -1,14 +1,14 @@
 {
   "runs": [
     {
-      "runId": "run_6003007b-1676-442e-b224-80a19c918455",
+      "runId": "run_a2836fb1-143e-4513-80a9-3be206043f6e",
       "projectId": "rule_1773360377217_1n6l7n",
       "workflowId": "rule_1773360377217_1n6l7n",
       "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-16T15:13:18.957Z",
-      "currentNodeId": "api_1773673816127",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-16T15:20:44.153Z"
+      "startedAt": "2026-03-16T16:57:34.545Z",
+      "currentNodeId": "api_1773678537842",
+      "currentEdgeId": "edge_1773678543645",
+      "lastHeartbeat": "2026-03-16T21:27:23.439Z"
     }
   ]
 }
