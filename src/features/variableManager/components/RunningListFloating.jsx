@@ -161,9 +161,10 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
   const handleDeleteRunflow = async (runflowId) => {
     try {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const res = await fetch(`${backendUrl}/api/run/${encodeURIComponent(runflowId)}`, { method: 'DELETE' });
+      const res = await fetch(`${backendUrl}/deleterun/${encodeURIComponent(runflowId)}`);
       if (res.ok) {
-        console.log(`🗑️ [RunningListFloating] Deleted run ${runflowId}`);
+        const data = await res.json();
+        console.log(`🗑️ [RunningListFloating] Deleted run ${runflowId}`, data);
         setRunflows((prev) => {
           const updated = prev.filter((rf) => rf.runflowId !== runflowId);
           console.log(`   > Removed from local list (Delete action). Remaining: ${updated.length}`);
@@ -201,6 +202,30 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       }
     } catch (e) {
       console.error('[RunningListFloating] Next(EndPoint) error', e);
+    }
+  };
+
+  const handleGoToNodeByLabel = async (runflowId) => {
+    // Prompt user for node label
+    const nodeLabel = prompt('Enter node label to jump to:');
+    if (!nodeLabel) return;
+
+    console.log(`[RunningListFloating] Requesting go_to_node endpoint: runflowId=${runflowId}, nodeLabel=${nodeLabel}`);
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    try {
+      const res = await fetch(`${backendUrl}/go/${encodeURIComponent(runflowId)}/${encodeURIComponent(nodeLabel)}`);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('[RunningListFloating] Go to node response:', data);
+        alert(`Jumped to node: ${data.nodeLabel}`);
+      } else {
+        const errorData = await res.json();
+        console.warn('[RunningListFloating] Go to node failed:', errorData);
+        alert(`Error: ${errorData.error}`);
+      }
+    } catch (e) {
+      console.error('[RunningListFloating] Go to node error', e);
+      alert(`Error: ${e.message}`);
     }
   };
 
@@ -296,6 +321,14 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
                       style={{ marginLeft: 6 }}
                     >
                       Next(EndPoint)
+                    </button>
+                    <button
+                      className="goToNodeBtn"
+                      title="Go to Node by Label"
+                      onClick={() => handleGoToNodeByLabel(rf.runflowId)}
+                      style={{ marginLeft: 6 }}
+                    >
+                      Go(Label)
                     </button>
                   </td>
                 </tr>

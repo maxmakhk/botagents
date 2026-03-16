@@ -810,6 +810,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
     }
   });
 
+  /*
   socket.on('update_workflow', (data) => {
     try {
       if (data && Array.isArray(data.nodes)) nodes = data.nodes;
@@ -817,13 +818,16 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       broadcastLog('workflow_updated', { projectId, nodesCount: getNodes().length, edgesCount: getEdges().length });
     } catch (e) { }
   });
+  */
 
+  /*
   socket.on('workflow_resume', (data) => {
     const nodeId = data?.nodeId; if (!nodeId) return;
     storeVars['waiting_wait'] = false; storeVars['node_' + String(nodeId) + '_status'] = 'user_continued';
     broadcastLog('store_vars_update', { storeVars });
     const resolver = waitResolvers[String(nodeId)]; if (typeof resolver === 'function') { try { resolver(); } catch (e) {} }
   });
+  */
 
   socket.on('next', (data) => {
     // Resume from current activeNodeId (allows stepping through nodes)
@@ -863,6 +867,61 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       }
     } catch (e) {
       console.error('[workflowRunner] Error handling next event:', e);
+    }
+  });
+
+  socket.on('go_to_node', (data) => {
+    // Jump to a specific node by ID (used by /go/:runID/:nodeLabel endpoint)
+    console.log(`[workflowRunner] 'go_to_node' event received`, data);
+    try {
+      const { nodeId, nodeLabel } = data || {};
+      if (!nodeId) {
+        console.warn('[workflowRunner] go_to_node: missing nodeId');
+        return;
+      }
+
+      // Queue this node as the next node to execute
+      if (waitResolvers) {
+        waitResolvers.__queued_next_node = String(nodeId);
+        console.log(`[workflowRunner] go_to_node: queued nodeId=${nodeId} (label=${nodeLabel})`);
+      }
+
+      // Also store in storeVars for persistence
+      const k = 'queued_next_node';
+      if (projectId) {
+        const namespaced = `${projectId}__${k}`;
+        storeVars[namespaced] = String(nodeId);
+      }
+      storeVars[k] = String(nodeId);
+
+      // Resume the current node to allow queued jump to take effect
+      const proj = projectManager.getProject(projectId);
+      if (proj && proj.activeNodeId) {
+        const currentNodeId = proj.activeNodeId;
+        console.log(`[workflowRunner] go_to_node: resuming current node ${currentNodeId} to process queued jump`);
+        
+        storeVars['waiting_wait'] = false;
+        storeVars['node_' + String(currentNodeId) + '_status'] = 'user_continued';
+        broadcastLog('store_vars_update', { storeVars });
+        
+        // Call the resolver to resume
+        const manualKey = `manual_${currentNodeId}`;
+        const manualResolver = waitResolvers[manualKey];
+        if (typeof manualResolver === 'function') {
+          console.log(`[workflowRunner] go_to_node: resuming via manual resolver`);
+          try { manualResolver(); } catch (e) { console.error('Error resolving:', e); }
+        } else {
+          const legacyResolver = waitResolvers[String(currentNodeId)];
+          if (typeof legacyResolver === 'function') {
+            console.log(`[workflowRunner] go_to_node: resuming via legacy resolver`);
+            try { legacyResolver(); } catch (e) { console.error('Error resolving:', e); }
+          }
+        }
+      } else {
+        console.warn('[workflowRunner] go_to_node: no active project or currentNodeId');
+      }
+    } catch (e) {
+      console.error('[workflowRunner] Error handling go_to_node event:', e);
     }
   });
 

@@ -74,6 +74,7 @@ const VariablePromptPanel = ({
   allWorkflows = []
   ,
   updateNodeDetails,
+  fetchWorkflows,
   socketRef
 }) => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
@@ -99,21 +100,31 @@ const VariablePromptPanel = ({
   return (
     <div className="ai-prompt-form" style={{padding: 16, background: '#111827', borderRadius:'0 0 8px 8px'}}>
       <div style={{display:'flex', gap:8, alignItems:'center', marginBottom:10, flexWrap:'wrap'}}>
+        { (console.log('[VariablePromptPanel] render debug:', { functionsListLength: (functionsList||[]).length, ruleNamesLength: (ruleNames||[]).length, visibleRuleIndices: visibleRuleIndices })) }
         <label style={{fontWeight:'bold'}}>Project</label>
         <select
           id="projectSelect"
           value={selectedRuleCategoryId || 'all'}
-          onChange={e => { 
+          onChange={async (e) => { 
             const categoryId = e.target.value;
             console.log(`[VariablePromptPanel] 🎯 Project dropdown changed to: ${categoryId}`);
-            
-            // Immediately emit set_project_category to server
+
+            // Immediately emit set_project_category to server (unless 'all')
             if (socketRef?.current && categoryId && categoryId !== 'all') {
               console.log(`[VariablePromptPanel] 📤 Immediately emit set_project_category: ${categoryId}`);
               socketRef.current.emit('set_project_category', { projectcategoryId: categoryId });
             }
-            
-            setSelectedRuleCategoryId(categoryId); 
+
+            // If parent provided a fetchWorkflows callback, call it to update functionsList immediately
+            try {
+              if (typeof fetchWorkflows === 'function') {
+                await fetchWorkflows(categoryId);
+                console.log('[Projects] fetched workflows for category:', categoryId);
+              }
+            } catch (err) { console.warn('[Projects] fetchWorkflows failed', err); }
+
+            setSelectedRuleCategoryId(categoryId);
+            setSelectedRuleIndex(0); // Reset to first workflow when category changes
             try { console.log('[Projects] onChange - received workflows array:', functionsList); } catch (e) {} 
           }}
           onClick={() => { try { console.log('[Projects] onClick - current workflows array:', functionsList); } catch (e) {} }}
@@ -226,6 +237,7 @@ const VariablePromptPanel = ({
             <div style={{display: 'flex', gap: 6, alignItems: 'center'}}>
               <input
                 value={newWorkflowName}
+                id="newWorkflowInput"
                 onChange={e => setNewWorkflowName(e.target.value)}
                 placeholder="New workflow name"
                 style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#021827', color:'#e5e7eb', width:180}}
@@ -240,6 +252,7 @@ const VariablePromptPanel = ({
                 }}
               />
               <button
+                id="addNewWorkflowBtn"
                 className="btn-primary"
                 onClick={() => { if (typeof addNewWorkflow === 'function' && String(newWorkflowName || '').trim() !== '') { addNewWorkflow(String(newWorkflowName).trim()); setNewWorkflowName(''); } }}
                 style={{padding:'8px 10px'}}
@@ -267,6 +280,7 @@ const VariablePromptPanel = ({
                 Update WorkFlow
               </button>
               <button
+                id="deleteWorkflowBtn"
                 className="btn-danger"
                 onClick={() => { if (typeof deleteWorkflow === 'function' && window.confirm('Delete this workflow? This cannot be undone.')) { deleteWorkflow(); } }}
                 style={{padding:'8px 10px', background:'#dc2626', color:'#fff'}}
@@ -285,7 +299,9 @@ const VariablePromptPanel = ({
       )}
 
         {showRenameModal && (
-          <div style={{position:'fixed', top:12, left:'50%', transform:'translateX(-50%)', zIndex:10001, background:'#001219', color:'#e6f6ff', padding:16, borderRadius:8, boxShadow:'0 6px 24px rgba(0,0,0,0.6)', minWidth:380}}>
+          <div 
+          id="UpdateWorkFlowBox"
+          style={{position:'fixed', top:12, left:'50%', transform:'translateX(-50%)', zIndex:10001, background:'#001219', color:'#e6f6ff', padding:16, borderRadius:8, boxShadow:'0 6px 24px rgba(0,0,0,0.6)', minWidth:380}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
               <strong>Update WorkFlow</strong>
               <button onClick={() => setShowRenameModal(false)} style={{background:'transparent', border:'none', color:'#9ca3af', cursor:'pointer', fontSize:'18px'}}>✕</button>
@@ -353,6 +369,13 @@ const VariablePromptPanel = ({
                         });
                       }
                       
+                      // Notify server projectManager to update in-memory project metadata
+                      try {
+                        if (socketRef && socketRef.current) {
+                          socketRef.current.emit('update_project_meta', { projectId: id, name: newName, categoryId: newCat });
+                        }
+                      } catch (e) { /* ignore */ }
+
                       setShowRenameModal(false);
                       try { window.alert('Workflow updated successfully'); } catch (e) {}
                     } catch (err) {

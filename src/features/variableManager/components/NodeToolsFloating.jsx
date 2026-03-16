@@ -60,6 +60,10 @@ export default function NodeToolsFloating({
       const runListRes = await fetch(`${backendUrl}/api/run/list`);
       const runListData = runListRes.ok ? await runListRes.json() : { error: 'Failed to fetch' };
       console.log('%c✓ Running Workflows:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', runListData);
+      // Detailed runs data for debugging (show array of runs if available)
+      try {
+        console.log('%c📦 Runs Data (detailed):', 'background:#1f2937; color:#a3e635; padding:2px 6px; border-radius:4px;', runListData?.runflows || runListData);
+      } catch (e) { console.warn('Failed to print detailed runs data', e); }
 
       console.log('%c📊 Fetching project statuses...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
       const projectStatusRes = await fetch(`${backendUrl}/api/projects/statuses`);

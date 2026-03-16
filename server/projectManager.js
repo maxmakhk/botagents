@@ -184,7 +184,8 @@ class ProjectManager {
             activeNodeId: p.activeNodeId || null,
             activeEdgeId: p.activeEdgeId || null,
             apis: p.apis || [],
-            stepDelay: p.stepDelay || 1000
+            stepDelay: p.stepDelay || 1000,
+            categoryId: p.categoryId || p.projectId
           });
         }
       }
@@ -215,7 +216,8 @@ class ProjectManager {
           activeNodeId: p.activeNodeId || null,
           activeEdgeId: p.activeEdgeId || null,
           apis: p.apis || [],
-          stepDelay: p.stepDelay || 1000
+          stepDelay: p.stepDelay || 1000,
+          categoryId: p.categoryId || null
         });
       }
       const out = { savedAt: new Date().toISOString(), projects };
@@ -462,11 +464,12 @@ class ProjectManager {
   /**
    * Load or create project
    */
-  loadProject(projectId, nodes = [], edges = [], apis = [], stepDelay = 1000) {
+  loadProject(projectId, nodes = [], edges = [], apis = [], stepDelay = 1000, categoryId = null) {
     if (!this.projects.has(projectId)) {
       this.projects.set(projectId, {
         id: projectId,
         name: projectId,
+        categoryId: categoryId || projectId,
         nodes: nodes,
         edges: edges,
         status: 'stopped',
@@ -594,6 +597,7 @@ class ProjectManager {
     return {
       id: projectId,
       name: project.name || projectId,
+      categoryId: project.categoryId || projectId,
       nodes: project.nodes || [],
       edges: project.edges || [],
       apis: project.apis || [],

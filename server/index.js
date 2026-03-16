@@ -259,15 +259,103 @@ app.get('/wait/:workflowID/:status', (req, res) => {
 });
 */
 
+//http://localhost:3001/deleterun/runId
+app.get('/deleterun/:runID', async (req, res) => {
+  console.log("------------------------------------------");
+  console.log("--------DELETE RUN BY ID(endpoint)--------");
+  console.log(`----runID  ${req.params.runID}----`);
+  console.log("------------------------------------------");
+
+  try {
+    const runID = req.params.runID;
+    if (!runID) {
+      return res.status(400).json({ success: false, error: 'runID required' });
+    }
+    
+    console.log(`[/deleterun/:runID] Deleting run: ${runID}`);
+    const ok = runManager.deleteRun(runID);
+    
+    if (!ok) {
+      console.log(`[/deleterun/:runID] Run not found: ${runID}`);
+      return res.status(404).json({ success: false, error: 'run not found' });
+    }
+    
+    console.log(`[/deleterun/:runID] ✓ Successfully deleted run: ${runID}`);
+    res.json({ success: true, runID, message: 'Run deleted' });
+  } catch (err) {
+    console.error(`[/deleterun/:runID] Error:`, err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+//http://localhost:3001/go/test-run/Start%20Node
 app.get('/go/:runID/:nodeLabel', async (req, res) => {
   console.log("------------------------------------------");
   console.log("--------GO NODE BY LABEL(endpoint)--------");
   console.log(`----runID  ${req.params.runID}----`);
   console.log(`----nodeLabel ${req.params.nodeLabel}----`);
   console.log("------------------------------------------");
+
+  try {
+    const { runID, nodeLabel } = req.params;
+    if (!runID || !nodeLabel) {
+      return res.status(400).json({ success: false, error: 'runID and nodeLabel required' });
+    }
+
+    // Get the run object
+    const run = runManager.getRun(runID);
+    if (!run) {
+      return res.status(404).json({ success: false, error: 'run not found' });
+    }
+
+
+    // Find the node with matching label in the run's node list
+    const nodeList = Array.isArray(run.nodes) ? run.nodes : [];
+    let targetNode = null;
+    let targetNodeId = null;
+    
+    console.log("nodeList:", nodeList.length);
+
+    for (const node of nodeList) {
+      const nodeName = node?.data?.label || node?.label || node?.data?.labelText;
+      const runNodeLabel = node?.data?.nodeLabel;
+      console.log(`Checking node name "${nodeName}" label "${runNodeLabel}" against target label "${nodeLabel}"`);
+      if (runNodeLabel && String(runNodeLabel).toLowerCase() === String(nodeLabel).toLowerCase()) {
+        targetNode = node;
+        targetNodeId = node?.id;
+        console.log('label found', { nodeId: targetNodeId, nodeLabel });
+        break;
+      }
+    }
+
+    if (!targetNode || !targetNodeId) {
+      return res.status(404).json({
+        success: false,
+        error: `Node with label "${nodeLabel}" not found in this run`,
+        availableLabels: nodeList.map(n => n?.data?.label || n?.label || n?.data?.labelText || n?.id)
+      });
+    }
+
+    console.log(`[/go/:runID/:nodeLabel] Found target node: ${targetNodeId} (label: ${nodeLabel})`);
+
+    // Queue this node as the next node to execute
+    try {
+      const ok = runManager.receiveClientEvent(runID, 'go_to_node', { nodeId: targetNodeId, nodeLabel });
+      if (!ok) {
+        return res.status(500).json({ success: false, error: 'Failed to queue node, run may not be running' });
+      }
+      return res.json({ success: true, runID, nodeId: targetNodeId, nodeLabel, message: 'Queued jump to node' });
+    } catch (innerErr) {
+      console.error('[/go/:runID/:nodeLabel] receiveClientEvent failed:', innerErr);
+      return res.status(500).json({ success: false, error: String(innerErr) });
+    }
+  } catch (err) {
+    console.error('[/go/:runID/:nodeLabel] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
 });
 
-
+//http://localhost:3001/next/test-run
 app.get('/next/:runID', async (req, res) => {
   console.log("-----------------------------------");
   console.log("--------NEXT NODE(endpoint)--------");
@@ -293,7 +381,7 @@ app.get('/next/:runID', async (req, res) => {
 
   });
 
-  /*
+
 app.get('/run/:workflowID', async (req, res) => {
   try {
 
@@ -345,7 +433,7 @@ app.get('/run/:workflowID', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-*/
+
 
 // Load persisted runs_store.json (if present) before initializing runtime
 (async () => {
@@ -356,7 +444,7 @@ app.get('/run/:workflowID', async (req, res) => {
     // Load persisted workflows from sqlite `rules.workflow_object` if present
     try {
       console.log('[Startup] Loading workflows from sqlite `rules.workflow_object`');
-      const rows = db.prepare('SELECT id, name, workflow_object FROM rules').all();
+      const rows = db.prepare('SELECT id, name, workflow_object, category_id FROM rules').all();
       let loaded = 0;
       for (const r of rows || []) {
         try {
@@ -370,7 +458,7 @@ app.get('/run/:workflowID', async (req, res) => {
           const apis = (parsed && Array.isArray(parsed.apis)) ? parsed.apis : [];
           const stepDelay = (parsed && parsed.stepDelay) ? parsed.stepDelay : 1000;
 
-          projectManager.loadProject(r.id, nodes, edges, apis, stepDelay);
+          projectManager.loadProject(r.id, nodes, edges, apis, stepDelay, r.category_id);
           // propagate stored rule name if available
           if (r.name) {
             const proj = projectManager.getProject(r.id);
@@ -1078,6 +1166,20 @@ io.on('connection', (socket) => {
     projectManager.setClientProjectCategory(socket.id, projectcategoryId);
   });
 
+  // Client requests updating project metadata (name / category)
+  socket.on('update_project_meta', (data) => {
+    try {
+      const { projectId, name, categoryId } = data || {};
+      if (!projectId) return;
+      console.log(`[Socket] Received update_project_meta for ${projectId}: name=${name} categoryId=${categoryId}`);
+      // Update in-memory project metadata and broadcast
+      projectManager.updateProjectState(projectId, { name: name || undefined, categoryId: categoryId || undefined });
+      // Persisting to DB is handled by /api/rules POST which client already called
+    } catch (e) {
+      console.warn('Failed to handle update_project_meta socket event', e);
+    }
+  });
+
   // Client triggers run/stop for a project
   socket.on('project_control', (data) => {
     const { projectId, action } = data || {};
@@ -1487,8 +1589,8 @@ runManager.init(io);
 // Initialize project manager with io and start execution loop
 projectManager.init(io);
 
-/*
 // ------------------ Run Control REST API --------------------------------
+//http://localhost:3000/api/run/start
 app.post('/api/run/start', (req, res) => {
   console.log('****************************************************************')
   console.log('************************ /api/run/start ************************');
@@ -1500,7 +1602,7 @@ app.post('/api/run/start', (req, res) => {
     res.json({ success: true, runflowId: run.runId, runId: run.runId });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
-
+/*
 app.post('/api/run/stop', (req, res) => {
   try {
     const { runId } = req.body || {};
@@ -1525,14 +1627,14 @@ app.get('/api/run/status', (req, res) => {
     res.status(400).json({ error: 'projectId or runId required' });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
-
+*/
 app.get('/api/run/list', (req, res) => {
   try {
     const runflows = runManager.getAllRunflows();
     res.json({ runflows });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
-
+/*
 // Delete a run (manual cleanup)
 app.delete('/api/run/:runId', (req, res) => {
   try {
@@ -1552,11 +1654,209 @@ app.get('/api/projects/statuses', (req, res) => {
 });
 
 // ------------------ Workflow Management API -----------------------------
-/*
+
 app.get('/api/workflows/statuses', (req, res) => {
   try {
     res.json(projectManager.getAllWorkflowStatus());
   } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// ------------------ Convenience endpoints for frontend projectSelect ---------
+// Return all workflows (summary) for adding to projectSelect
+app.get('/getworkflows/all', (req, res) => {
+  try {
+    const data = projectManager.getAllWorkflowStatus();
+    res.json({ success: true, workflows: data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Return workflows filtered by category id. Use 'all' to return everything.
+app.get('/getworkflows/:category', (req, res) => {
+  try {
+    const category = req.params.category;
+    let data = projectManager.getAllWorkflowStatus() || [];
+    console.log(`[getworkflows] requested category='${category}' totalWorkflows=${data.length}`);
+
+    if (category && category !== 'all') {
+      const filtered = [];
+      for (const wf of data) {
+        try {
+          // Try to read in-memory project metadata first
+          const full = projectManager.getWorkflowData(wf.id) || projectManager.getProject(wf.id);
+          let projCategory = full && (full.categoryId || full.category || full.category_id) ? (full.categoryId || full.category || full.category_id) : null;
+
+          // Fallback: check rules table in DB for category_id
+          if (!projCategory) {
+            try {
+              const row = db.prepare('SELECT category_id FROM rules WHERE id = ? LIMIT 1').get(wf.id);
+              if (row && row.category_id) projCategory = row.category_id;
+            } catch (e) { /* ignore DB lookup errors */ }
+          }
+
+          if (projCategory && String(projCategory) === String(category)) {
+            filtered.push({ ...wf, categoryId: projCategory });
+          }
+        } catch (e) {
+          // ignore per-item errors
+        }
+      }
+      console.log(`[getworkflows] filtered workflows for category='${category}' => ${filtered.length}`);
+      data = filtered;
+    }
+
+    // Ensure each workflow has categoryId for client convenience
+    const out = (data || []).map(w => ({ ...w, categoryId: w.categoryId || (projectManager.getWorkflowData(w.id)?.categoryId) || null }));
+
+    res.json({ success: true, workflows: out });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Return list of project categories (from rule_categories table or derived)
+app.get('/getprojectcategorylist', (req, res) => {
+  try {
+    let rows = [];
+    try {
+      rows = db.prepare('SELECT id, name, description, created_at FROM rule_categories ORDER BY created_at DESC').all();
+    } catch (e) {
+      console.warn('[getprojectcategorylist] Failed to query rule_categories table, falling back to derived list');
+    }
+
+    if (!rows || rows.length === 0) {
+      // derive distinct category ids from rules table
+      try {
+        const cats = db.prepare('SELECT DISTINCT category_id FROM rules WHERE category_id IS NOT NULL AND category_id != ""').all();
+        rows = (cats || []).map((c) => ({ id: c.category_id, name: c.category_id }));
+      } catch (e) {
+        rows = [];
+      }
+    }
+
+    res.json({ success: true, categories: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Update workflow metadata (name, category)
+app.post('/updateworkflow', (req, res) => {
+  try {
+    const id = req.body?.id;
+    if (!id) return res.status(400).json({ success: false, error: 'id required' });
+    const name = req.body?.name || null;
+    const category = req.body?.category || req.body?.categoryId || null;
+
+    // Update DB if row exists
+    try {
+      const exists = db.prepare('SELECT id FROM rules WHERE id = ?').get(id);
+      if (exists) {
+        const stmt = db.prepare('UPDATE rules SET name = COALESCE(?, name), category_id = COALESCE(?, category_id), updated_at = ? WHERE id = ?');
+        stmt.run(name, category, new Date().toISOString(), id);
+      } else {
+        // Insert minimal row if missing
+        const stmt = db.prepare('INSERT INTO rules (id, name, category_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?)');
+        const now = new Date().toISOString();
+        stmt.run(id, name || '', category || '', now, now);
+      }
+    } catch (e) {
+      console.warn('[updateworkflow] DB update failed', e.message);
+    }
+
+    // Update in-memory project metadata and broadcast
+    try {
+      projectManager.updateProjectState(id, { name: name || undefined, categoryId: category || undefined });
+      // Also ensure project entry exists in projectManager.projects
+      const proj = projectManager.getProject(id);
+      if (!proj) {
+        projectManager.loadProject(id, [], [], [], 1000, category || id);
+      } else {
+        if (name) proj.name = name;
+        if (category) proj.categoryId = category;
+      }
+      // Persist runs_store.json asynchronously
+      try { projectManager.scheduleSave(1000); } catch (e) {}
+    } catch (e) { console.warn('[updateworkflow] projectManager update failed', e.message); }
+
+    res.json({ success: true, id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Delete workflow (remove from DB and in-memory projects)
+app.get('/deleteworkflow/:workflowID', (req, res) => {
+  try {
+    const id = req.params.workflowID;
+    if (!id) return res.status(400).json({ success: false, error: 'workflowID required' });
+
+    try {
+      const stmt = db.prepare('DELETE FROM rules WHERE id = ?');
+      stmt.run(id);
+    } catch (e) {
+      console.warn('[deleteworkflow] DB delete failed', e.message);
+    }
+
+    try {
+      // remove in-memory project
+      if (projectManager.projects.has(id)) {
+        projectManager.projects.delete(id);
+        projectManager.scheduleSave(1000);
+      }
+      // Broadcast status update so clients refresh lists
+      projectManager.sendAllWorkflowStatus();
+    } catch (e) { console.warn('[deleteworkflow] failed to cleanup in-memory project', e.message); }
+
+    res.json({ success: true, id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Add new workflow (rule) to sqlite and sync to memory
+app.post('/addworkflow', (req, res) => {
+  try {
+    const name = req.body?.name || 'New Workflow';
+    const categoryId = req.body?.categoryId || '';
+
+    // Generate new workflow ID
+    const workflowId = `rule_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    // Insert into sqlite rules table
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO rules (id, name, category_id, expr, type, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      const now = new Date().toISOString();
+      stmt.run(workflowId, name, categoryId || '', '', 'Rule Checker', now, now);
+      console.log('[addworkflow] Inserted new workflow into DB:', workflowId, 'name:', name);
+    } catch (e) {
+      console.warn('[addworkflow] DB insert failed', e.message);
+    }
+
+    // Load the new workflow into memory
+    try {
+      projectManager.loadProject(workflowId, [], [], [], 1000, categoryId || '');
+      // Update the in-memory project with the correct name (loadProject sets name to projectId by default)
+      projectManager.updateProjectState(workflowId, { name, categoryId });
+      projectManager.scheduleSave(1000);
+      console.log('[addworkflow] Loaded workflow into memory:', workflowId, 'with name:', name);
+    } catch (e) {
+      console.warn('[addworkflow] projectManager update failed', e.message);
+    }
+
+    // Broadcast updated workflow list to all clients
+    try {
+      projectManager.sendAllWorkflowStatus();
+    } catch (e) { /* ignore */ }
+
+    res.json({ success: true, id: workflowId, name });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
 });
 
 
@@ -1608,7 +1908,7 @@ app.patch('/api/workflows/:workflowId/style', (req, res) => {
     res.json({ success: true, workflowId: finalWorkflowId, runflowId: workflowId !== finalWorkflowId ? workflowId : undefined });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
-*/
+
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {

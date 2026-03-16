@@ -25,7 +25,7 @@ class RunManager {
     try {
       // ensure directory exists
       try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); } catch (e) { }
-      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, startedAt: r.startedAt, currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, lastHeartbeat: r.lastHeartbeat }));
+      const data = Object.values(this.runs).map(r => ({ runId: r.runId, projectId: r.projectId, workflowId: r.workflowId, categoryId: r.categoryId, startedAt: r.startedAt, currentNodeId: r.currentNodeId, currentEdgeId: r.currentEdgeId, lastHeartbeat: r.lastHeartbeat }));
       fs.writeFileSync(STORE_PATH, JSON.stringify({ runs: data }, null, 2));
     } catch (e) { console.warn('Failed to persist runs:', e); }
   }
@@ -47,7 +47,8 @@ class RunManager {
           this.runs[r.runId] = {
             runId: r.runId, 
             projectId: r.projectId, 
-            workflowId: r.workflowId || null, 
+            workflowId: r.workflowId || null,
+            categoryId: r.categoryId || null,
             status: loadedStatus,
             startedAt: r.startedAt || null, 
             currentNodeId: r.currentNodeId || null, 
@@ -68,7 +69,6 @@ class RunManager {
 
     if (!projectId) throw new Error('projectId required');
     if (!workflowId) throw new Error('workflowId required');
-
 
     // Allow multiple concurrent runs for the same workflow
     const runId = 'run_' + randomUUID();
@@ -135,10 +135,15 @@ class RunManager {
       }
     };
 
+    // Extract categoryId from project
+    const proj = projectManager.getProject(projectId);
+    const categoryId = proj?.categoryId || null;// || projectId;
+
     const runObj = {
       runId,
       projectId,
       workflowId,
+      categoryId,
       room,
       status: 'starting',
       startedAt: new Date().toISOString(),
@@ -157,7 +162,9 @@ class RunManager {
     this.runs[runId] = runObj;
     this._persist();
 
-    console.log(`[RunManager] startRun -> projectId=${projectId} workflowId=${workflowId} runId=${runId} nodes=${(nodes || []).length} edges=${(edges || []).length}`);
+    console.log(`[RunManager] startRun -> projectId=${projectId} workflowId=${workflowId} runId=${runId} categoryId=${categoryId} nodes=${(nodes || []).length} edges=${(edges || []).length}`);
+    console.log('project data:', proj?.categoryId, proj?.name);
+    //console.log(runObj);
 
     // run asynchronously
     (async () => {
@@ -167,7 +174,6 @@ class RunManager {
         runObj.fakeSocket.emit('run_started', { runId, projectId, workflowId });
 
         // Clear old activeNodeId since this is a new run (not a resume)
-        const proj = projectManager.getProject(projectId);
         if (proj) {
           proj.activeNodeId = null;
           proj.activeEdgeId = null;
@@ -234,6 +240,7 @@ class RunManager {
           runflowId: r.runId,
           projectId: r.projectId,
           workflowId: r.workflowId,
+          categoryId: r.categoryId,
           startedAt: r.startedAt,
           currentNodeId: currentNodeId,
           currentEdgeId: r.currentEdgeId,

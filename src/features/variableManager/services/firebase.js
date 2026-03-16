@@ -3,7 +3,26 @@ const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || impor
 
 export async function saveRuleToFirebase(dbPlaceholder, payLoad) {
   try {
-    // Normalize workflowObject and strip injected nodes similar to previous logic
+    // When updating workflow metadata (name, categoryId), use /updateworkflow endpoint
+    if (payLoad.id && (payLoad.name || payLoad.categoryId || payLoad.category)) {
+      const resp = await fetch(`${API_BASE}/updateworkflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: payLoad.id,
+          name: payLoad.name,
+          category: payLoad.categoryId || payLoad.category
+        })
+      });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error('updateworkflow failed', resp.status, txt);
+        return { success: false, error: txt };
+      }
+      return { success: true };
+    }
+
+    // Fallback for other types of saves (workflowObject, etc.)
     let workflowObj = payLoad.workflowObject || payLoad.workflowObject || null;
     try {
       if (typeof workflowObj === 'string' && workflowObj.trim()) {
@@ -84,13 +103,15 @@ export async function loadRulesFromFirebaseService(opts = {}) {
 
 export async function deleteRuleFromServer(ruleId) {
   try {
-    const resp = await fetch(`${API_BASE}/api/rules/${encodeURIComponent(ruleId)}`, { method: 'DELETE' });
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const resp = await fetch(`${backendUrl}/deleteworkflow/${encodeURIComponent(ruleId)}`, { method: 'GET' });
     if (!resp.ok) {
       const txt = await resp.text();
       console.error('deleteRuleFromServer failed', resp.status, txt);
       return { success: false, error: txt };
     }
-    return { success: true };
+    const data = await resp.json();
+    return { success: data.success !== false };
   } catch (err) {
     console.error('deleteRuleFromServer error', err);
     return { success: false, error: err };

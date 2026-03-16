@@ -260,6 +260,7 @@ export default function useRuleSources(db) {
 
     // Categories
     ruleCategories,
+    setRuleCategories,
     selectedRuleCategoryId,
     setSelectedRuleCategoryId,
     categoriesLoading,

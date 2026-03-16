@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-16T15:13:03.796Z",
+  "savedAt": "2026-03-16T11:52:29.526Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -29,7 +29,6 @@
             "label": "createObjects",
             "nodeLabel": "end",
             "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
             "actions": [],
             "metadata": {
               "apiId": "t18j2BxNlpLTRPNRpXZu",
@@ -45,7 +44,8 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1"
+            "scale": "2:1",
+            "functionInput": ""
           },
           "style": {
             "borderRadius": 10,
@@ -113,8 +113,8 @@
         {
           "id": "api_1773485137224",
           "position": {
-            "x": 805,
-            "y": -130
+            "x": 576,
+            "y": -171
           },
           "type": "api",
           "metadata": {
@@ -131,12 +131,11 @@
           },
           "data": {
             "labelText": "JumpToNodeByLabel",
-            "description": "api",
             "label": "JumpToNodeByLabel",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "functionInput": "{\ntargetNodeLabel:\"start\"\n}",
+            "description": "api",
             "actions": [],
+            "width": 128,
+            "height": 64,
             "metadata": {
               "apiId": "T7sJl75flCKvuLNb2053",
               "apiName": "JumpToNodeByLabel",
@@ -149,70 +148,10 @@
                 "action"
               ]
             },
-            "width": 128,
-            "height": 64,
+            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "nodeLabel": "",
+            "functionInput": "{\ntargetNodeLabel:\"start2\"\n}",
             "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64,
-          "selected": false,
-          "dragging": true,
-          "positionAbsolute": {
-            "x": 801.7142857142857,
-            "y": -129.57142857142856
-          }
-        },
-        {
-          "id": "api_1773673816127",
-          "position": {
-            "x": 490,
-            "y": -123
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "workflow waiting",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "workflow waiting",
-            "label": "workflow waiting",
-            "description": "external api",
-            "actions": [],
-            "width": 128,
-            "height": 64,
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "workflow waiting",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: 'done'\n  };\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "fnString": "async function processRequest(input) {\n\nconsole.log(\"waiting\")\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\nconst resp = fetch('http://localhost:3001/next/'+ input.runId);\n  return {\n    status: 'done'\n  };\n}",
-            "functionInput": "{\nwaitingTime:2000\n}"
           },
           "style": {
             "borderRadius": 10,
@@ -224,8 +163,8 @@
           "height": 64,
           "selected": true,
           "positionAbsolute": {
-            "x": 490.1428571428572,
-            "y": -126.21428571428572
+            "x": 518.5714285714286,
+            "y": -158.5714285714286
           },
           "dragging": true
         }
@@ -240,34 +179,13 @@
           "targetHandle": "left"
         },
         {
-          "id": "edge_1773485142263__a_1773673824630",
+          "id": "edge_1773485142263",
           "source": "api_1773360389840",
-          "target": "api_1773673816127",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left",
-          "type": "smoothstep",
-          "pathOptions": {
-            "offset": 40,
-            "borderRadius": 20
-          },
-          "style": {},
-          "selected": false
-        },
-        {
-          "id": "edge_1773485142263__b_1773673824630",
-          "source": "api_1773673816127",
           "target": "api_1773485137224",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left",
-          "type": "smoothstep",
-          "pathOptions": {
-            "offset": 40,
-            "borderRadius": 20
-          },
-          "style": {},
-          "selected": false
+          "type": "next"
         }
       ],
       "status": "stopped",
@@ -285,7 +203,7 @@
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000,
-      "categoryId": "zIbjcRkwOJwYKBNTit5D"
+      "categoryId": "rule_1773360377217_1n6l7n"
     },
     {
       "projectId": "rule_1773360383383_n0u551",
@@ -297,7 +215,7 @@
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000,
-      "categoryId": "zIbjcRkwOJwYKBNTit5D"
+      "categoryId": "rule_1773360383383_n0u551"
     }
   ]
 }

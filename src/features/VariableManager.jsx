@@ -75,6 +75,7 @@ const VariableManager = ({ onBack }) => {
     functionsList,
     setFunctionsList,
     ruleCategories,
+    setRuleCategories,
     selectedRuleCategoryId,
     setSelectedRuleCategoryId,
     categoriesLoading,
@@ -100,6 +101,7 @@ const VariableManager = ({ onBack }) => {
     deleteRuleGroup,
     createRuleId,
     normalizeLegacyFromFunctions,
+    resolveDefaultCategoryId,
   } = useRuleSources(db);
 
   // External APIs hook
@@ -1190,6 +1192,29 @@ const VariableManager = ({ onBack }) => {
     loadApis();
   }, []);
 
+  // Load project categories from server to populate Project select
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const resp = await fetch(`${backendUrl}/getprojectcategorylist`);
+        if (!resp.ok) {
+          console.warn('[VariableManager] Failed to fetch project categories:', resp.status);
+          return;
+        }
+        const payload = await resp.json();
+        const cats = (payload && Array.isArray(payload.categories)) ? payload.categories.map(c => ({ id: c.id || c.name, name: c.name || c.id })) : [];
+        if (cats && cats.length && typeof setRuleCategories === 'function') {
+          setRuleCategories(cats);
+          console.log('[VariableManager] Loaded project categories from server:', cats.length);
+        }
+      } catch (e) {
+        console.warn('[VariableManager] Error loading project categories:', e);
+      }
+    };
+    fetchCategories();
+  }, [setRuleCategories]);
+
   useEffect(() => {
     // Load a small set of recent logs initially (lazy by default)
     loadLogs(false);
@@ -1208,7 +1233,50 @@ const VariableManager = ({ onBack }) => {
   }, [selectedRuleCategoryId, db]);
 
   const loadRulesByCategory = async (categoryId) => {
+    console.log(`[loadRulesByCategory] Loading rules for category: ${categoryId}`);
     try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      // Use server endpoints to populate projectSelect lists
+      try {
+        const endpoint = categoryId === 'all' ? `${backendUrl}/getworkflows/all` : `${backendUrl}/getworkflows/${encodeURIComponent(categoryId)}`;
+        console.log(`[VariableManager] 🔎 Fetching workflows from endpoint: ${endpoint}`);
+        const resp = await fetch(endpoint);
+        console.log("resp", resp);
+        if (resp.ok) {
+          const payload = await resp.json();
+           console.log("payload", payload);
+          const data = payload && Array.isArray(payload.workflows) ? payload.workflows : [];
+          console.log(`[VariableManager] ✅ Received ${data.length} workflows from ${endpoint}`);
+          const functions = data.map(w => ({
+            id: w.id,
+            ruleId: w.id,
+            name: w.name || '',
+            workflowObject: null,
+            nodeCount: w.nodeNumber || w.nodeCount || 0,
+            edgeCount: w.edgeNumber || w.edgeCount || 0,
+            categoryId: w.categoryId || categoryId || 'all'
+          }));
+
+          // When loading from server, clear legacy ruleSource so getVisibleRuleIndices uses functionsList
+          setRuleSource([]);
+          setFunctionsList(functions);
+          setRuleNames(functions.map(f => f.name || ''));
+          setRulePrompts(functions.map(() => ''));
+          setRuleTypes(functions.map(() => ''));
+          setRuleSystemPrompts(functions.map(() => ''));
+          setRuleDetectPrompts(functions.map(() => ''));
+          setRuleRelatedFields(functions.map(() => ''));
+          setRuleCategoryIds(functions.map(f => f.categoryId || categoryId || ''));
+
+          console.log(`Loaded ${functions.length} workflow(s) from server for category:`, categoryId);
+          return;
+        }
+      } catch (e) {
+        console.warn(`[VariableManager] ❌ Failed to fetch workflows from server endpoint for category=${categoryId}:`, e);
+        console.warn('[VariableManager] Falling back to legacy rules API');
+      }
+
+      // Fallback to legacy rules API if server endpoints fail
       const result = await loadRulesFromFirebaseService({ db, categoryId });
       if (result.success) {
         setRuleSource(result.ruleSource || []);
@@ -1909,41 +1977,63 @@ const VariableManager = ({ onBack }) => {
 
   // Create a new workflow (rule) with an optional name
   const addNewWorkflow = async (name) => {
+    console.log("addNewWorkflow START", name);
     const nextCategoryId = (selectedRuleCategoryId && selectedRuleCategoryId !== 'all')
       ? selectedRuleCategoryId
       : resolveDefaultCategoryId(ruleCategories);
 
-    // create a new rule id and local placeholders
-    const newRuleId = createRuleId();
-    setRuleSource([...ruleSource, '']);
-    setRulePrompts([...rulePrompts, '']);
-    setRuleTypes([...ruleTypes, 'Rule Checker']);
-    setRuleSystemPrompts([...ruleSystemPrompts, '']);
-    setRuleDetectPrompts([...ruleDetectPrompts, '']);
-    setRuleRelatedFields([...ruleRelatedFields, '']);
-    setRuleCategoryIds([...ruleCategoryIds, nextCategoryId || '']);
-    setRuleNames([...ruleNames, name || 'New Workflow']);
-
-    // keep functionsList in sync so the UI can reference the new rule
     try {
-      const newFn = { id: newRuleId, ruleId: newRuleId, type: 'Rule Checker', name: name || 'New Workflow', expr: '', systemPrompt: '', workflowObject: '' };
-      setFunctionsList((f) => Array.isArray(f) ? [...f, newFn] : [newFn]);
+      // Call server endpoint to create new workflow
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const resp = await fetch(`${backendUrl}/addworkflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || 'New Workflow',
+          categoryId: nextCategoryId || ''
+        })
+      });
 
-      // Persist the new rule to the server
-      const payLoad = {
+      if (!resp.ok) {
+        const err = await resp.text();
+        console.error('Failed to create workflow on server:', resp.status, err);
+        setAiWarning('Failed to create workflow');
+        setTimeout(() => setAiWarning(''), 2000);
+        return;
+      }
+
+      const data = await resp.json();
+      const newRuleId = data.id;
+
+      // Update local state to reflect the new workflow
+      setRuleSource([...ruleSource, '']);
+      setRulePrompts([...rulePrompts, '']);
+      setRuleTypes([...ruleTypes, 'Rule Checker']);
+      setRuleSystemPrompts([...ruleSystemPrompts, '']);
+      setRuleDetectPrompts([...ruleDetectPrompts, '']);
+      setRuleRelatedFields([...ruleRelatedFields, '']);
+      setRuleCategoryIds([...ruleCategoryIds, nextCategoryId || '']);
+      setRuleNames([...ruleNames, name || 'New Workflow']);
+
+      // Keep functionsList in sync
+      const newFn = {
         id: newRuleId,
-        name: name || 'New Workflow',
-        categoryId: nextCategoryId || '',
-        expr: '',
+        ruleId: newRuleId,
         type: 'Rule Checker',
+        name: name || 'New Workflow',
+        expr: '',
+        systemPrompt: '',
+        categoryId: nextCategoryId || '',
         workflowObject: ''
       };
-      await saveRuleToFirebase(db, payLoad);
-      setAiWarning('New workflow saved');
+      setFunctionsList((f) => Array.isArray(f) ? [...f, newFn] : [newFn]);
+
+      setAiWarning('New workflow created');
       setTimeout(() => setAiWarning(''), 2000);
+      console.log('[addNewWorkflow] Successfully created workflow:', newRuleId);
     } catch (err) {
-      console.error('Failed to save new workflow:', err);
-      setAiWarning('Failed to save new workflow');
+      console.error('Failed to create new workflow:', err);
+      setAiWarning('Failed to create workflow');
       setTimeout(() => setAiWarning(''), 2000);
     }
   };
@@ -2738,7 +2828,9 @@ const VariableManager = ({ onBack }) => {
   }
   const getVisibleRuleIndices = () => {
     try {
-      return (ruleSource || []).map((_, idx) => idx);
+      if (ruleSource && ruleSource.length) return (ruleSource || []).map((_, idx) => idx);
+      if (functionsList && functionsList.length) return (functionsList || []).map((_, idx) => idx);
+      return [];
     } catch (e) {
       return [];
     }
@@ -3655,6 +3747,7 @@ const edges = [
             functionsList={functionsList}
             setFunctionsList={setFunctionsList}
             allWorkflows={allWorkflows}
+            fetchWorkflows={loadRulesByCategory}
             updateNodeDetails={updateNodeDetails}
             socketRef={socketRef}
             addNewWorkflow={addNewWorkflow}
