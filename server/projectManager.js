@@ -179,7 +179,7 @@ class ProjectManager {
           this.projects.set(p.projectId, {
             nodes: p.nodes || [],
             edges: p.edges || [],
-            status: p.status || 'stopped',
+            status: 'running',//p.status || 'stopped',
             storeVars: p.storeVars || {},
             activeNodeId: p.activeNodeId || null,
             activeEdgeId: p.activeEdgeId || null,
@@ -205,6 +205,15 @@ class ProjectManager {
   async saveToDisk(filePath) {
     try {
       const fp = filePath || path.join(process.cwd(), 'runs_store.json');
+      
+      // Read existing file to preserve runs data
+      let existingRuns = [];
+      try {
+        const existing = await fs.readFile(fp, 'utf8');
+        const parsed = JSON.parse(existing || '{}');
+        existingRuns = parsed.runs || [];
+      } catch (e) { /* error reading existing file */ }
+      
       const projects = [];
       for (const [projectId, p] of this.projects.entries()) {
         projects.push({
@@ -220,7 +229,12 @@ class ProjectManager {
           categoryId: p.categoryId || null
         });
       }
-      const out = { savedAt: new Date().toISOString(), projects };
+      
+      const out = { 
+        savedAt: new Date().toISOString(), 
+        projects,
+        runs: existingRuns
+      };
       await fs.writeFile(fp, JSON.stringify(out, null, 2), 'utf8');
       this.log(`Saved ${projects.length} projects to ${fp}`);
     } catch (e) {

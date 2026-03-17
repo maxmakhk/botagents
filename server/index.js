@@ -440,6 +440,9 @@ app.get('/run/:workflowID', async (req, res) => {
   try {
     const runsPath = path.join(process.cwd(), 'runs_store.json');
     await projectManager.loadFromDisk(runsPath);
+    
+    // NOW load runs from runManager after projectManager has its data
+    runManager._loadFromDisk();
   
     // Load persisted workflows from sqlite `rules.workflow_object` if present
     try {
@@ -1599,7 +1602,7 @@ app.post('/api/run/start', (req, res) => {
     const { projectId, workflowId, nodes, edges, apis, options } = req.body || {};
     if (!projectId || !workflowId) return res.status(400).json({ error: 'projectId and workflowId required' });
     const run = runManager.startRun({ projectId, workflowId, nodes: nodes || [], edges: edges || [], apis: apis || [], options: options || {} });
-    res.json({ success: true, runflowId: run.runId, runId: run.runId });
+    res.json({ success: true, runflowId: run.runId, runId: run.runId, categoryId: run.categoryId });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 /*

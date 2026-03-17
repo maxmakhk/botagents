@@ -137,9 +137,12 @@ const WorkflowNode = ({ id, data }) => {
   const rfNodes = data?.rfNodes;
   const rfEdges = data?.rfEdges;
   const activeNodeId = data?.activeNodeId;
+  const runningFlows = data?.runningFlows || [];
+
+  // Calculate which runs are currently on this node
+  const runsOnThisNode = runningFlows.filter(rf => String(rf.currentNodeId) === String(id));
 
   const isEntryNode = !!(data?.metadata?.sourceRuleId || data?.metadata?.entryForRuleId || String(data?.labelText || '').startsWith('Entry:'));
-  const isActive = String(id) === String(activeNodeId);
   
   // Calculate width and height from component size metadata (format: "width:height" like "3:1", "2:2")
   // Use pre-calculated values from data if available, otherwise calculate from size ratio
@@ -166,7 +169,6 @@ const WorkflowNode = ({ id, data }) => {
     borderRadius: 8,
     border: isEntryNode ? '1px solid #fde68a' : undefined,
     boxShadow: isEntryNode ? '0 6px 18px rgba(250,204,21,0.12)' : '0 6px 18px rgba(2,6,23,0.4)',
-    filter: isActive ? 'brightness(1.5) contrast(1.30)' : undefined,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -292,6 +294,33 @@ const WorkflowNode = ({ id, data }) => {
 
   return (
     <div style={containerStyle} className={`entry-btn ${extraClass} ${apiIdClass}`.trim()}>
+      {/* Run indicators (small colored dots at top-left showing concurrent runs on this node) */}
+      {runsOnThisNode.length > 0 && (
+        <div style={{position:'absolute', left:2, top:2, display:'flex', gap:2, flexWrap:'wrap', maxWidth:100}}>
+          {runsOnThisNode.map((rf, idx) => {
+            // Generate a color based on the runflowId hash
+            const hash = String(rf.runflowId || '').split('').reduce((h, c) => h + c.charCodeAt(0), 0);
+            const colors = ['#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4', '#ef4444'];
+            const color = colors[hash % colors.length];
+            const tooltip = `${rf.runflowId?.substring(0, 8)}... (${rf.currentNodeName || 'node'})`;
+            return (
+              <div
+                key={`${rf.runflowId}_${idx}`}
+                title={tooltip}
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: color,
+                  cursor: 'pointer',
+                  boxShadow: `0 0 4px ${color}80`,
+                  opacity: 0.9
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
       {/* lock button + info icon + prompt icon top-right */}
       <div style={{position:'absolute', right:2, top:2, display:'flex', gap:2, flexDirection: 'row'}}>
         <button
@@ -490,7 +519,8 @@ const WorkflowGraph = ({
   setStoreVars,
   selectedIds = []
   ,
-  updateNodeDetails
+  updateNodeDetails,
+  runningFlows = []
 }) => {
   const hasNodes = rfNodes && rfNodes.length > 0;
 
@@ -599,6 +629,7 @@ const WorkflowGraph = ({
         activeEdgeId,
         storeVars,
         setStoreVars,
+        runningFlows,
         // provide a helper to collect related nodes and edges for this node
         getRelated: (nodeId) => {
           const nodesArr = Array.isArray(rfNodes) ? rfNodes : [];
@@ -616,12 +647,10 @@ const WorkflowGraph = ({
         }
       }
     }));
-  }, [rfNodes, rfEdges, onOpenActionRule, onToggleNodeLock, onNodePromptSubmit, activeNodeId, activeEdgeId]);
+  }, [rfNodes, rfEdges, onOpenActionRule, onToggleNodeLock, onNodePromptSubmit, activeNodeId, activeEdgeId, runningFlows]);
 
   const edgesWithHighlight = useMemo(() => {
     return (rfEdges || []).map((e) => {
-      const isActive = String(e.id) === String(activeEdgeId);
-      
       // Detect backward/cycle edges. For TB layouts check vertical ordering; for LR check horizontal ordering.
       const sourceNode = (rfNodes || []).find(n => String(n.id) === String(e.source));
       const targetNode = (rfNodes || []).find(n => String(n.id) === String(e.target));
@@ -641,10 +670,7 @@ const WorkflowGraph = ({
         type: edgeType,
         pathOptions,
         style: {
-          ...(e.style || {}),
-          stroke: isActive ? '#f59e0b' : undefined,
-          strokeWidth: isActive ? 3 : undefined,
-          filter: isActive ? 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.6))' : undefined
+          ...(e.style || {})
         }
       };
     });

@@ -82,6 +82,24 @@ const VariablePromptPanel = ({
   const [renameValue, setRenameValue] = useState('');
   const [renameCategoryId, setRenameCategoryId] = useState('');
 
+  // State to track running flows for visual indicators in the graph
+  const [runningFlows, setRunningFlows] = useState([]);
+
+  // Listen for running_list_update from server to display current run progress
+  useEffect(() => {
+    if (!socketRef?.current) return;
+    const handleRunningListUpdate = (data) => {
+      console.log('[VariablePromptPanel] 📥 Received running_list_update:', data?.runflows?.length || 0, 'flows');
+      if (data && Array.isArray(data.runflows)) {
+        setRunningFlows(data.runflows);
+      }
+    };
+    socketRef.current.on('running_list_update', handleRunningListUpdate);
+    return () => {
+      socketRef.current?.off('running_list_update', handleRunningListUpdate);
+    };
+  }, [socketRef]);
+
   // Notify server when selected project category changes
   useEffect(() => {
     if (!socketRef?.current) {
@@ -437,6 +455,7 @@ const VariablePromptPanel = ({
           storeVars={storeVars}
           setStoreVars={setStoreVars}
           updateNodeDetails={updateNodeDetails}
+          runningFlows={runningFlows}
       />
 
       <form onSubmit={handleAiSubmit} style={{display:'flex', flexDirection:'column', gap:8}}>

@@ -1,0 +1,4 @@
+[Firebase Init] Config loaded. projectId: (set)
+[Firebase Init] apiKey: (set)
+[Firebase Init] authDomain: (set)
+[Firebase Init] ✓ Initialized Firebase successfully

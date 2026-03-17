@@ -606,10 +606,18 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       
       const data = await response.json();
       const newRunflowId = data.runflowId || data.runId;
+      const categoryId = data.categoryId;
       
       console.log('[ProjectSync] ✅ Runflow started with ID:', newRunflowId);
       console.log('[ProjectSync] Response data:', data);
+      console.log('[ProjectSync] CategoryId from response:', categoryId);
       runIdRef.current = newRunflowId;
+      
+      // Set client's project category so it receives broadcasts
+      if (categoryId && socketRef.current) {
+        console.log('[ProjectSync] 🎯 Setting project category to:', categoryId);
+        socketRef.current.emit('set_project_category', { projectcategoryId: categoryId });
+      }
       
       // Optimistically update UI
       console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');

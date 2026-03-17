@@ -616,6 +616,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
         console.log(`[workflowRunner] 🔍 Checking io object: socket?.io=${!!socket?.io}, global.io=${!!global.io}`);
         
         // Try to get io object and broadcast to all clients
+        
         try {
           const ioInstance = socket?.io || global.io;
           if (ioInstance) {
@@ -635,6 +636,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
             console.error(`[workflowRunner] ❌ Socket also not available, cannot broadcast`);
           }
         }
+          
       }
       // For clientJS events, broadcast to all clients with matching projectcategoryId
       else if (event === 'client_js_exec') {
@@ -818,7 +820,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
 
   // socket controls
   socket.on('disconnect', () => { abort = true; });
-  socket.on('stop_workflow', () => { abort = true; });
+  //socket.on('stop_workflow', () => { abort = true; });
 
   socket.on('update_store_vars', (newVars) => {
     if (newVars && typeof newVars === 'object') {

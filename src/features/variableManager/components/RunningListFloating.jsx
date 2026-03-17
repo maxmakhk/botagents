@@ -262,12 +262,9 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
           <table className="running-list-table">
             <thead>
               <tr>
-                <th>RunflowID</th>
-                <th>WorkflowID</th>
-                <th>Category</th>
+                <th>RunflowID / StartedAt</th>
+                <th>WorkflowID / Category</th>
                 <th>Node</th>
-                <th>Index</th>
-                <th>StartedAt</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -275,19 +272,32 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
               {runflows.map((rf) => (
                 <tr key={rf.runflowId} className={`running-list-row status-${rf.status}`}>
                   <td className="running-list-id" title={rf.runflowId}>
-                    {rf.runflowId.substring(0, 12)}...
+                    {rf.runflowId.substring(0, 12)}<br/>{formatTime(rf.startedAt)}
                   </td>
-                  <td title={rf.workflowId}>{rf.workflowId}</td>
-                  <td title={rf.categoryId || rf.projectId}>{rf.categoryId || rf.projectId || '-'}</td>
+                  <td title={rf.workflowId}>{rf.workflowId}<br/>{rf.categoryId || rf.projectId || '-'}</td>
                   <td title={rf.currentNodeName || rf.currentNodeId} className="running-list-node">
-                    {rf.currentNodeName ? (
-                      <span>{rf.currentNodeName} <small style={{opacity:0.7}}>({String(rf.currentNodeId || '').substring(0,8)}...)</small></span>
-                    ) : (
-                      <span style={{opacity:0.7}}>—</span>
-                    )}
+                    <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                      {(() => {
+                        const hash = String(rf.runflowId || '').split('').reduce((h, c) => h + c.charCodeAt(0), 0);
+                        const colors = ['#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4', '#ef4444'];
+                        const color = colors[hash % colors.length];
+                        return (
+                          <div style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            flexShrink: 0
+                          }} title={`Indicator: ${rf.runflowId.substring(0, 8)}...`} />
+                        );
+                      })()}
+                      {rf.currentNodeName ? (
+                        <span>{rf.currentNodeName} <small style={{opacity:0.7}}><br/>{String(rf.currentNodeId || '').substring(0,8)}... ({rf.currentNodeIndex && rf.currentNodeIndex > 0 ? rf.currentNodeIndex : '-'})</small> </span>
+                      ) : (
+                        <span style={{opacity:0.7}}>—</span>
+                      )}
+                    </div>
                   </td>
-                  <td className="running-list-node-index">{rf.currentNodeIndex && rf.currentNodeIndex > 0 ? rf.currentNodeIndex : '-'}</td>
-                  <td className="running-list-time">{formatTime(rf.startedAt)}</td>
                   <td className="running-list-action">
                     {rf.status === 'running' && (
                       <button 

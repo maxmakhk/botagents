@@ -38,13 +38,23 @@ class RunManager {
       // We only load metadata; active runs must be restarted manually or left stopped.
       if (parsed && Array.isArray(parsed.runs)) {
         parsed.runs.forEach(r => {
-          let loadedStatus = r.status || 'stopped';
+          let loadedStatus = 'running';//r.status || 'stopped';
           // If the server restarted while a run was active, we lost its execution context.
           // Force it to 'stopped' so the UI doesn't get stuck thinking it's still running.
-          if (loadedStatus === 'running' || loadedStatus === 'starting') {
-            loadedStatus = 'stopped';
-          }
-          this.runs[r.runId] = {
+          //if (loadedStatus === 'running' || loadedStatus === 'starting') {
+          //  loadedStatus = 'stopped';
+          //}
+          
+          // Get nodes/edges from projectManager if available
+          const proj = projectManager.getProject(r.projectId);
+          const nodes = proj?.nodes || [];
+          const edges = proj?.edges || [];
+          const apis = proj?.apis || [];
+          
+          // Create a fake socket for stopped runs so they can receive [next] commands
+          const handlers = {};
+          const room = `run:${r.runId}`;
+          const runObj = {
             runId: r.runId, 
             projectId: r.projectId, 
             workflowId: r.workflowId || null,
@@ -53,9 +63,31 @@ class RunManager {
             startedAt: r.startedAt || null, 
             currentNodeId: r.currentNodeId || null, 
             currentEdgeId: r.currentEdgeId || null,
-            lastHeartbeat: r.lastHeartbeat || null
+            lastHeartbeat: r.lastHeartbeat || null,
+            nodes,
+            edges,
+            apis,
+            room
           };
+          
+          // Only add minimal fakeSocket for stopped runs (just enough for [next] to work)
+          /*
+          if (loadedStatus === 'stopped' && r.currentNodeId) {
+            runObj.fakeSocket = {
+              id: `backend_${r.runId}`,
+              io: this.io,
+              // Stopped runs: just allow empty handlers for now
+              on: (ev, fn) => { handlers[ev] = fn; },
+              __call: (ev, payload) => {
+                try { if (typeof handlers[ev] === 'function') handlers[ev](payload); } catch (e) { console.warn('loaded run handler error', e); }
+              }
+            };
+          }
+            */
+          
+          this.runs[r.runId] = runObj;
         });
+        console.log(`[RunManager] Loaded ${Object.keys(this.runs).length} runs from disk`);
       }
     } catch (e) { console.warn('Failed to load runs from disk:', e); }
   }

@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-16T16:57:30.230Z",
+  "savedAt": "2026-03-17T09:12:20.382Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -113,8 +113,8 @@
         {
           "id": "api_1773485137224",
           "position": {
-            "x": 794,
-            "y": -113
+            "x": 808,
+            "y": -137
           },
           "type": "api",
           "metadata": {
@@ -161,7 +161,13 @@
             "height": 64
           },
           "width": 128,
-          "height": 64
+          "height": 64,
+          "selected": true,
+          "positionAbsolute": {
+            "x": 809.7142857142858,
+            "y": -134.42857142857144
+          },
+          "dragging": true
         },
         {
           "id": "api_1773678537842",
@@ -218,9 +224,7 @@
             "height": 64
           },
           "width": 128,
-          "height": 64,
-          "selected": true,
-          "dragging": false
+          "height": 64
         }
       ],
       "edges": [
@@ -249,21 +253,23 @@
           "targetHandle": "left"
         }
       ],
-      "status": "stopped",
+      "status": "running",
       "storeVars": {
         "rule_1773360377217_1n6l7n__node_api_1773360428322_status": "waiting_user_input",
-        "rule_1773360377217_1n6l7n__node_api_1773360428322_wait_start": 1773679921505,
+        "rule_1773360377217_1n6l7n__node_api_1773360428322_wait_start": 1773738734473,
         "waiting_wait": false,
         "node_api_1773360428322_status": "user_continued",
         "rule_1773360377217_1n6l7n__node_api_1773360389840_status": "waiting_user_input",
-        "rule_1773360377217_1n6l7n__node_api_1773360389840_wait_start": 1773679923378,
+        "rule_1773360377217_1n6l7n__node_api_1773360389840_wait_start": 1773738736346,
         "node_api_1773360389840_status": "user_continued",
-        "rule_1773360377217_1n6l7n__node_api_1773678537842_error": "Cannot use 'import.meta' outside a module",
+        "rule_1773360377217_1n6l7n__node_api_1773678537842_error": "Cannot read properties of undefined (reading 'clientJS')",
         "rule_1773360377217_1n6l7n__node_api_1773485137224_status": "waiting_user_input",
-        "rule_1773360377217_1n6l7n__node_api_1773485137224_wait_start": 1773679920486,
-        "node_api_1773485137224_status": "user_continued"
+        "rule_1773360377217_1n6l7n__node_api_1773485137224_wait_start": 1773738740072,
+        "node_api_1773485137224_status": "user_continued",
+        "rule_1773360377217_1n6l7n__queued_next_node": "api_1773360428322",
+        "queued_next_node": "api_1773360428322"
       },
-      "activeNodeId": "api_1773678537842",
+      "activeNodeId": "api_1773485137224",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000,
@@ -281,5 +287,6 @@
       "stepDelay": 1000,
       "categoryId": "zIbjcRkwOJwYKBNTit5D"
     }
-  ]
+  ],
+  "runs": []
 }
