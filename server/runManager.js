@@ -30,6 +30,315 @@ class RunManager {
     } catch (e) { console.warn('Failed to persist runs:', e); }
   }
 
+  //0317B
+  _loadFromDisk() {
+    console.log("------------------- ------------ ----------------------------------");
+    console.log("------------------- runManager.loadFromDisk_v3 --------------------");
+    console.log("------------------- ------------ ----------------------------------");
+  try {
+    if (!fs.existsSync(STORE_PATH)) return;
+    const raw = fs.readFileSync(STORE_PATH, 'utf8');
+    const parsed = JSON.parse(raw || '{}');
+    
+    if (parsed && Array.isArray(parsed.runs)) {
+      parsed.runs.forEach(r => {
+        const proj = projectManager.getProject(r.projectId);
+        const nodes = proj?.nodes || [];
+        const edges = proj?.edges || [];
+        const apis = proj?.apis || [];
+        
+        const handlers = {};
+        const room = `run:${r.runId}`;
+        
+        const runObj = {
+          runId: r.runId, 
+          projectId: r.projectId, 
+          workflowId: r.workflowId || null,
+          categoryId: r.categoryId || null,
+          status: 'stopped',
+          startedAt: r.startedAt || null, 
+          currentNodeId: r.currentNodeId || null, 
+          currentEdgeId: r.currentEdgeId || null,
+          lastHeartbeat: r.lastHeartbeat || null,
+          nodes,
+          edges,
+          apis,
+          room,
+          storeVars: r.storeVars || {}
+        };
+        
+        // ✅ 立即為所有 loaded runs 建立完整的 fakeSocket（不用條件判斷）
+        runObj.fakeSocket = {
+          id: `backend_${r.runId}`,
+          io: this.io,
+          on: (ev, fn) => { handlers[ev] = fn; },
+          __call: (ev, payload) => {
+            try { 
+              if (typeof handlers[ev] === 'function') handlers[ev](payload); 
+            } catch (e) { console.warn('loaded run handler error', e); }
+          },
+          emit: (event, payload) => {
+            try {
+              if (event === 'workflow_status_update' && this.io) {
+                this.io.emit(event, payload);
+                return;
+              }
+              if (event === 'store_vars_update') {
+                runObj.storeVars = payload || runObj.storeVars || {};
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+              }
+              if (event === 'node_start' && payload?.nodeId) {
+                runObj.currentNodeId = payload.nodeId;
+                runObj.currentEdgeId = null;
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+              }
+              if (event === 'edge_start' && payload?.edgeId) {
+                runObj.currentEdgeId = payload.edgeId;
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+              }
+              if (event === 'run_started') {
+                runObj.status = 'running';
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+                try { this._broadcastRunningList(); } catch (e) { }
+              }
+              if (event === 'run_completed' || event === 'workflow_complete') {
+                runObj.status = 'completed';
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+                try { this._broadcastRunningList(); } catch (e) { }
+              }
+              if (event === 'run_error') {
+                runObj.status = 'error';
+                runObj.lastHeartbeat = new Date().toISOString();
+                this._persist();
+                try { this._broadcastRunningList(); } catch (e) { }
+              }
+              if (this.io) this.io.to(room).emit(event, payload);
+            } catch (e) { console.warn('fakeSocket emit error:', e); }
+          }
+        };
+        
+        this.runs[r.runId] = runObj;
+      });
+      console.log(`[RunManager] ✅ Loaded ${Object.keys(this.runs).length} runs from disk`);
+      
+      // ✅ 載入後立即恢復所有有 currentNodeId 的 runs
+      this._resumeAllLoadedRuns();
+    }
+  } catch (e) { 
+    console.warn('Failed to load runs from disk:', e); 
+  }
+}
+
+  //0317B
+  async _resumeAllLoadedRuns() {
+    const runsToResume = Object.values(this.runs).filter(r => r.currentNodeId && r.status === 'stopped');
+    if (runsToResume.length === 0) {
+      console.log('[RunManager] No runs to resume');
+      return;
+    }
+    
+    console.log(`[RunManager] 🔄 Resuming ${runsToResume.length} loaded runs from currentNodeId...`);
+    
+    runsToResume.forEach(r => {
+      console.log(`[RunManager] ▶️ Resuming run ${r.runId.substring(0, 12)}... from node ${r.currentNodeId}`);
+      
+      // 異步啟動每個 run（不 await，讓它們並行執行）
+      (async () => {
+        try {
+          r.status = 'running';
+          this._persist();
+          r.fakeSocket.emit('run_started', { runId: r.runId, projectId: r.projectId, workflowId: r.workflowId });
+          
+          // Resume from currentNodeId
+          await runWorkflow(r.fakeSocket, { 
+            projectId: r.projectId, 
+            runId: r.runId, 
+            nodes: r.nodes, 
+            edges: r.edges, 
+            apis: r.apis,
+            stepDelay: 800,
+            initialStoreVars: r.storeVars || {},
+            startNodeId: r.currentNodeId,
+            categoryId: r.categoryId
+          });
+          
+          r.status = 'completed';
+          r.lastHeartbeat = new Date().toISOString();
+          this._persist();
+          r.fakeSocket.emit('run_completed', { runId: r.runId });
+        } catch (err) {
+          console.error(`[RunManager] ❌ Resume failed for run ${r.runId.substring(0, 12)}:`, err?.message);
+          r.status = 'error';
+          r.fakeSocket.emit('run_error', { runId: r.runId, message: err?.message || String(err) });
+          this._persist();
+        }
+      })();
+    });
+  }
+
+  //0317: New method to resume runs that were loaded from disk and have a currentNodeId (indicating they were active when the server stopped)
+  /*
+  _loadFromDisk() {
+    console.log("------------------- ------------ ----------------------------------");
+    console.log("------------------- runManager.loadFromDisk_v2 --------------------");
+    console.log("------------------- ------------ ----------------------------------");
+    try {
+      if (!fs.existsSync(STORE_PATH)) return;
+      const raw = fs.readFileSync(STORE_PATH, 'utf8');
+      const parsed = JSON.parse(raw || '{}');
+      
+      if (parsed && Array.isArray(parsed.runs)) {
+        parsed.runs.forEach(r => {
+          // Get nodes/edges from projectManager if available
+          const proj = projectManager.getProject(r.projectId);
+          const nodes = proj?.nodes || [];
+          const edges = proj?.edges || [];
+          const apis = proj?.apis || [];
+          
+          const handlers = {};
+          const room = `run:${r.runId}`;
+          
+          const runObj = {
+            runId: r.runId, 
+            projectId: r.projectId, 
+            workflowId: r.workflowId || null,
+            categoryId: r.categoryId || null,
+            status: 'stopped',
+            startedAt: r.startedAt || null, 
+            currentNodeId: r.currentNodeId || null, 
+            currentEdgeId: r.currentEdgeId || null,
+            lastHeartbeat: r.lastHeartbeat || null,
+            nodes,
+            edges,
+            apis,
+            room,
+            storeVars: r.storeVars || {}
+          };
+          
+          // Create functional fakeSocket for loaded runs so they can resume
+          runObj.fakeSocket = {
+            id: `backend_${r.runId}`,
+            io: this.io,
+            on: (ev, fn) => { handlers[ev] = fn; },
+            __call: (ev, payload) => {
+              try { 
+                if (typeof handlers[ev] === 'function') handlers[ev](payload); 
+              } catch (e) { console.warn('loaded run handler error', e); }
+            },
+            emit: (event, payload) => {
+              try {
+                //console.log(`[restart run] ${event} `);
+                // Handle workflow_status_update
+                if (event === 'workflow_status_update' && this.io) {
+                  this.io.emit(event, payload);
+                  return;
+                }
+                
+                // Update run metadata on lifecycle events
+                if (event === 'store_vars_update') {
+                  runObj.storeVars = payload || runObj.storeVars || {};
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                }
+                if (event === 'node_start' && payload?.nodeId) {
+                  runObj.currentNodeId = payload.nodeId;
+                  runObj.currentEdgeId = null;
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                }
+                if (event === 'edge_start' && payload?.edgeId) {
+                  runObj.currentEdgeId = payload.edgeId;
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                }
+                if (event === 'run_started') {
+                  runObj.status = 'running';
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                  try { this._broadcastRunningList(); } catch (e) { }
+                }
+                if (event === 'run_completed' || event === 'workflow_complete') {
+                  runObj.status = 'completed';
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                  try { this._broadcastRunningList(); } catch (e) { }
+                }
+                if (event === 'run_error') {
+                  runObj.status = 'error';
+                  runObj.lastHeartbeat = new Date().toISOString();
+                  this._persist();
+                  try { this._broadcastRunningList(); } catch (e) { }
+                }
+                
+                // Broadcast to room
+                if (this.io) this.io.to(room).emit(event, payload);
+              } catch (e) { }
+            }
+          };
+          
+          this.runs[r.runId] = runObj;
+        });
+        console.log(`[RunManager] ✅ Loaded ${Object.keys(this.runs).length} runs from disk`);
+        
+        // Resume execution for all loaded runs that have currentNodeId
+        this._resumeAllRuns();
+      }
+    } catch (e) { 
+      console.warn('Failed to load runs from disk:', e); 
+    }
+  }
+
+  //0317: New method to resume runs that were loaded from disk and have a currentNodeId (indicating they were active when the server stopped)
+  _resumeAllRuns() {
+    const runsToResume = Object.values(this.runs).filter(r => r.currentNodeId);
+    if (runsToResume.length === 0) return;
+    
+    console.log(`[RunManager] 🔄 Resuming ${runsToResume.length} runs from currentNodeId...`);
+    
+    runsToResume.forEach(r => {
+      console.log(`[RunManager] ▶️ Resuming run ${r.runId} from node ${r.currentNodeId}`);
+      
+      // Start execution asynchronously from the currentNodeId
+      (async () => {
+        try {
+          r.status = 'running';
+          this._persist();
+          r.fakeSocket.emit('run_started', { runId: r.runId, projectId: r.projectId, workflowId: r.workflowId });
+          
+          // Resume workflow from currentNodeId
+          await runWorkflow(r.fakeSocket, { 
+            projectId: r.projectId, 
+            runId: r.runId, 
+            nodes: r.nodes, 
+            edges: r.edges, 
+            apis: r.apis,
+            stepDelay: 800,
+            initialStoreVars: r.storeVars || {},
+            startNodeId: r.currentNodeId  // Resume from current position
+          });
+          
+          r.status = 'completed';
+          r.lastHeartbeat = new Date().toISOString();
+          this._persist();
+          r.fakeSocket.emit('run_completed', { runId: r.runId });
+        } catch (err) {
+          console.error(`[RunManager] ❌ Resume failed for run ${r.runId}:`, err);
+          r.status = 'error';
+          r.fakeSocket.emit('run_error', { runId: r.runId, message: err?.message || String(err) });
+          this._persist();
+        }
+      })();
+    });
+  }
+    */
+
+  //v1
+  /*
   _loadFromDisk() {
     try {
       if (!fs.existsSync(STORE_PATH)) return;
@@ -71,19 +380,7 @@ class RunManager {
           };
           
           // Only add minimal fakeSocket for stopped runs (just enough for [next] to work)
-          /*
-          if (loadedStatus === 'stopped' && r.currentNodeId) {
-            runObj.fakeSocket = {
-              id: `backend_${r.runId}`,
-              io: this.io,
-              // Stopped runs: just allow empty handlers for now
-              on: (ev, fn) => { handlers[ev] = fn; },
-              __call: (ev, payload) => {
-                try { if (typeof handlers[ev] === 'function') handlers[ev](payload); } catch (e) { console.warn('loaded run handler error', e); }
-              }
-            };
-          }
-            */
+
           
           this.runs[r.runId] = runObj;
         });
@@ -91,13 +388,14 @@ class RunManager {
       }
     } catch (e) { console.warn('Failed to load runs from disk:', e); }
   }
+  */
 
   startRun({ projectId, workflowId, nodes = [], edges = [], apis = [], options = {} }) {
     console.log('--------------------------------');
     console.log('--------------------------------');
     console.log('--------------------------------');
     console.log(`[RunManager] startRun [New Project] projectId=${projectId} workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length} `);
-    console.log(`[RunManager] options:`, options);
+    console.log(`[RunManager] options:`, options);//options.startNodeId
 
     if (!projectId) throw new Error('projectId required');
     if (!workflowId) throw new Error('workflowId required');
@@ -217,7 +515,9 @@ class RunManager {
         // Extract startNodeId from options if provided
         //const startNodeId = options.startNodeId || null;
         // Prefer new `runId` field when invoking runner (runner will also accept legacy `runflowId`)
-        await runWorkflow(runObj.fakeSocket, { projectId, runId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
+        //0317b
+        //await runWorkflow(runObj.fakeSocket, { projectId, runId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {} });
+        await runWorkflow(runObj.fakeSocket, { projectId, runId: runId, nodes, edges, apis, stepDelay: options.stepDelay || 800, initialStoreVars: options.initialStoreVars || {}, startNodeId: options.startNodeId || null, categoryId });
 
         runObj.status = 'completed';
         runObj.lastHeartbeat = new Date().toISOString();

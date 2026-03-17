@@ -288,6 +288,58 @@ app.get('/deleterun/:runID', async (req, res) => {
   }
 });
 
+//0317 Jump to node by ID and resume execution
+//http://localhost:3001/gobynodeid/:runID/:nodeId
+app.get('/gobynodeid/:runID/:nodeId', async (req, res) => {
+  console.log("------------------------------------------");
+  console.log("--------GO NODE BY ID (endpoint)--------");
+  console.log(`----runID  ${req.params.runID}----`);
+  console.log(`----nodeId ${req.params.nodeId}----`);
+  console.log("------------------------------------------");
+
+  try {
+    const { runID, nodeId } = req.params;
+    if (!runID || !nodeId) {
+      return res.status(400).json({ success: false, error: 'runID and nodeId required' });
+    }
+
+    // Get the run object
+    const run = runManager.getRun(runID);
+    if (!run) {
+      return res.status(404).json({ success: false, error: 'run not found' });
+    }
+
+    // Verify the node exists in this run
+    const nodeList = Array.isArray(run.nodes) ? run.nodes : [];
+    const targetNode = nodeList.find(n => String(n.id) === String(nodeId));
+    
+    if (!targetNode) {
+      return res.status(404).json({
+        success: false,
+        error: `Node with ID "${nodeId}" not found in this run`,
+        availableNodeIds: nodeList.map(n => n.id)
+      });
+    }
+
+    console.log(`[/gobynodeid/:runID/:nodeId] Found target node: ${nodeId}`);
+
+    // Queue this node as the next node to execute
+    try {
+      const ok = runManager.receiveClientEvent(runID, 'go_to_node', { nodeId });
+      if (!ok) {
+        return res.status(500).json({ success: false, error: 'Failed to queue node, run may not be running' });
+      }
+      return res.json({ success: true, runID, nodeId, message: 'Queued jump to node' });
+    } catch (innerErr) {
+      console.error('[/gobynodeid/:runID/:nodeId] receiveClientEvent failed:', innerErr);
+      return res.status(500).json({ success: false, error: String(innerErr) });
+    }
+  } catch (err) {
+    console.error('[/gobynodeid/:runID/:nodeId] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 //http://localhost:3001/go/test-run/Start%20Node
 app.get('/go/:runID/:nodeLabel', async (req, res) => {
   console.log("------------------------------------------");
@@ -438,6 +490,11 @@ app.get('/run/:workflowID', async (req, res) => {
 // Load persisted runs_store.json (if present) before initializing runtime
 (async () => {
   try {
+    console.log("------------------- ----------------- -------------------");
+    console.log("------------------- ----------------- -------------------");
+    console.log("------------------- START NODE SERVER -------------------");
+    console.log("------------------- ----------------- -------------------");
+    console.log("------------------- ----------------- -------------------");
     const runsPath = path.join(process.cwd(), 'runs_store.json');
     await projectManager.loadFromDisk(runsPath);
     
@@ -1741,6 +1798,81 @@ app.get('/getprojectcategorylist', (req, res) => {
     res.json({ success: true, categories: rows });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Create new run starting from a specific node label
+// http://localhost:3001/runnew/:workflowId/:nodeLabelName
+app.get('/runnew/:workflowId/:nodeLabelName', (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ RUN NEW by Node Label Name ************');
+  console.log('workflowId =', req.params.workflowId, 'nodeLabelName =', req.params.nodeLabelName);
+  console.log('****************************************************************')
+  try {
+    const { workflowId, nodeLabelName } = req.params;
+    if (!workflowId || !nodeLabelName) {
+      return res.status(400).json({ error: 'workflowId and nodeLabelName required' });
+    }
+
+    // Load workflow from projectManager memory
+    const workflow = projectManager.getWorkflowData(workflowId);
+    if (!workflow) {
+      return res.status(404).json({ error: `Workflow "${workflowId}" not found in server memory` });
+    }
+
+    const nodes = workflow.nodes || [];
+    const edges = workflow.edges || [];
+    const apis = workflow.apis || [];
+    const projectId = workflow.id || workflowId;
+    const categoryId = workflow.categoryId || projectId;
+
+    // Find node by label (case-insensitive)
+    let startNodeId = null;
+    for (const node of nodes) {
+      //const nodeName = node?.data?.label || node?.label || node?.data?.labelText;
+      const runNodeLabel = node?.data?.nodeLabel;
+      
+      if (runNodeLabel == nodeLabelName) {
+        startNodeId = node?.id;
+        console.log("!!!!!!!node found with nodeLabel:", runNodeLabel, "nodeId:", startNodeId);
+        break;
+      }
+    }
+
+    if (!startNodeId) {
+      const availableLabels = nodes.map(n => n?.data?.nodeLabel || n?.data?.label || n?.label || '(unnamed)').join(', ');
+      return res.status(404).json({ 
+        error: `Node with label "${nodeLabelName}" not found in workflow`,
+        availableLabels: availableLabels || '(no nodes)'
+      });
+    }
+
+    // Create new run starting from the specified node
+    const options = { startNodeId };
+    const run = runManager.startRun({ 
+      projectId, 
+      workflowId, 
+      nodes, 
+      edges, 
+      apis, 
+      options 
+    });
+    
+    console.log(`[runnew] Created run ${run.runId} from workflow ${workflowId}, starting at node "${nodeLabelName}" (nodeId: ${startNodeId})`);
+    
+    res.json({ 
+      success: true, 
+      runId: run.runId,
+      runflowId: run.runId,
+      projectId: run.projectId,
+      workflowId: run.workflowId,
+      categoryId: run.categoryId,
+      startNodeId: startNodeId,
+      startNodeLabel: nodeLabelName
+    });
+  } catch (err) { 
+    console.error('[runnew] Error:', err);
+    res.status(500).json({ error: String(err) }); 
   }
 });
 

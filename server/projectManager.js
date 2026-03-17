@@ -169,6 +169,9 @@ class ProjectManager {
    * Load projects from runs_store.json (if exists)
    */
   async loadFromDisk(filePath) {
+    console.log("------------------- ------------ ----------------------------------");
+    console.log("------------------- projectManager.loadFromDisk -------------------");
+    console.log("------------------- ------------ ----------------------------------");
     try {
       const fp = filePath || path.join(process.cwd(), 'runs_store.json');
       const raw = await fs.readFile(fp, 'utf8');
@@ -179,7 +182,7 @@ class ProjectManager {
           this.projects.set(p.projectId, {
             nodes: p.nodes || [],
             edges: p.edges || [],
-            status: 'running',//p.status || 'stopped',
+            status: p.status || 'stopped',
             storeVars: p.storeVars || {},
             activeNodeId: p.activeNodeId || null,
             activeEdgeId: p.activeEdgeId || null,

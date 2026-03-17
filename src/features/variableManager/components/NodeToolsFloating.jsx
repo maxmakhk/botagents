@@ -22,6 +22,7 @@ export default function NodeToolsFloating({
   setJoinEdgeNodeId = () => {}
 }) {
   const nodeRef = useRef(null);
+  const [nodeLabelName, setNodeLabelName] = useState('');
   const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
   const [pos, setPos] = useState(null); // { left, top } when moved
 
@@ -145,13 +146,34 @@ export default function NodeToolsFloating({
 
         <div className="ms-nodetools-actions">
           <div style={{display:'flex', gap:8, flexDirection:'column'}}>
+            
+            <input 
+              type="text" 
+              placeholder="Node Label Name (e.g., actionstart)"
+              value={nodeLabelName}
+              onChange={(e) => setNodeLabelName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  try { if (typeof onRun === 'function') onRun(nodeLabelName); } catch(e){}
+                }
+              }}
+              style={{
+                padding: '6px 8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}
+            />
             <button 
               className="ms-nodetools-btn ms-nodetools-btn-run" 
-              onClick={() => { try { if (typeof onRun === 'function') onRun(); } catch(e){} }}
-              title="Run new workflow"
+              onClick={() => { try { if (typeof onRun === 'function') onRun(nodeLabelName); } catch(e){} }}
+              title="Run new workflow from node label"
             >
               ▶ Run New
             </button>
+
+
             <button
               className="ms-nodetools-btn ms-nodetools-btn-api"
               onClick={() => {

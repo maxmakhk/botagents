@@ -42,6 +42,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       if (data && data.runflows) {
         console.log('   > Updating runflows from running_list_update, count:', data.runflows.length);
         setRunflows(data.runflows);
+        
       }
     };
 

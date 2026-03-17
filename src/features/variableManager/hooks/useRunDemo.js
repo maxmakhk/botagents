@@ -290,7 +290,8 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       console.error(`[Backend] Node ${data.nodeId} error:`, data.error);
     });
 
-    socketRef.current.on('node_log', (data) => {
+    /*
+    //socketRef.current.on('node_log', (data) => {
       if (data.level === 'error') {
         console.error(`[backend node ${data.nodeId}]`, ...(data.args || []));
       } else if (data.level === 'warn') {
@@ -299,6 +300,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         console.log(`[backend node ${data.nodeId}]`, ...(data.args || []));
       }
     });
+    */
 
     // Receive node/edge deletion updates from server
     socketRef.current.on('nodes_edges_deleted', (data) => {
@@ -391,10 +393,10 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
     // Execute clientJS immediately when received, without checking OutputView
     socketRef.current.on('client_js_exec', (data) => {
-      console.log(`[useRunDemo] A`, data);
+      //console.log(`[useRunDemo] A`, data);
       try {
         if (data && data.clientJS && typeof data.clientJS === 'string') {
-          console.log(`[useRunDemo] B [clientJS]`, data.clientJS);
+          //console.log(`[useRunDemo] B [clientJS]`, data.clientJS);
 
           const getGlobalVar = (key) => {
             try {
@@ -519,88 +521,30 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
 
 // Trigger backend execution
   // Note: This now starts a new runflow via /api/run/start which supports multiple concurrent runs
-  async function runProject(workflowId = null) {
-    console.log("[runProject]", workflowId);
-    /*
-    if (!currentProjectId) {
-      console.warn('[ProjectSync] No projectId set');
-      return;
-    }
-      */
-
-    /*
-    if (runActive) {
-      // Stop runflow - send stop signal via run.control
-      console.log('[ProjectSync] Requesting run stop');
-      
-      const rid = runIdRef.current;
-      
-      // Optimistically update UI immediately
-      console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to FALSE');
-      setRunActive(false);
-      setActiveNodeId(null);
-      setActiveEdgeId(null);
-      runIdRef.current = null;
-      
-      // Send stop command to server via run.control
-      if (rid && socketRef.current) {
-        socketRef.current.emit('run.control', { 
-          runflowId: rid, 
-          event: 'stop', 
-          payload: {} 
-        });
-      }
-      
-      return;
-    }
-      */
-
-    // Start runflow - use new /api/run/start endpoint
-    console.log('[ProjectSync] Requesting runflow start');
-    console.log('[ProjectSync] Current runActive:', runActive);
+  async function runProject(nodeLabelName = null, workflowId = null) {
+    console.log("[runProject] nodeLabelName:", nodeLabelName, "workflowId:", workflowId);
     
     const validNodes = (rfNodes || []).filter(n => n && n.id);
     const validEdges = (rfEdges || []).filter(e => e && e.id);
-    
-    /*
-    // Find start node: first look for node with label 'start', otherwise use first node
-    let startNodeId = null;
-    const startNode = validNodes.find(n => {
-      const label = n.data?.labelText || n.data?.label || '';
-      return String(label).toLowerCase().trim() === 'start';
-    });
-    if (startNode) {
-      startNodeId = startNode.id;
-      console.log('[ProjectSync] 🎯 Found START node:', startNodeId);
-    } else if (validNodes.length > 0) {
-      startNodeId = validNodes[0].id;
-      console.log('[ProjectSync] 🎯 No START node found, using first node:', startNodeId);
-    }
-      */
-    
-    // Use provided workflowId or default to projectId
     const finalWorkflowId = workflowId || currentProjectId;
     
     try {
-      // Call new REST endpoint to start runflow
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      console.log('[ProjectSync] Calling POST', `${backendUrl}/api/run/start`);
-      const response = await fetch(`${backendUrl}/api/run/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: currentProjectId,
-          workflowId: finalWorkflowId,
-          nodes: validNodes,
-          edges: validEdges,
-          apis: apis,
-          options: { stepDelay}
-        })
-      });
+      
+      // Use /runnew endpoint if nodeLabelName provided, otherwise use /api/run/start
+      let response;
+      if (nodeLabelName && nodeLabelName.trim()) {
+        console.log('[ProjectSync] Calling GET', `${backendUrl}/runnew/${finalWorkflowId}/${encodeURIComponent(nodeLabelName)}`);
+        response = await fetch(`${backendUrl}/runnew/${finalWorkflowId}/${encodeURIComponent(nodeLabelName)}`, {
+          method: 'GET'
+        });
+      } else {
+        
+      }
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[ProjectSync] POST failed with status:', response.status, 'body:', errorText);
+        console.error('[ProjectSync] Request failed with status:', response.status, 'body:', errorText);
         throw new Error(`Failed to start runflow: ${response.statusText}`);
       }
       
@@ -609,7 +553,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       const categoryId = data.categoryId;
       
       console.log('[ProjectSync] ✅ Runflow started with ID:', newRunflowId);
-      console.log('[ProjectSync] Response data:', data);
       console.log('[ProjectSync] CategoryId from response:', categoryId);
       runIdRef.current = newRunflowId;
       
@@ -622,7 +565,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       // Optimistically update UI
       console.log('[ProjectSync] OPTIMISTIC UPDATE: Setting runActive to TRUE');
       setRunActive(true);
-      //setActiveNodeId(startNodeId);
       setActiveEdgeId(null);
       
       // Join socket room for this runflow to receive updates

@@ -414,12 +414,14 @@ async function runLoop({
 
         const startTs = Date.now();
         //console.log(`Node ${currentNode.id} fn start - ${new Date(startTs).toISOString()}`);
-        broadcastLog('node_log', { 
+        /*
+        //broadcastLog('node_log', { 
           nodeId: currentNode.id, 
           level: 'log', 
           args: ['fn start', new Date(startTs).toISOString()] 
           }
         );
+        */
         // Log ctx snapshot before execution
         try {
           const baseCtx = makeCtx(currentNode);
@@ -431,11 +433,21 @@ async function runLoop({
         const result = await wrapper(proxiedMakeCtx(currentNode), source);
 
         // Check if result contains clientJS and broadcast it
-        console.log('[runNodeById] preparing clientJS', result.clientJS, typeof result.clientJS, typeof result);
+        console.log("0000000000000 0000000000000 0000000000000");
+        console.log("0000000000000[Try to runClientJS] result:", result);
+        console.log("0000000000000 0000000000000 0000000000000");
+        if(!result){
+          console.log("[source]");
+          console.log(source);
+          console.log("0000000000000 0000000000000 0000000000000");
+        }
+        //0317b
+        //console.log('[runNodeById] preparing clientJS', result.clientJS, typeof result.clientJS, typeof result);
         if (result && typeof result === 'object' && result.clientJS && typeof result.clientJS === 'string') {
           console.log(`[runNodeById] broadcast confirm - clientJS:`, result.clientJS.length, currentNode.id);
           broadcastLog('client_js_exec', { nodeId: currentNode.id, clientJS: result.clientJS });
         }
+        
 
         // Log store snapshots after execution
         try {
@@ -445,10 +457,11 @@ async function runLoop({
         const endTs = Date.now();
         const dur = endTs - startTs;
         //console.log(`Node ${currentNode.id} fn end - ${new Date(endTs).toISOString()} (duration ${dur}ms)`);
-        broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn end', new Date(endTs).toISOString(), dur] });
+        //broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args: ['fn end', new Date(endTs).toISOString(), dur] });
 
         // Check wait
         // If node had source (fnString) default to pausing unless auto_advance is set.
+        /*
         if (source) {
           const autoAdvance = !!currentNode.data?.auto_advance;
           if (!autoAdvance) {
@@ -464,7 +477,9 @@ async function runLoop({
             delete waitResolvers[`manual_${currentNode.id}`];
           }
         }
+        */
 
+        /*
         // Backward compatibility: also honor legacy `waiting_wait` store var
         const isWaiting = getFromStoreNorm('waiting_wait');
         if (isWaiting) {
@@ -478,6 +493,7 @@ async function runLoop({
           await resumePromise2;
           delete waitResolvers[String(currentNode.id)];
         }
+          */
       } catch (error) {
         console.error(`Node ${currentNode.id} execution error:`, error);
         setVar(`node_${currentNode.id}_error`, (error instanceof Error) ? error.message : String(error));
@@ -662,11 +678,11 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
   const makeCtx = (currentNode) => ({
     fetch: globalThis.fetch,
     console: {
-      log: (...args) => { console.log(`[Node ${currentNode.id}]`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args }); },
-      error: (...args) => { console.error(`[Node ${currentNode.id}] ERROR:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'error', args }); },
-      warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args }); }
+      log: (...args) => { console.log(`[Node ${currentNode.id}]`, ...args);  },
+      error: (...args) => { console.error(`[Node ${currentNode.id}] ERROR:`, ...args);  },
+      warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args);  }
     },
-    alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
+    alert: (msg) => { },
     // Ensure node.data.input.var contains functionInput when present on node or resolved API
     node: (() => {
       try {
@@ -801,7 +817,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
               return runObj;
             }
           } catch (e) {
-            broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
+            //broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
           }
           broadcastLog('store_vars_update', { storeVars, projectId });
           broadcastState({ storeVars, projectId });
@@ -983,11 +999,13 @@ export async function executeWorkflow({
   const makeCtx = (currentNode) => ({
     fetch: globalThis.fetch,
     console: {
-      log: (...args) => { console.log(`[Node ${currentNode.id}]`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'log', args }); },
-      error: (...args) => { console.error(`[Node ${currentNode.id}] ERROR:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'error', args }); },
-      warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args); broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args }); }
+      log: (...args) => { console.log(`[Node ${currentNode.id}]`, ...args);  },
+      error: (...args) => { console.error(`[Node ${currentNode.id}] ERROR:`, ...args);  },
+      warn: (...args) => { console.warn(`[Node ${currentNode.id}] WARN:`, ...args);  }
     },
-    alert: (msg) => { broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); },
+    alert: (msg) => { 
+      //broadcastLog('node_log', { nodeId: currentNode.id, level: 'alert', args: [msg] }); 
+    },
     // Ensure node.data.input.var contains functionInput when present on node or resolved API
     node: (() => {
       try {
@@ -1117,7 +1135,7 @@ export async function executeWorkflow({
               return runObj;
             }
           } catch (e) {
-            broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
+            //broadcastLog('node_log', { nodeId: currentNode.id, level: 'warn', args: ['workflowRun startRun failed', String(e)] });
           }
           broadcastLog('store_vars_update', { storeVars, projectId });
           broadcastState({ storeVars, projectId });
