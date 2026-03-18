@@ -208,6 +208,7 @@ const VariableManager = ({ onBack }) => {
     allProjectStatuses,
     allWorkflows,
     globalStoreVars,
+    runningFlows,
   } = useRunDemo({ rfNodes, rfEdges, apis });
   // (moved) Edge create/update listeners are registered later
 
@@ -1677,6 +1678,7 @@ const VariableManager = ({ onBack }) => {
       apiUrl: api.url || api.apiUrl || null,
       image: image,
       function: api.function || api.fnString || null,
+      functionInput: api.functionInput || null,
       cssStyle: css,
       size: size,
       tags: Array.isArray(api.tags) ? api.tags : (api.tags ? String(api.tags).split(',').map(t => t.trim()) : [])
@@ -1696,7 +1698,8 @@ const VariableManager = ({ onBack }) => {
         height: nodeHeight,
         metadata, // Also store in data for component access
         // Snapshot the component's function into the node so it won't auto-update
-        fnString: (metadata.function || metadata.fnString) || null
+        fnString: (metadata.function || metadata.fnString) || null,
+        functionInput: metadata.functionInput || null
       },
       style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
     };
@@ -3563,6 +3566,7 @@ const edges = [
         <RunningListFloating
           socket={socketRef && socketRef.current ? socketRef.current : null}
           onClose={() => setShowRunningList(false)}
+          runningFlows={runningFlows}
         />
       )}
 
@@ -3851,6 +3855,7 @@ const edges = [
             setStoreVars={setStoreVars}
             pendingActions={pendingActions}
             cancelPreview={cancelPreview}
+            runningFlows={runningFlows}
           />
         )}
 

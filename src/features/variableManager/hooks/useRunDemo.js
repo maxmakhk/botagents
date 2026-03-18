@@ -19,6 +19,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
   const [globalStoreVars, setGlobalStoreVars] = useState({});
   const [allProjectStatuses, setAllProjectStatuses] = useState({}); // projectId -> 'running' | 'stopped'
   const [allWorkflows, setAllWorkflows] = useState([]); // full workflow list from server (id,name,nodeNumber,edgeNumber,runningStatus)
+  const [runningFlows, setRunningFlows] = useState([]); // centralized running flows list for UI indicators
   const socketRef = useRef(null);
   const runIdRef = useRef(null);
   const [promptProcessing, setPromptProcessing] = useState(false);
@@ -275,6 +276,18 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         const incoming = (data && data.globalStoreVars) ? data.globalStoreVars : (data || {});
         setGlobalStoreVars(incoming);
       } catch (e) { /* ignore malformed payloads */ }
+    });
+
+    // Centralized listener for running flows updates (used by UI indicators)
+    socketRef.current.on('running_list_update', (data) => {
+      try {
+        //console.log('[useRunDemo] 📥 Received running_list_update:', data?.runflows?.length || 0, 'flows');
+        if (data && Array.isArray(data.runflows)) {
+          setRunningFlows(data.runflows);
+        }
+      } catch (e) { 
+        console.error('[useRunDemo] running_list_update handler error', e); 
+      }
     });
 
     socketRef.current.on('node_wait', (data) => {
@@ -768,5 +781,6 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     allProjectStatuses, // Export global project statuses
     allWorkflows, // full workflow list for UI
     globalStoreVars,
+    runningFlows, // centralized running flows for UI indicators
   };
 }

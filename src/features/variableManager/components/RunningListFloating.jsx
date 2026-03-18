@@ -1,34 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './runningListFloating.css';
 
-export default function RunningListFloating({ socket, onClose = () => {} }) {
+export default function RunningListFloating({ socket, onClose = () => {}, runningFlows = [] }) {
   const nodeRef = useRef(null);
   const [runflows, setRunflows] = useState([]);
   const [pos, setPos] = useState({ right: 20, top: 150 });
   const draggingRef = useRef(null);
 
-  // Fetch initial running list
+  // Use runningFlows from prop instead of maintaining local state
   useEffect(() => {
-    const fetchRunlist = async () => {
-      try {
-        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-        const res = await fetch(`${backendUrl}/api/run/list`);
-        if (res.ok) {
-          const data = await res.json();
-          console.log('[RunningListFloating] 📥 Fetched runflows from API:', data.runflows);
-          setRunflows(data.runflows || []);
-        } else {
-          console.warn('[RunningListFloating] Failed to fetch runflows, status:', res.status);
-        }
-      } catch (e) {
-        console.error('[RunningListFloating] Failed to fetch runflows:', e);
-      }
-    };
-    
-    fetchRunlist();
-  }, []);
+    // Update from prop when it changes
+    setRunflows(runningFlows || []);
+  }, [runningFlows]);
 
-  // Listen for running_list_update socket events
+  // Listen for workflow_status_update socket events only
   useEffect(() => {
     console.log('🔄 [RunningListFloating] useEffect EXECUTED - socket:', socket);
     if (!socket) {
@@ -36,15 +21,7 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       return;
     }
     
-    console.log('✅ [RunningListFloating] Socket connected, listening for updates. Connected:', socket.connected);
-    
-    const handleRunningListUpdate = (data) => {
-      if (data && data.runflows) {
-        console.log('   > Updating runflows from running_list_update, count:', data.runflows.length);
-        setRunflows(data.runflows);
-        
-      }
-    };
+    console.log('✅ [RunningListFloating] Socket connected, listening for workflow_status_update. Connected:', socket.connected);
 
     const handleWorkflowStatusUpdate = (data) => {
       console.log('🔄 [RunningListFloating] Received workflow_status_update (from printWorkflowStatus):', data);
@@ -68,13 +45,11 @@ export default function RunningListFloating({ socket, onClose = () => {} }) {
       }
     };
     
-    console.log('   > Registering event listeners...');
-    socket.on('running_list_update', handleRunningListUpdate);
+    console.log('   > Registering workflow_status_update listener...');
     socket.on('workflow_status_update', handleWorkflowStatusUpdate);
     
     return () => {
       console.log('🧹 [RunningListFloating] Cleanup: Removing event listeners');
-      socket.off('running_list_update', handleRunningListUpdate);
       socket.off('workflow_status_update', handleWorkflowStatusUpdate);
     };
   }, [socket]);

@@ -103,6 +103,17 @@ export default function NodeToolsFloating({
       };
       console.log('%c✓ Connected Clients:', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', clientsData);
 
+      try {
+        console.log('%c📦 Fetching components from server...', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+        const compsRes = await fetch(`${backendUrl}/getcomponents`);
+        const compsData = compsRes.ok ? await compsRes.json() : { error: 'failed' };
+        console.log('%c✓ Components (server):', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', compsData.apis || compsData);
+      } catch (e) {
+        console.warn('Failed to fetch components from server:', e);
+        // fallback: log local `apis` prop if present
+        try { console.log('%cComponents (local):', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;', apis); } catch (ee) {}
+      }
+      
       console.log('%c====== [DATA SUMMARY] ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;',{
         runningWorkflows: runListData.runflows?.length || 0,
         projects: Object.keys(projectStatusData || {}).length,
@@ -146,11 +157,10 @@ export default function NodeToolsFloating({
 
         <div className="ms-nodetools-actions">
           <div style={{display:'flex', gap:8, flexDirection:'column'}}>
-            
+
             <input 
               type="text" 
               placeholder="Node Label Name (e.g., actionstart)"
-              value={nodeLabelName}
               onChange={(e) => setNodeLabelName(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {

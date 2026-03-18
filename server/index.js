@@ -16,7 +16,7 @@ import { initializeApp } from 'firebase/app';
 import { generateSystemPrompt } from './systemPromptGenerator.js';
 import { requestNodesAndEdgesFromXai } from './xaiService.js';
 import { requestFromOllama } from './ollamaService.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, getDocs } from 'firebase/firestore';
 
 const app = express();
 const server = http.createServer(app);
@@ -906,6 +906,59 @@ app.post('/api/generate-system-prompt', async (req, res) => {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+
+  // ------------------ Get Components (APIs) ----------------------------------
+  // Returns all API/component documents from Firestore collection `VariableManager-apis`
+  //http://localhost:3001/getcomponents or /getcomponents/:tags
+  // Example: /getcomponents/action,object
+  async function handleGetComponents(req, res) {
+    console.log("------------ GET /getcomponents ----------------");
+    try {
+      if (!firestore) return res.status(500).json({ error: 'firebase_not_configured' });
+      const q = collection(firestore, 'VariableManager-apis');
+      const snap = await getDocs(q);
+      const items = [];
+      snap.forEach((d) => {
+        try {
+          const data = d.data() || {};
+          items.push({
+            id: d.id,
+            name: data.name || '',
+            url: data.url || '',
+            description: data.description || '',
+            tags: Array.isArray(data.tags) ? data.tags : (data.tags ? String(data.tags).split(',').map(t => t.trim()).filter(Boolean) : []),
+            function: data.function || '',
+            functionInput: data.functionInput !== undefined ? data.functionInput : '',
+            metadata: data.metadata || {},
+            lastPrompt: data.lastPrompt || '',
+            createdAt: data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate().toISOString() : String(data.createdAt)) : null
+          });
+        } catch (e) {
+          // ignore malformed doc
+        }
+      });
+
+      // Parse tags from param or query
+      const tagsParam = (req.params && req.params.tags) ? req.params.tags : (req.query.tags || '');
+      const requestedTags = (typeof tagsParam === 'string' && tagsParam.trim()) ? tagsParam.split(/[|,\s]+/).map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+
+      let filtered = items;
+      if (requestedTags.length) {
+        filtered = items.filter(it => {
+          const itTags = (Array.isArray(it.tags) ? it.tags : []).map(t => String(t).toLowerCase());
+          return requestedTags.some(rt => itTags.includes(rt));
+        });
+      }
+
+      res.json({ success: true, apis: filtered, requestedTags });
+    } catch (err) {
+      console.error('GET /getcomponents error', err && err.stack ? err.stack : err);
+      res.status(500).json({ success: false, error: String(err) });
+    }
+  }
+
+  app.get('/getcomponents', handleGetComponents);
+  app.get('/getcomponents/:tags', handleGetComponents);
 
 app.post('/api/rule-categories', (req, res) => {
   try {

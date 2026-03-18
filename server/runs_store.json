@@ -1,24 +1,3 @@
 {
-  "runs": [
-    {
-      "runId": "run_a9ebeec4-78f8-4fc9-b25b-cc27e824275a",
-      "projectId": "rule_1773360377217_1n6l7n",
-      "workflowId": "rule_1773360377217_1n6l7n",
-      "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-17T12:18:26.390Z",
-      "currentNodeId": "api_1773678537842",
-      "currentEdgeId": "edge_1773678543645",
-      "lastHeartbeat": "2026-03-17T13:14:41.609Z"
-    },
-    {
-      "runId": "run_262a910c-a5c4-4e9e-8029-6660133770d4",
-      "projectId": "rule_1773360377217_1n6l7n",
-      "workflowId": "rule_1773360377217_1n6l7n",
-      "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-17T12:28:54.523Z",
-      "currentNodeId": "api_1773744979887",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-17T13:14:41.611Z"
-    }
-  ]
+  "runs": []
 }

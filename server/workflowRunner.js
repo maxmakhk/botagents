@@ -594,19 +594,19 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       const rule = db.prepare('SELECT category_id FROM rules WHERE id = ? LIMIT 1').get(projectId);
       if (rule && rule.category_id) {
         finalCategoryId = rule.category_id;
-        console.log(`[workflowRunner] ✅ Found categoryId for projectId ${projectId}: ${finalCategoryId}`);
+        //console.log(`[workflowRunner] ✅ Found categoryId for projectId ${projectId}: ${finalCategoryId}`);
       } else {
-        console.warn(`[workflowRunner] ⚠️ No rule found for projectId ${projectId} or rule has no category_id`);
+        //console.warn(`[workflowRunner] ⚠️ No rule found for projectId ${projectId} or rule has no category_id`);
       }
     } catch (e) {
-      console.warn('[workflowRunner] ❌ Failed to fetch categoryId from database:', e.message);
+      //console.warn('[workflowRunner] ❌ Failed to fetch categoryId from database:', e.message);
     }
   } else {
     if (categoryId) {
-      console.log(`[workflowRunner] 📍 Using provided categoryId: ${categoryId}`);
+     // console.log(`[workflowRunner] 📍 Using provided categoryId: ${categoryId}`);
     }
   }
-  console.log(`[workflowRunner] 🚀 Starting workflow - projectId: ${projectId}, finalCategoryId: ${finalCategoryId}, willBroadcast: ${!!finalCategoryId}`);
+  //console.log(`[workflowRunner] 🚀 Starting workflow - projectId: ${projectId}, finalCategoryId: ${finalCategoryId}, willBroadcast: ${!!finalCategoryId}`);
 
   let storeVars = { ...initialStoreVars };
   let abort = false;
@@ -615,8 +615,10 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
   if (projectId) {
     try {
       projectManager.runningProjects.set(projectId, { executing: true, abort: false, waitResolvers });
-      console.log(`[workflowRunner] registered runningProjects entry for ${projectId}`);
-    } catch (e) { console.warn('[workflowRunner] failed to register runningProjects entry', e); }
+      //console.log(`[workflowRunner] registered runningProjects entry for ${projectId}`);
+    } catch (e) { 
+      //console.warn('[workflowRunner] failed to register runningProjects entry', e); 
+    }
   }
 
   const broadcastLog = (event, data) => {
@@ -627,29 +629,29 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       // For workflow_status_update, always broadcast to ALL clients (not category-limited)
       // This is needed for RunningListFloating to receive updates regardless of category
       if (event === 'workflow_status_update') {
-        console.log(`[workflowRunner] 📤 Broadcasting ${event} to ALL clients`);
-        console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
-        console.log(`[workflowRunner] 🔍 Checking io object: socket?.io=${!!socket?.io}, global.io=${!!global.io}`);
+        //console.log(`[workflowRunner] 📤 Broadcasting ${event} to ALL clients`);
+        //console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
+        //console.log(`[workflowRunner] 🔍 Checking io object: socket?.io=${!!socket?.io}, global.io=${!!global.io}`);
         
         // Try to get io object and broadcast to all clients
         
         try {
           const ioInstance = socket?.io || global.io;
           if (ioInstance) {
-            console.log(`[workflowRunner] ✅ Found io instance, calling io.emit('${event}', ...)`);
+            //console.log(`[workflowRunner] ✅ Found io instance, calling io.emit('${event}', ...)`);
             ioInstance.emit(event, payload);
-            console.log(`[workflowRunner] ✅ Successfully emitted via io.emit`);
+           // console.log(`[workflowRunner] ✅ Successfully emitted via io.emit`);
           } else {
-            console.warn(`[workflowRunner] ⚠️ io instance NOT FOUND (socket.io=${socket?.io}, global.io=${global.io})`);
+            //console.warn(`[workflowRunner] ⚠️ io instance NOT FOUND (socket.io=${socket?.io}, global.io=${global.io})`);
             throw new Error('io not available');
           }
         } catch (e) {
-          console.warn(`[workflowRunner] ⚠️ Failed to broadcast via io: ${e.message}, falling back to socket.emit`);
+          //console.warn(`[workflowRunner] ⚠️ Failed to broadcast via io: ${e.message}, falling back to socket.emit`);
           if (socket) {
             socket.emit(event, payload);
-            console.log(`[workflowRunner] 📤 Emitted via socket.emit (fallback)`);
+            //console.log(`[workflowRunner] 📤 Emitted via socket.emit (fallback)`);
           } else {
-            console.error(`[workflowRunner] ❌ Socket also not available, cannot broadcast`);
+            //console.error(`[workflowRunner] ❌ Socket also not available, cannot broadcast`);
           }
         }
           
@@ -657,19 +659,21 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       // For clientJS events, broadcast to all clients with matching projectcategoryId
       else if (event === 'client_js_exec') {
         if (finalCategoryId) {
-          console.log(`[workflowRunner] 📤 Broadcasting ${event} (finalCategoryId: ${finalCategoryId})`);
-          console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
+          //console.log(`[workflowRunner] 📤 Broadcasting ${event} (finalCategoryId: ${finalCategoryId})`);
+          //console.log(`[workflowRunner]    Data:`, JSON.stringify(payload).substring(0, 200));
           projectManager.broadcastToProjectCategory(finalCategoryId, event, payload);
         } else {
-          console.warn(`[workflowRunner] ⚠️ CANNOT BROADCAST ${event} - finalCategoryId is NOT SET (projectId: ${projectId})`);
-          console.log(`[workflowRunner]    Sending to executing socket only (socket.emit)`);
+          //console.warn(`[workflowRunner] ⚠️ CANNOT BROADCAST ${event} - finalCategoryId is NOT SET (projectId: ${projectId})`);
+          //console.log(`[workflowRunner]    Sending to executing socket only (socket.emit)`);
           socket.emit(event, payload);
         }
       } else {
         // For other events, send directly to the executing socket
         socket.emit(event, payload);
       }
-    } catch (e) { console.warn(`[workflowRunner] ❌ broadcastLog error for ${event}:`, e.message); }
+    } catch (e) { 
+      //console.warn(`[workflowRunner] ❌ broadcastLog error for ${event}:`, e.message); 
+    }
   };
   const broadcastState = (updates) => {
     if (projectId) projectManager.updateProjectState(projectId, updates);
@@ -866,14 +870,14 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
 
   socket.on('next', (data) => {
     // Resume from current activeNodeId (allows stepping through nodes)
-    console.log(`[workflowRunner] 'next' event received`);
+    //console.log(`[workflowRunner] 'next' event received`);
     try {
       const proj = projectManager.getProject(projectId);
-      console.log(`[workflowRunner] 'next' event: projectId=${projectId}, activeNodeId=${proj?.activeNodeId}`);
+      //console.log(`[workflowRunner] 'next' event: projectId=${projectId}, activeNodeId=${proj?.activeNodeId}`);
       
       if (proj && proj.activeNodeId) {
         const currentNodeId = proj.activeNodeId;
-        console.log(`[workflowRunner] 'next' event: resuming node ${currentNodeId}`);
+        //console.log(`[workflowRunner] 'next' event: resuming node ${currentNodeId}`);
         
         storeVars['waiting_wait'] = false;
         storeVars['node_' + String(currentNodeId) + '_status'] = 'user_continued';
@@ -881,44 +885,44 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
         
         // Try manual resolver first, then legacy resolver
         const manualKey = `manual_${currentNodeId}`;
-        console.log(`[workflowRunner] 'next' event: looking for resolver ${manualKey}`);
+        //console.log(`[workflowRunner] 'next' event: looking for resolver ${manualKey}`);
         const manualResolver = waitResolvers[manualKey];
         if (typeof manualResolver === 'function') { 
-          console.log(`[workflowRunner] 'next' event: calling manual resolver`);
+          //console.log(`[workflowRunner] 'next' event: calling manual resolver`);
           try { manualResolver(); } catch (e) { console.error('Error resolving manual:', e); } 
         } else {
-          console.log(`[workflowRunner] 'next' event: manual resolver not found`);
+          //console.log(`[workflowRunner] 'next' event: manual resolver not found`);
           const legacyResolver = waitResolvers[String(currentNodeId)];
           if (typeof legacyResolver === 'function') { 
-            console.log(`[workflowRunner] 'next' event: calling legacy resolver`);
+            //console.log(`[workflowRunner] 'next' event: calling legacy resolver`);
             try { legacyResolver(); } catch (e) { console.error('Error resolving legacy:', e); } 
           } else {
-            console.log(`[workflowRunner] 'next' event: no resolver found for ${currentNodeId}`);
-            console.log(`[workflowRunner] 'next' event: available waitResolvers:`, Object.keys(waitResolvers));
+            //console.log(`[workflowRunner] 'next' event: no resolver found for ${currentNodeId}`);
+            //console.log(`[workflowRunner] 'next' event: available waitResolvers:`, Object.keys(waitResolvers));
           }
         }
       } else {
-        console.log(`[workflowRunner] 'next' event: no active project or activeNodeId`);
+        //console.log(`[workflowRunner] 'next' event: no active project or activeNodeId`);
       }
     } catch (e) {
-      console.error('[workflowRunner] Error handling next event:', e);
+      //console.error('[workflowRunner] Error handling next event:', e);
     }
   });
 
   socket.on('go_to_node', (data) => {
     // Jump to a specific node by ID (used by /go/:runID/:nodeLabel endpoint)
-    console.log(`[workflowRunner] 'go_to_node' event received`, data);
+    //console.log(`[workflowRunner] 'go_to_node' event received`, data);
     try {
       const { nodeId, nodeLabel } = data || {};
       if (!nodeId) {
-        console.warn('[workflowRunner] go_to_node: missing nodeId');
+        //console.warn('[workflowRunner] go_to_node: missing nodeId');
         return;
       }
 
       // Queue this node as the next node to execute
       if (waitResolvers) {
         waitResolvers.__queued_next_node = String(nodeId);
-        console.log(`[workflowRunner] go_to_node: queued nodeId=${nodeId} (label=${nodeLabel})`);
+        //console.log(`[workflowRunner] go_to_node: queued nodeId=${nodeId} (label=${nodeLabel})`);
       }
 
       // Also store in storeVars for persistence
@@ -933,7 +937,7 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
       const proj = projectManager.getProject(projectId);
       if (proj && proj.activeNodeId) {
         const currentNodeId = proj.activeNodeId;
-        console.log(`[workflowRunner] go_to_node: resuming current node ${currentNodeId} to process queued jump`);
+        //console.log(`[workflowRunner] go_to_node: resuming current node ${currentNodeId} to process queued jump`);
         
         storeVars['waiting_wait'] = false;
         storeVars['node_' + String(currentNodeId) + '_status'] = 'user_continued';
@@ -943,20 +947,20 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
         const manualKey = `manual_${currentNodeId}`;
         const manualResolver = waitResolvers[manualKey];
         if (typeof manualResolver === 'function') {
-          console.log(`[workflowRunner] go_to_node: resuming via manual resolver`);
+          //console.log(`[workflowRunner] go_to_node: resuming via manual resolver`);
           try { manualResolver(); } catch (e) { console.error('Error resolving:', e); }
         } else {
           const legacyResolver = waitResolvers[String(currentNodeId)];
           if (typeof legacyResolver === 'function') {
-            console.log(`[workflowRunner] go_to_node: resuming via legacy resolver`);
+            //console.log(`[workflowRunner] go_to_node: resuming via legacy resolver`);
             try { legacyResolver(); } catch (e) { console.error('Error resolving:', e); }
           }
         }
       } else {
-        console.warn('[workflowRunner] go_to_node: no active project or currentNodeId');
+        //console.warn('[workflowRunner] go_to_node: no active project or currentNodeId');
       }
     } catch (e) {
-      console.error('[workflowRunner] Error handling go_to_node event:', e);
+      //console.error('[workflowRunner] Error handling go_to_node event:', e);
     }
   });
 

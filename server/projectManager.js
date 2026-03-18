@@ -581,7 +581,7 @@ class ProjectManager {
    * Get workflow runtime/shape statuses for all workflows.
    */
   getAllWorkflowStatus() {
-    console.log("[getAllWorkflowStatus]");
+    //console.log("[getAllWorkflowStatus]");
     return Array.from(this.projects.entries()).map(([projectId, project]) => {
       // Prefer an explicit project name; if missing or identical to id,
       // try to derive a friendly name from the first node's label/name.

@@ -75,86 +75,54 @@ const VariablePromptPanel = ({
   ,
   updateNodeDetails,
   fetchWorkflows,
-  socketRef
+  socketRef,
+  runningFlows = []
 }) => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [renameCategoryId, setRenameCategoryId] = useState('');
 
-  // State to track running flows for visual indicators in the graph
-  const [runningFlows, setRunningFlows] = useState([]);
-
-  // Listen for running_list_update from server to display current run progress
+  // Update node indicators when runningFlows changes (centralized from useRunDemo)
   useEffect(() => {
-    if (!socketRef?.current) return;
+    if (Array.isArray(runningFlows) && Array.isArray(rfNodes)) {
+      // Map each run's currentNodeId to that node's data
+      const map = runningFlows.reduce((acc, rf) => {
+        if (rf && rf.currentNodeId) {
+          acc[rf.currentNodeId] = acc[rf.currentNodeId] || [];
+          acc[rf.currentNodeId].push(rf);
+        }
+        return acc;
+      }, {});
 
-    /*
-    const handleRunningListUpdate = (data) => {
-      console.log('[VariablePromptPanel] 📥 Received running_list_update:', data?.runflows, 'flows');
-      if (data && Array.isArray(data.runflows)) {
-        setRunningFlows(data.runflows);
-      }
-    };
-    */
-   
-
-    const handleRunningListUpdate = (data) => {
-      console.log('[VariablePromptPanel] 📥 Received running_list_update:', data?.runflows?.length || 0, 'flows');
-      if (data && Array.isArray(data.runflows)) {
-        // keep the original runningFlows array for components that use it
-        setRunningFlows(data.runflows);
-      }
-    };
-
-    const handleUpdateNodeIndicators = (data) => {
-      console.log('[VariablePromptPanel] 📥 Received update_node_indicators, flows=', data?.runflows?.length || 0);
-      if (data && Array.isArray(data.runflows) && Array.isArray(rfNodes)) {
-        // Map each run's currentNodeId to that node's data
-        const map = data.runflows.reduce((acc, rf) => {
-          if (rf && rf.currentNodeId) {
-            acc[rf.currentNodeId] = acc[rf.currentNodeId] || [];
-            acc[rf.currentNodeId].push(rf);
-          }
-          return acc;
-        }, {});
-
-        // Remove old indicators and add new ones
-        setRfNodes((prev = []) => {
-          return prev.map(n => {
-            const runs = map[n.id] || [];
-            const newData = {
-              ...(n.data || {}),
-              _runningCount: runs.length,
-              _runningRuns: runs.length > 0 ? runs : undefined
-            };
-            return { ...n, data: newData };
-          });
+      // Remove old indicators and add new ones
+      setRfNodes((prev = []) => {
+        return prev.map(n => {
+          const runs = map[n.id] || [];
+          const newData = {
+            ...(n.data || {}),
+            _runningCount: runs.length,
+            _runningRuns: runs.length > 0 ? runs : undefined
+          };
+          return { ...n, data: newData };
         });
-        console.log('[VariablePromptPanel] ✅ Updated node indicators for', Object.keys(map).length, 'nodes');
-      }
-    };
-
-    socketRef.current.on('running_list_update', handleRunningListUpdate);
-    socketRef.current.on('update_node_indicators', handleUpdateNodeIndicators);
-    return () => {
-      socketRef.current?.off('running_list_update', handleRunningListUpdate);
-      socketRef.current?.off('update_node_indicators', handleUpdateNodeIndicators);
-    };
-  }, [socketRef, rfNodes]);
+      });
+      //console.log('[VariablePromptPanel] ✅ Updated node indicators for', Object.keys(map).length, 'nodes');
+    }
+  }, [runningFlows]);
 
   // Notify server when selected project category changes
   useEffect(() => {
     if (!socketRef?.current) {
-      console.log('[VariablePromptPanel] ⚠️ Socket not available');
+      //console.log('[VariablePromptPanel] ⚠️ Socket not available');
       return;
     }
 
     if (selectedRuleCategoryId && selectedRuleCategoryId !== 'all') {
-      console.log(`[VariablePromptPanel] 📤 Emitting set_project_category with projectcategoryId: ${selectedRuleCategoryId}`);
+      //console.log(`[VariablePromptPanel] 📤 Emitting set_project_category with projectcategoryId: ${selectedRuleCategoryId}`);
       socketRef.current.emit('set_project_category', { projectcategoryId: selectedRuleCategoryId });
     } else if (selectedRuleCategoryId === 'all') {
-      console.log(`[VariablePromptPanel] ℹ️ Selected category is 'all', skipping set_project_category`);
+      //console.log(`[VariablePromptPanel] ℹ️ Selected category is 'all', skipping set_project_category`);
     }
   }, [selectedRuleCategoryId, socketRef]);
 
@@ -168,11 +136,11 @@ const VariablePromptPanel = ({
           value={selectedRuleCategoryId || 'all'}
           onChange={async (e) => { 
             const categoryId = e.target.value;
-            console.log(`[VariablePromptPanel] 🎯 Project dropdown changed to: ${categoryId}`);
+            //console.log(`[VariablePromptPanel] 🎯 Project dropdown changed to: ${categoryId}`);
 
             // Immediately emit set_project_category to server (unless 'all')
             if (socketRef?.current && categoryId && categoryId !== 'all') {
-              console.log(`[VariablePromptPanel] 📤 Immediately emit set_project_category: ${categoryId}`);
+              //console.log(`[VariablePromptPanel] 📤 Immediately emit set_project_category: ${categoryId}`);
               socketRef.current.emit('set_project_category', { projectcategoryId: categoryId });
             }
 
