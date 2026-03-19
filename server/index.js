@@ -907,6 +907,35 @@ app.post('/api/generate-system-prompt', async (req, res) => {
   }
 });
 
+// Receive workflow template for a given workflow id
+// POST /getworkflowtemplate/:workflowid
+// body: { workflowTemplate: { nodes: [], edges: [] } }
+app.post('/getworkflowtemplate/:workflowid', (req, res) => {
+  try {
+    const workflowId = req.params.workflowid;
+    const payload = req.body || {};
+    const workflowTemplate = payload.workflowTemplate || payload.workflow_template || null;
+
+    console.log(`[GETWORKFLOWTEMPLATE] Received template for workflowId=${workflowId}. template present: ${workflowTemplate ? 'yes' : 'no'}`);
+
+    // Basic validation: ensure it's an object (but we won't persist)
+    if (!workflowTemplate || typeof workflowTemplate !== 'object') {
+      return res.status(400).json({ success: false, error: 'workflowTemplate_required' });
+    }
+
+    // For now we only acknowledge receipt. Optionally log size/summary.
+    const nodesCount = Array.isArray(workflowTemplate.nodes) ? workflowTemplate.nodes.length : 0;
+    const edgesCount = Array.isArray(workflowTemplate.edges) ? workflowTemplate.edges.length : 0;
+    console.log(`[GETWORKFLOWTEMPLATE] workflowId=${workflowId} nodes=${nodesCount} edges=${edgesCount}`);
+
+    // Respond with acknowledgement
+    return res.json({ success: true, workflowId, received: true, nodes: nodesCount, edges: edgesCount });
+  } catch (err) {
+    console.error('POST /getworkflowtemplate/:workflowid error', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
   // ------------------ Get Components (APIs) ----------------------------------
   // Returns all API/component documents from Firestore collection `VariableManager-apis`
   //http://localhost:3001/getcomponents or /getcomponents/:tags

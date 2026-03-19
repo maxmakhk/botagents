@@ -22,7 +22,6 @@ const VariablePromptPanel = ({
   allProjectStatuses,
   saveSynthFunctionToRule,
   printRules,
-  openOutputView,
   generateSystemPrompt,
   confirmPreview,
   aiLoading,
@@ -318,7 +317,6 @@ const VariablePromptPanel = ({
                 Delete Workflow
               </button>
             </div>
-            <button className="btn-secondary" onClick={() => { try { if (typeof openOutputView === 'function') openOutputView(); } catch (e) {} }} style={{padding: '6px 10px'}}>Open Output View</button>
             <button className="btn-secondary" onClick={() => { try { if (typeof generateSystemPrompt === 'function') generateSystemPrompt(); } catch (e) {} }} style={{padding: '6px 10px'}}>Generate SystemPrompt</button>
             {/* Run moved to floating Node Tools panel */}
           </div>

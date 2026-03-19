@@ -1184,6 +1184,7 @@ const VariableManager = ({ onBack }) => {
   // SysPrompt modal state
   const [isSysPromptModalOpen, setIsSysPromptModalOpen] = useState(false);
   const [userPromptInput, setUserPromptInput] = useState('');
+  const [workflowTemplateText, setWorkflowTemplateText] = useState('');
   // store the latest generated prompts for display or copying
   const [lastUserPrompt, setLastUserPrompt] = useState('');
   const [lastSystemPrompt, setLastSystemPrompt] = useState('');
@@ -3369,6 +3370,52 @@ const edges = [
     }
   }, [userPromptInput, handleGenerateSystemPrompt, isOutputOpenLocal]);
 
+  const sendWorkflowTemplate = useCallback(async () => {
+    try {
+      if (!workflowTemplateText || !workflowTemplateText.trim()) {
+        setAiWarning('Workflow template is empty');
+        setTimeout(() => setAiWarning(''), 2000);
+        return;
+      }
+
+      let parsed = null;
+      try {
+        parsed = JSON.parse(workflowTemplateText);
+      } catch (e) {
+        setAiWarning('Invalid JSON in workflow template');
+        setTimeout(() => setAiWarning(''), 2500);
+        return;
+      }
+
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const targetId = projectIdForRun || 'unspecified';
+      console.log(`${backendUrl}/getworkflowtemplate/${encodeURIComponent(targetId)}`, parsed);
+      const resp = await fetch(`${backendUrl}/getworkflowtemplate/${encodeURIComponent(targetId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflowTemplate: parsed })
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        setAiWarning('Failed to send template: ' + resp.status + ' ' + text);
+        setTimeout(() => setAiWarning(''), 3000);
+        return;
+      }
+
+      const json = await resp.json().catch(() => null);
+      console.log('[sendWorkflowTemplate] server response', json);
+      setAiWarning('Workflow template sent');
+      setTimeout(() => setAiWarning(''), 2000);
+      // optionally clear textarea
+      setWorkflowTemplateText('');
+    } catch (err) {
+      console.error('sendWorkflowTemplate error', err);
+      setAiWarning('Error sending template: ' + (err.message || String(err)));
+      setTimeout(() => setAiWarning(''), 3000);
+    }
+  }, [workflowTemplateText, projectIdForRun, setAiWarning]);
+
   // helper: interpret workflow data from prompt result and inject into current flow
   const applyWorkflowFromPrompt = useCallback((nodesResult = [], edgesResult = []) => {
     if (!Array.isArray(nodesResult) || !Array.isArray(edgesResult)) return;
@@ -3806,7 +3853,6 @@ const edges = [
             }}
             allProjectStatuses={allProjectStatuses}
             saveSynthFunctionToRule={saveSynthFunctionToRule}
-            openOutputView={() => setIsOutputOpenLocal(true)}
             generateSystemPrompt={openGeneratePromptModal}
             confirmPreview={confirmPreview}
             aiLoading={aiLoading}
@@ -3902,13 +3948,29 @@ const edges = [
             <textarea
               value={userPromptInput}
               onChange={(e) => setUserPromptInput(e.target.value)}
-              placeholder="Enter user prompt..."
+              placeholder="Enter user prompt..2."
               style={{ width: '100%', height: 120, padding: 8, borderRadius: 6, background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit' }}
             />
             <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => { setIsSysPromptModalOpen(false); setUserPromptInput(''); }} style={{ padding: '6px 12px', background: '#1e293b', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, cursor: 'pointer' }}>Cancel</button>
               <button onClick={() => { console.log('modal submit button clicked'); submitGeneratePrompt(); }} style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Submit</button>
             </div>
+
+            <textarea
+              id="workflowTemplate"
+              value={workflowTemplateText}
+              onChange={(e) => setWorkflowTemplateText(e.target.value)}
+              placeholder="{nodes: [], edges: []}"
+              style={{ width: '100%', height: 120, padding: 8, marginTop: 15, borderRadius: 6, background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button 
+                id="workflowTemplateSubmitBtn"
+                onClick={() => sendWorkflowTemplate()}
+                style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+              >Submit</button>
+            </div>
+
           </div>
         </div>
       )}

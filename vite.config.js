@@ -1,11 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/botagents/",
+  // 🔥 匹配你的路徑 /botagents/
+  base: '/botagents/',
   server: {
-    allowedHosts: ["botagents.maxsolo.co.uk"],
+    port: 3000,
+    open: '/botagents/',  // 自動開啟正確路徑
+    hmr: {
+      // 本地開發 HMR
+      host: 'localhost',
+      port: 3000,
+      clientPort: 3000
+    },
+    watch: {
+      usePolling: true
+    }
   },
+  preview: {
+    port: 3000,
+    open: '/botagents/'
+  }
 })
