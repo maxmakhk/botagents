@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-19T09:31:46.140Z",
+  "savedAt": "2026-03-19T16:44:09.802Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -20,7 +20,8 @@
             "cssStyle": null,
             "size": "2:1",
             "tags": [
-              "object"
+              "object",
+              "v2"
             ]
           },
           "data": {
@@ -40,13 +41,13 @@
               "cssStyle": null,
               "size": "2:1",
               "tags": [
-                "object"
+                "object",
+                "v2"
               ]
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -99,8 +100,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -157,8 +157,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -212,8 +211,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -266,8 +264,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -321,8 +318,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -378,8 +374,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -435,8 +430,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -490,8 +484,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -545,8 +538,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -602,8 +594,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -658,8 +649,7 @@
             },
             "width": 128,
             "height": 64,
-            "scale": "2:1",
-            "_runningCount": 0
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
@@ -670,6 +660,58 @@
           },
           "width": 128,
           "height": 64
+        },
+        {
+          "id": "api_1773936834903",
+          "position": {
+            "x": 440,
+            "y": 200
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nscriptString:\"\"\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "functionInput": "{\nscriptString:\"\"\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nscriptString:\"\"\n}"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64
+          }
         }
       ],
       "edges": [
@@ -789,11 +831,12 @@
           },
           "data": {
             "labelText": "runScriptMachine",
+            "description": "api",
             "label": "runScriptMachine",
-            "description": "external api",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nscriptString:\"\"\n}",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "HRz75ZirMW71MGTGeGfp",
               "apiName": "runScriptMachine",
@@ -808,14 +851,16 @@
                 "v2"
               ]
             },
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nscriptString:\"\"\n}"
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
+            "minHeight": 64,
+            "height": 64
           },
           "width": 128,
           "height": 64
@@ -825,6 +870,63 @@
           "position": {
             "x": 457,
             "y": 194
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "apiName": "createPanelObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "object",
+              "panel"
+            ]
+          },
+          "data": {
+            "labelText": "createPanelObjects",
+            "description": "api",
+            "label": "createPanelObjects",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+            "actions": [],
+            "metadata": {
+              "apiId": "Q4iDabdthrTztYd8uIrt",
+              "apiName": "createPanelObjects",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+              "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "object",
+                "panel"
+              ]
+            },
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64,
+            "height": 64
+          },
+          "width": 128,
+          "height": 64
+        },
+        {
+          "id": "api_1773938518097",
+          "position": {
+            "x": 599,
+            "y": 253
           },
           "type": "api",
           "metadata": {
@@ -873,10 +975,70 @@
           },
           "width": 128,
           "height": 64,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 571.4285714285714,
+            "y": 251.42857142857144
+          },
+          "dragging": true
+        },
+        {
+          "id": "api_1773938643203",
+          "position": {
+            "x": 637,
+            "y": 19
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "v8ojtxUicPTCIzNU5skI",
+            "apiName": "buttonController",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}",
+            "cssStyle": null,
+            "size": "2:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "buttonController",
+            "label": "buttonController",
+            "description": "external api",
+            "actions": [],
+            "width": 128,
+            "height": 64,
+            "metadata": {
+              "apiId": "v8ojtxUicPTCIzNU5skI",
+              "apiName": "buttonController",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}",
+              "cssStyle": null,
+              "size": "2:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "fnString": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 128,
+            "minHeight": 64
+          },
+          "width": 128,
+          "height": 64,
           "selected": true,
           "positionAbsolute": {
-            "x": 457.1428571428571,
-            "y": 195.71428571428567
+            "x": 635.7142857142858,
+            "y": 18.5714285714285
           },
           "dragging": true
         }
@@ -888,8 +1050,7 @@
           "target": "api_1773912697804",
           "label": "",
           "sourceHandle": "right",
-          "targetHandle": "left",
-          "type": "next"
+          "targetHandle": "left"
         }
       ],
       "status": "stopped",

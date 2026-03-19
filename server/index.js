@@ -2032,6 +2032,22 @@ app.get('/deleteworkflow/:workflowID', (req, res) => {
   }
 });
 
+//http://localhost:3001/addnode
+// server/index.js
+app.post('/addnode', (req, res) => {
+  try {
+    const { workflowID, nodes, edges } = req.body || {};
+    if (!workflowID) return res.status(400).json({ error: 'workflowID required' });
+    
+    console.log(`[POST /addnode] Updating workflow ${workflowID}`);
+    projectManager.updateProjectWorkflow(workflowID, nodes, edges);
+    
+    res.json({ success: true, workflowID });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // Add new workflow (rule) to sqlite and sync to memory
 app.post('/addworkflow', (req, res) => {
   try {

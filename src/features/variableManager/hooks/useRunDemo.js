@@ -630,7 +630,11 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     const validNodes = (nodes || []).filter(n => n && n.id);
     const validEdges = (edges || []).filter(e => e && e.id);
 
-    console.log('[ProjectSync] Pushing workflow update to server (nodes:', validNodes.length, 'edges:', validEdges.length, ')');
+    console.log('[ProjectSync] Pushing workflow update to server (nodes:', validNodes.length, 'edges:', validEdges.length, ')', {
+      projectId: currentProjectId,
+      nodes: validNodes,
+      edges: validEdges
+    });
     socketRef.current.emit('update_project_workflow', {
       projectId: currentProjectId,
       nodes: validNodes,

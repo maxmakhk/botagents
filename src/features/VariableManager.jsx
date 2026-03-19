@@ -1709,9 +1709,24 @@ const VariableManager = ({ onBack }) => {
     setSelectedIds([id]);
     
     // Push workflow update to server
+    /*
     if (typeof pushWorkflowUpdate === 'function') {
       pushWorkflowUpdate(newNodes, rfEdges);
     }
+      */
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const payload = { 
+      workflowID: currentProjectId, 
+      nodes: newNodes, 
+      edges: rfEdges 
+    };
+    console.log('[VariableManager] [addnode]', backendUrl, payload);
+    fetch(`${backendUrl}/addnode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
   }, [rfNodes, rfEdges, setRfNodes, pushWorkflowUpdate]);
 
   // Toggle lock state on a node (mark metadata.locked and data.locked)
