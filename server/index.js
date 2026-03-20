@@ -2032,19 +2032,103 @@ app.get('/deleteworkflow/:workflowID', (req, res) => {
   }
 });
 
-//http://localhost:3001/addnode
+//0319 http://localhost:3001/addnode
 // server/index.js
-app.post('/addnode', (req, res) => {
+// POST /addnode - Add a new node to a workflow by component ID
+// Input: { workflowId, componentId, x (optional), y (optional) }
+// Process: Fetch workflow, fetch component, create node with component data, add to workflow
+app.post('/addnode', async (req, res) => {
   try {
-    const { workflowID, nodes, edges } = req.body || {};
-    if (!workflowID) return res.status(400).json({ error: 'workflowID required' });
+    const { workflowId, componentId, x, y } = req.body || {};
     
-    console.log(`[POST /addnode] Updating workflow ${workflowID}`);
-    projectManager.updateProjectWorkflow(workflowID, nodes, edges);
+    // Validate required parameters
+    if (!workflowId) return res.status(400).json({ success: false, error: 'workflowId required' });
+    if (!componentId) return res.status(400).json({ success: false, error: 'componentId required' });
     
-    res.json({ success: true, workflowID });
+    console.log(`0319 [POST /addnode] Adding component ${componentId} to workflow ${workflowId}`);
+    
+    if (!firestore) return res.status(500).json({ success: false, error: 'firebase_not_configured' });
+    
+    // Step 1: Get current workflow from projectManager
+    const workflow = projectManager.getProjectWorkflow(workflowId);
+    if (!workflow) {
+      console.warn(`0319 [addnode] Workflow not found: ${workflowId}`);
+      return res.status(404).json({ success: false, error: 'Workflow not found' });
+    }
+    
+    const currentNodes = Array.isArray(workflow.nodes) ? workflow.nodes : [];
+    const currentEdges = Array.isArray(workflow.edges) ? workflow.edges : [];
+    
+    // Step 2: Fetch component (API) from Firestore
+    const componentDoc = await (async () => {
+      try {
+        const docRef = doc(firestore, 'VariableManager-apis', componentId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          console.warn(`[addnode] Component not found: ${componentId}`);
+          return null;
+        }
+        return docSnap.data();
+      } catch (e) {
+        console.error(`0319 [addnode] Error fetching component: ${e.message}`);
+        return null;
+      }
+    })();
+    
+    if (!componentDoc) {
+      return res.status(404).json({ success: false, error: 'Component not found' });
+    }
+    
+    // Step 3: Extract component data
+    const componentName = componentDoc.name || 'Unnamed Component';
+    const componentFunctionString = componentDoc.function || '';
+    const componentFunctionInput = componentDoc.functionInput || '';
+    
+    // Step 4: Create new node with unique ID
+    const newNodeId = `node_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const newNode = {
+      id: newNodeId,
+      type: 'api',
+      data: {
+        labelText: componentName,
+        label: componentName,
+        description: componentDoc.description || '',
+        actions: [],
+        fnString: componentFunctionString,
+        functionInput: componentFunctionInput,
+        metadata: componentDoc.metadata || {}
+      },
+      position: {
+        x: typeof x === 'number' ? x : (currentNodes.length * 150 + 50),
+        y: typeof y === 'number' ? y : 50
+      },
+      metadata: {
+        apiId: componentId,
+        locked: false
+      },
+      style: {
+        borderRadius: 10,
+        padding: 8
+      }
+    };
+    
+    // Step 5: Add new node to workflow
+    const updatedNodes = [...currentNodes, newNode];
+    
+    // Step 6: Update workflow in projectManager (will broadcast to all clients)
+    console.log(`0319 [addnode] Adding node ${newNodeId} to workflow ${workflowId}`);
+    projectManager.updateProjectWorkflow(workflowId, updatedNodes, currentEdges);
+    
+    // Step 7: Return success with new node data
+    res.json({
+      success: true,
+      workflowId,
+      nodeId: newNodeId,
+      node: newNode
+    });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    console.error('0319 [POST /addnode] error:', err);
+    res.status(500).json({ success: false, error: String(err) });
   }
 });
 

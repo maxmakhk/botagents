@@ -1657,77 +1657,67 @@ const VariableManager = ({ onBack }) => {
     }
   };
 
-  const addRfApiNode = useCallback((api) => {
+  const addRfApiNode = useCallback(async (api) => {
     if (!api) return;
-    const id = `api_${Date.now()}`;
-    const label = api.name || api.label || `API`;
-    const meta = api.metadata || {};
-    const image = meta.image || api.image || api.icon || null;
-    const css = meta.cssStyle || api.cssStyle || null;
-    const size = meta.size || '2:1'; // Component size ratio (e.g., "3:1", "2:2")
     
-    // Calculate width and height from size ratio
-    const [widthRatio, heightRatio] = size.split(':').map(n => parseInt(n) || 1);
-    const nodeWidth = widthRatio * 64;
-    const nodeHeight = heightRatio * 64;
-    
-    console.log(`[addRfApiNode] Creating node with size: ${size} (${nodeWidth}x${nodeHeight}px)`, api);
-    
-    const metadata = {
-      apiId: api.id,
-      apiName: label,
-      apiUrl: api.url || api.apiUrl || null,
-      image: image,
-      function: api.function || api.fnString || null,
-      functionInput: api.functionInput || null,
-      cssStyle: css,
-      size: size,
-      tags: Array.isArray(api.tags) ? api.tags : (api.tags ? String(api.tags).split(',').map(t => t.trim()) : [])
-    };
-    
-    const newNode = {
-      id,
-      position: { x: 200 + (rfNodes.length * 20), y: 200 },
-      type: 'api',
-      metadata, // Store at root level for export consistency
-      data: {
-        labelText: `${label}`,
-        label: `${label}`,
-        description: 'external api',
-        actions: [],
-        width: nodeWidth,
-        height: nodeHeight,
-        metadata, // Also store in data for component access
-        // Snapshot the component's function into the node so it won't auto-update
-        fnString: (metadata.function || metadata.fnString) || null,
-        functionInput: metadata.functionInput || null
-      },
-      style: { borderRadius: 10, padding: 8, width: nodeWidth, minHeight: nodeHeight }
-    };
-    const newNodes = [...rfNodes, newNode];
-    setRfNodes(newNodes);
-    setSelectedIds([id]);
-    
-    // Push workflow update to server
-    /*
-    if (typeof pushWorkflowUpdate === 'function') {
-      pushWorkflowUpdate(newNodes, rfEdges);
+    const componentId = api.id;
+    if (!componentId) {
+      console.error('0319 [addRfApiNode] Component ID not found in api object');
+      setAiWarning('Component ID missing');
+      return;
     }
-      */
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const payload = { 
-      workflowID: currentProjectId, 
-      nodes: newNodes, 
-      edges: rfEdges 
-    };
-    console.log('[VariableManager] [addnode]', backendUrl, payload);
-    fetch(`${backendUrl}/addnode`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-  }, [rfNodes, rfEdges, setRfNodes, pushWorkflowUpdate]);
+    
+    // Validate workflow selected
+    if (!projectIdForRun) {
+      console.error('0319 [addRfApiNode] No workflow selected');
+      setAiWarning('Please select a workflow first');
+      return;
+    }
+    
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log(`0319 [addRfApiNode] Calling /addnode with workflowId=${projectIdForRun}, componentId=${componentId}`);
+      
+      // Call server endpoint to add node
+      const payload = {
+          workflowId: projectIdForRun,
+          componentId: componentId,
+          x: rfNodes.length * 150 + 50,  // Auto-position nodes horizontally
+          y: 50
+        }
+        console.log('0319 [addRfApiNode] Payload for /addnode:', payload);
+      const response = await fetch(`${backendUrl}/addnode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('[addRfApiNode] Server error:', error);
+        setAiWarning('Failed to add node: ' + (error.error || 'unknown error'));
+        return;
+      }
+      
+      const result = await response.json();
+      console.log('[addRfApiNode] Server response:', result);
+      
+      if (result.success && result.node) {
+        // Server has already broadcast to all clients via projectManager
+        // Add node to local state for immediate visual feedback
+        setRfNodes(prev => [...(prev || []), result.node]);
+        setSelectedIds([result.node.id]);
+        setAiWarning('Node added successfully');
+        setTimeout(() => setAiWarning(''), 1500);
+      } else {
+        console.error('[addRfApiNode] Unexpected response:', result);
+        setAiWarning('Failed to add node');
+      }
+    } catch (err) {
+      console.error('[addRfApiNode] Error:', err);
+      setAiWarning('Error adding node: ' + (err.message || 'unknown'));
+    }
+  }, [projectIdForRun, rfNodes, setRfNodes, setSelectedIds, setAiWarning]);
 
   // Toggle lock state on a node (mark metadata.locked and data.locked)
   const toggleNodeLock = useCallback((nodeId) => {
