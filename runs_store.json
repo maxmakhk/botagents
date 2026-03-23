@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-23T09:50:56.818Z",
+  "savedAt": "2026-03-23T16:25:56.177Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -7,43 +7,15 @@
         {
           "id": "createObjects",
           "position": {
-            "x": 0,
-            "y": 0
+            "x": -101,
+            "y": 40
           },
           "type": "workflowNode",
           "metadata": {},
           "data": {
             "labelText": "createObjects",
-            "description": "",
+            "description": "workflowNode",
             "label": "createObjects",
-            "nodeLabel": "",
-            "fnString": "",
-            "actions": [],
-            "metadata": {},
-            "width": 192,
-            "height": 96,
-            "scale": "2:1"
-          },
-          "style": {
-            "width": 192,
-            "height": 96,
-            "minHeight": 96
-          },
-          "width": 192,
-          "height": 96
-        },
-        {
-          "id": "createAction",
-          "position": {
-            "x": 76,
-            "y": 20
-          },
-          "type": "workflowNode",
-          "metadata": {},
-          "data": {
-            "labelText": "createAction",
-            "description": "",
-            "label": "createAction",
             "nodeLabel": "",
             "fnString": "",
             "actions": [],
@@ -61,10 +33,44 @@
           "height": 96,
           "selected": true,
           "positionAbsolute": {
-            "x": 75.71428571428572,
-            "y": 18.571428571428555
+            "x": -101.42857142857143,
+            "y": 41.428571428571445
           },
           "dragging": true
+        },
+        {
+          "id": "createAction",
+          "position": {
+            "x": 406,
+            "y": 170
+          },
+          "type": "workflowNode",
+          "metadata": {},
+          "data": {
+            "labelText": "createAction",
+            "description": "workflowNode",
+            "label": "createAction",
+            "nodeLabel": "",
+            "fnString": "",
+            "actions": [],
+            "metadata": {},
+            "width": 192,
+            "height": 96,
+            "scale": "2:1"
+          },
+          "style": {
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 192,
+          "height": 96,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 406,
+            "y": 170
+          },
+          "dragging": false
         }
       ],
       "edges": [
@@ -126,360 +132,8 @@
     },
     {
       "projectId": "rule_1773360383383_n0u551",
-      "nodes": [
-        {
-          "id": "cleanOutputView",
-          "type": "api",
-          "data": {
-            "labelText": "cleanOutputView",
-            "label": "cleanOutputView",
-            "nodeLabel": "start",
-            "description": "",
-            "actions": [],
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "",
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 50,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "cleanOutputView",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
-          "id": "createObjects",
-          "type": "api",
-          "data": {
-            "labelText": "createObjects",
-            "label": "createObjects",
-            "nodeLabel": "",
-            "description": "create objects on the output view",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "functionInput": {
-              "objects": [
-                {
-                  "id": "start_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#000033",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#001133",
-                  "zIndex": 2,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "button(start)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 250,
-                  "color": "#00aa00",
-                  "zIndex": 10,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "game_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#003300",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#004400",
-                  "zIndex": 2,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object1",
-                  "width": 50,
-                  "height": 50,
-                  "x": 100,
-                  "y": 100,
-                  "color": "#ff6600",
-                  "zIndex": 5,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object2",
-                  "width": 50,
-                  "height": 50,
-                  "x": 200,
-                  "y": 150,
-                  "color": "#66ff00",
-                  "zIndex": 5,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "cpanel",
-                  "width": 250,
-                  "height": 400,
-                  "x": 550,
-                  "y": 100,
-                  "color": "#333333",
-                  "zIndex": 8,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(up)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 120,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(left)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(right)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 650,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(down)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 280,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(skip)",
-                  "width": 100,
-                  "height": 50,
-                  "x": 580,
-                  "y": 360,
-                  "color": "#ff4400",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 50,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(distance)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 100,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(mark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 150,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(totalmark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 200,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "result_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#330000",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#440000",
-                  "zIndex": 2,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 300,
-                  "height": 60,
-                  "x": 250,
-                  "y": 150,
-                  "color": "#ffaa00",
-                  "zIndex": 10,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "button(restart)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 350,
-                  "color": "#00aa00",
-                  "zIndex": 12,
-                  "parent": "result_screen"
-                }
-              ]
-            },
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 200,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "createObjects",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
-          "id": "actionController",
-          "type": "api",
-          "data": {
-            "labelText": "actionController",
-            "label": "actionController",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('button(start)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)').onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
-            },
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 350,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "actionController",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
-          "id": "startgame",
-          "type": "api",
-          "data": {
-            "labelText": "runScriptMachine",
-            "label": "runScriptMachine",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
-            },
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 500,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "runScriptMachine",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        }
-      ],
-      "edges": [
-        {
-          "id": "edge_1774114069483",
-          "source": "cleanOutputView",
-          "target": "createObjects",
-          "label": "next",
-          "type": "next"
-        },
-        {
-          "id": "edge_1774114069484",
-          "source": "createObjects",
-          "target": "actionController",
-          "label": "next",
-          "type": "next"
-        },
-        {
-          "id": "edge_1774114069485",
-          "source": "actionController",
-          "target": "startgame",
-          "label": "next",
-          "type": "next"
-        }
-      ],
+      "nodes": [],
+      "edges": [],
       "status": "stopped",
       "storeVars": {},
       "activeNodeId": "startgame",

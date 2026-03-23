@@ -3432,19 +3432,21 @@ const edges = [
   }, [userPromptInput, handleGenerateSystemPrompt, isOutputOpenLocal]);
 
   const sendWorkflowTemplate = useCallback(async () => {
+    console.log('[sendWorkflowTemplate] ', workflowTemplateText);
     try {
       if (!workflowTemplateText || !workflowTemplateText.trim()) {
-        setAiWarning('Workflow template is empty');
+        console.log('[sendWorkflowTemplate] Workflow template is empty');
         setTimeout(() => setAiWarning(''), 2000);
         return;
       }
+      console.log("[sendWorkflowTemplate] nextB");
 
       let parsed = null;
       try {
         parsed = JSON.parse(workflowTemplateText);
       } catch (e) {
-        setAiWarning('Invalid JSON in workflow template');
-        setTimeout(() => setAiWarning(''), 2500);
+        console.log('Invalid JSON in workflow template');
+        setTimeout(() => console.log(''), 2500);
         return;
       }
 
