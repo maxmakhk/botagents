@@ -192,12 +192,15 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
       } catch (e) { /* ignore malformed */ }
     });
 
+    /*
     socketRef.current.on('workflow_updated', (data) => {
       console.log('[ProjectSync] Workflow updated by another client');
       // Note: In VariableManager, you could sync rfNodes/rfEdges here if needed
     });
+    */
 
     // New server event: sendNodes (debounced by server after node/edge/workflow changes)
+    /*
     socketRef.current.on('sendNodes', (data) => {
       try {
         console.log('[CLIENT] Received sendNodes:', data);
@@ -222,6 +225,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         document.dispatchEvent(new CustomEvent('workflowEdgeUpdated', { detail: { projectId: targetProjectId, edge } }));
       } catch (e) { console.error('[CLIENT] sendEdge handler error', e); }
     });
+    */
 
     // Receive single-node updates from server (e.g., label changes)
     socketRef.current.on('node_updated', (data) => {
@@ -630,11 +634,13 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     const validNodes = (nodes || []).filter(n => n && n.id);
     const validEdges = (edges || []).filter(e => e && e.id);
 
+    /*
     console.log('[ProjectSync] Pushing workflow update to server (nodes:', validNodes.length, 'edges:', validEdges.length, ')', {
       projectId: currentProjectId,
       nodes: validNodes,
       edges: validEdges
     });
+    */
     socketRef.current.emit('update_project_workflow', {
       projectId: currentProjectId,
       nodes: validNodes,

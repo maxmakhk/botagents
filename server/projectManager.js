@@ -756,6 +756,46 @@ class ProjectManager {
   }
 
   /**
+   * 0320
+   * Add a single node to a project's workflow and notify watchers
+   * @param {string} workflowId - The workflow ID
+   * @param {object} newNode - The node object (must have id, type, data, position, metadata, style, etc.)
+   * @returns {object} The added node or null if failed
+   */
+  addNodeToWorkflow(workflowId, newNode) {
+    console.log("0320 addNodeToWorkflow[in]", { workflowId, newNode });
+    if (!workflowId || !newNode) return null;
+    
+    let project = this.projects.get(workflowId);
+    if (!project) {
+      // Create empty project lazily so node can be added
+      this.loadProject(workflowId, [], [], [], 1000);
+      project = this.projects.get(workflowId);
+    }
+
+    if (!project) return null;
+
+    // Ensure nodes array exists
+    project.nodes = Array.isArray(project.nodes) ? project.nodes : [];
+
+    // Prevent duplicate node ID
+    if (!project.nodes.find(n => String(n.id) === String(newNode.id))) {
+      project.nodes.push(newNode);
+    } else {
+      // Replace existing node with same ID
+      project.nodes = project.nodes.map(n => String(n.id) === String(newNode.id) ? newNode : n);
+    }
+
+    // Persist changes
+    this.scheduleSave();
+
+    // Notify watchers with full workflow update (debounced)
+    this.sendNodes(workflowId);
+    console.log("0320 addNodeToWorkflow called with:", { workflowId, newNode });
+    return newNode;
+  }
+
+  /**
    * Add a single edge to a project's workflow and notify watchers with a lightweight event
    */
   addProjectEdge(projectId, edge) {

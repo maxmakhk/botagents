@@ -859,6 +859,7 @@ const VariableManager = ({ onBack }) => {
 
   // When an edge is created in UI, forward it to server as a single-edge add
   useEffect(() => {
+    /*
     const handler = (ev) => {
       try {
         const edge = ev?.detail?.edge;
@@ -871,6 +872,60 @@ const VariableManager = ({ onBack }) => {
         console.log('[VariableManager] Forwarding new edge to server:', edge, 'projectId=', pid);
         socketRef.current.emit('add_edge', { projectId: pid, edge });
       } catch (e) { console.error('workflowEdgeCreated handler error', e); }
+    };
+    */
+    const handler = async (ev) => {
+      let edge = null;
+      let pid = null;
+      try {
+        edge = ev?.detail?.edge;
+        if (!edge) return;
+        pid = projectIdForRun;
+        if (!pid) {
+          console.warn('[VariableManager] Cannot forward new edge to server, missing projectId', { pid });
+          return;
+        }
+
+        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const payload = {
+          workflowId: pid,
+          source: String(edge.source || edge.from || ''),
+          target: String(edge.target || edge.to || ''),
+          id: edge.id,
+          label: edge.label,
+          expression: edge.expression
+        };
+
+        console.log('[VariableManager] POST /addedge', payload);
+        const res = await fetch(`${backendUrl}/addedge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          console.warn('[VariableManager] /addedge returned non-OK', res.status);
+          if (socketRef && socketRef.current) socketRef.current.emit('add_edge', { projectId: pid, edge });
+          return;
+        }
+
+        const result = await res.json();
+        if (result && result.success && result.edge) {
+          const added = result.edge;
+          setRfEdges((prev = []) => {
+            const exists = (prev || []).some(e => String(e.id) === String(added.id));
+            if (exists) return (prev || []).map(e => String(e.id) === String(added.id) ? ({ ...e, ...added }) : e);
+            return [...(prev || []), added];
+          });
+        } else {
+          console.warn('[VariableManager] /addedge unexpected response', result);
+        }
+      } catch (e) {
+        console.error('workflowEdgeCreated handler error', e);
+        if (socketRef && socketRef.current && pid && edge) {
+          socketRef.current.emit('add_edge', { projectId: pid, edge });
+        }
+      }
     };
 
     document.addEventListener('workflowEdgeCreated', handler);
@@ -1657,6 +1712,7 @@ const VariableManager = ({ onBack }) => {
     }
   };
 
+  //0319
   const addRfApiNode = useCallback(async (api) => {
     if (!api) return;
     
@@ -3394,8 +3450,8 @@ const edges = [
 
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const targetId = projectIdForRun || 'unspecified';
-      console.log(`${backendUrl}/getworkflowtemplate/${encodeURIComponent(targetId)}`, parsed);
-      const resp = await fetch(`${backendUrl}/getworkflowtemplate/${encodeURIComponent(targetId)}`, {
+      console.log(`${backendUrl}/addWorkflowtemplate/${encodeURIComponent(targetId)}`, parsed);
+      const resp = await fetch(`${backendUrl}/addWorkflowtemplate/${encodeURIComponent(targetId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workflowTemplate: parsed })
@@ -3409,11 +3465,10 @@ const edges = [
       }
 
       const json = await resp.json().catch(() => null);
-      console.log('[sendWorkflowTemplate] server response', json);
-      setAiWarning('Workflow template sent');
-      setTimeout(() => setAiWarning(''), 2000);
-      // optionally clear textarea
-      setWorkflowTemplateText('');
+      console.log('[sendWorkflowTemplate]  result', json);
+      setRfNodes(prev => [...(prev || []), ...json.details.addedNodes]);
+      setRfEdges(prev => [...(prev || []), ...json.details.addedEdges]);
+
     } catch (err) {
       console.error('sendWorkflowTemplate error', err);
       setAiWarning('Error sending template: ' + (err.message || String(err)));

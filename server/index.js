@@ -11,12 +11,13 @@ import { processPrompt } from './workflowPromptProcessor.js';
 import projectManager from './projectManager.js';
 import path from 'path';
 import { initializeApp } from 'firebase/app';
+import { addEdgeToWorkflow } from './edgeHelpers.js';
 
 // System prompt generator (moved out of client code)
 import { generateSystemPrompt } from './systemPromptGenerator.js';
 import { requestNodesAndEdgesFromXai } from './xaiService.js';
 import { requestFromOllama } from './ollamaService.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { query, where , getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, getDocs, getDoc } from 'firebase/firestore';
 
 const app = express();
 const server = http.createServer(app);
@@ -908,33 +909,263 @@ app.post('/api/generate-system-prompt', async (req, res) => {
 });
 
 // Receive workflow template for a given workflow id
-// POST /getworkflowtemplate/:workflowid
+// POST /addWorkflowtemplate/:workflowid
 // body: { workflowTemplate: { nodes: [], edges: [] } }
-app.post('/getworkflowtemplate/:workflowid', (req, res) => {
+/*
+data sample:
+{
+  "nodes": [
+    {"id": "createObjects","component": "createObjects",nodeLabel:""},
+    {"id": "createAction", "component": "buttonController",nodeLabel:""},
+    {"id": "startgame","component": "runScriptMachine",nodeLabel:""}
+  ],
+  "edges": [
+    {"source": "createObjects", "target": "createAction", "label": "next"},
+    {"source": "createAction", "target": "startgame", "label": "next"}
+  ]
+}
+*/
+
+        //received node example:
+        /*
+        newNode: {
+          component: 'createObjects',<-- for search component(api) to get data  
+          id: 'createObjects', <--optional
+          nodeLabel: 'createObjects',<--optional
+          function: '', <-- optional
+          functionInput: '' <-- optional
+        }
+        */
+
+        //require node, reference
+        /*
+        const newNode = {
+          id: newNodeId,
+          type: 'api',
+          data: {
+            labelText: componentName,
+            label: componentName,
+            description: componentDoc.description || '',
+            actions: [],
+            fnString: componentFunctionString, 
+            functionInput: componentFunctionInput,
+            metadata: componentDoc.metadata || {}
+          },
+          position: {
+            x: typeof x === 'number' ? x : (currentNodes.length * 150 + 50),
+            y: typeof y === 'number' ? y : 50
+          },
+          metadata: {
+            apiId: componentId,
+            locked: false
+          },
+          style: {
+            borderRadius: 10,
+            padding: 8
+          }
+        };
+        */
+app.post('/addWorkflowtemplate/:workflowid', async (req, res) => {
   try {
     const workflowId = req.params.workflowid;
     const payload = req.body || {};
-    const workflowTemplate = payload.workflowTemplate || payload.workflow_template || null;
+    const workflowTemplate = payload.workflowTemplate || null;
 
-    console.log(`[GETWORKFLOWTEMPLATE] Received template for workflowId=${workflowId}. template present: ${workflowTemplate ? 'yes' : 'no'}`);
+    console.log("------------------------------------------");
+    console.log("------------------------------------------");
+    console.log(`[addWorkflowtemplate] Received template for workflowId=${workflowId}. template present: ${workflowTemplate ? 'yes' : 'no'}`);
+    console.log("------------------------------------------");
+    console.log("------------------------------------------");
 
-    // Basic validation: ensure it's an object (but we won't persist)
+    // Basic validation: ensure it's an object
     if (!workflowTemplate || typeof workflowTemplate !== 'object') {
       return res.status(400).json({ success: false, error: 'workflowTemplate_required' });
     }
 
-    // For now we only acknowledge receipt. Optionally log size/summary.
-    const nodesCount = Array.isArray(workflowTemplate.nodes) ? workflowTemplate.nodes.length : 0;
-    const edgesCount = Array.isArray(workflowTemplate.edges) ? workflowTemplate.edges.length : 0;
-    console.log(`[GETWORKFLOWTEMPLATE] workflowId=${workflowId} nodes=${nodesCount} edges=${edgesCount}`);
+    const nodes = Array.isArray(workflowTemplate.nodes) ? workflowTemplate.nodes : [];
+    const edges = Array.isArray(workflowTemplate.edges) ? workflowTemplate.edges : [];
 
-    // Respond with acknowledgement
-    return res.json({ success: true, workflowId, received: true, nodes: nodesCount, edges: edgesCount });
+    console.log(`[addWorkflowtemplate] workflowId=${workflowId} nodes=${nodes.length} edges=${edges.length}`);
+
+    // Initialize statistics
+    const stats = {
+      nodesRequested: nodes.length,
+      nodesAdded: 0,
+      nodesFailed: 0,
+      edgesRequested: edges.length,
+      edgesAdded: 0,
+      edgesFailed: 0
+    };
+
+    const details = {
+      addedNodes: [],
+      failedNodes: [],
+      addedEdges: [],
+      failedEdges: []
+    };
+
+    // 1. Add all nodes (with component enrichment)
+    for (const node of nodes) {
+      try {
+        if (!node || !node.id) {
+          details.failedNodes.push({ node, reason: 'missing id' });
+          stats.nodesFailed++;
+          continue;
+        }
+
+        // ===== COMPONENT ENRICHMENT START =====
+        // 取得 component 資料 & 製作完整的 node
+        let componentDoc = null;
+        let providedFunction = '';
+        let providedFunctionInput = '';
+        let providedNodeLabel = '';
+
+        if (node.component) {
+          try {
+            if (!firestore) {
+              throw new Error('Firebase not configured');
+            }
+
+            const componentName = node.component; // 這是 name，不是 id
+            providedFunction = node.function || '';//string
+            providedFunctionInput = node.functionInput || '';//string
+            providedNodeLabel = node.nodeLabel || '';//string
+
+            // 用 Query 按 name 欄位查詢
+            const q = query(
+              collection(firestore, 'VariableManager-apis'),
+              where('name', '==', componentName)
+            );
+            const querySnap = await getDocs(q);
+
+            if (querySnap.empty) {
+              throw new Error(`Component with name "${componentName}" not found in Firestore`);
+            }
+
+            // 取第一個匹配的 document
+            const docSnap = querySnap.docs[0];
+            componentDoc = docSnap.data();
+            const componentId = docSnap.id;
+            
+            console.log(`[addWorkflowtemplate] ✓ Fetched component "${componentName}" (id: ${componentId}):`, componentDoc.name);
+          } catch (componentErr) {
+            console.warn(`[addWorkflowtemplate] Failed to fetch component:`, componentErr.message);
+            componentDoc = null;
+          }
+        }
+
+        // ===== BUILD ENRICHED NODE =====
+        let enrichedNode = node;
+
+        if (componentDoc) {
+          const componentName = componentDoc.name || 'Unnamed Component';
+          const componentFunctionString = providedFunction || componentDoc.function || '';
+          const componentFunctionInput = providedFunctionInput || componentDoc.functionInput || '';
+          const componentNodeLabel = providedNodeLabel || '';
+          const newNodeId = node.id || `node_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+          enrichedNode = {
+            id: newNodeId,
+            type: 'api',
+            data: {
+              labelText: componentName,
+              label: componentName,
+              nodeLabel: componentNodeLabel || '',
+              description: componentDoc.description || '',
+              actions: [],
+              fnString: componentFunctionString,
+              functionInput: componentFunctionInput,
+              metadata: componentDoc.metadata || {}
+            },
+            position: {
+              x: typeof node.position?.x === 'number' ? node.position.x : (stats.nodesAdded * 150 + 50),
+              y: typeof node.position?.y === 'number' ? node.position.y : 50
+            },
+            metadata: {
+              apiId: node.component, // 保存原始 name 或改成 componentId
+              locked: false
+            },
+            style: {
+              borderRadius: 10,
+              padding: 8
+            }
+          };
+        } else if (!node.id) {
+          // Fallback: generate ID if no component found
+          enrichedNode = {
+            ...node,
+            id: `node_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+          };
+        }
+        // ===== COMPONENT ENRICHMENT END =====
+        console.log("[enrichedNode]", enrichedNode);
+
+        // 現在调用 addNodeToWorkflow，传入富化後的 node
+        const addedNode = projectManager.addNodeToWorkflow(workflowId, enrichedNode);
+        if (addedNode) {
+          details.addedNodes.push(addedNode);
+          stats.nodesAdded++;
+          console.log(`[addWorkflowtemplate] ✓ Added node ${enrichedNode.id}`);
+        } else {
+          details.failedNodes.push({ node: enrichedNode, reason: 'addNodeToWorkflow returned null' });
+          stats.nodesFailed++;
+        }
+      } catch (nodeErr) {
+        console.error(`[addWorkflowtemplate] Failed to add node ${node && node.id}:`, nodeErr);
+        details.failedNodes.push({ node, reason: String(nodeErr) });
+        stats.nodesFailed++;
+      }
+    }
+
+    // 2. Add all edges (after all nodes are added)
+    for (const edge of edges) {
+      try {
+        if (!edge || !edge.source || !edge.target) {
+          details.failedEdges.push({ edge, reason: 'missing source or target' });
+          stats.edgesFailed++;
+          continue;
+        }
+
+        const result = await addEdgeToWorkflow({
+          workflowId,
+          source: edge.source,
+          target: edge.target,
+          id: edge.id,
+          label: edge.label,
+          expression: edge.expression
+        });
+
+        if (result && result.success) {
+          details.addedEdges.push(result.edge);
+          stats.edgesAdded++;
+          console.log(`[addWorkflowtemplate] ✓ Added edge ${edge.source} -> ${edge.target}`);
+        } else {
+          details.failedEdges.push({ edge, reason: 'addEdgeToWorkflow returned non-success' });
+          stats.edgesFailed++;
+        }
+      } catch (edgeErr) {
+        console.error(`[addWorkflowtemplate] Failed to add edge ${edge && edge.source} -> ${edge && edge.target}:`, edgeErr);
+        details.failedEdges.push({ edge, reason: String(edgeErr && edgeErr.error ? edgeErr.error : edgeErr) });
+        stats.edgesFailed++;
+      }
+    }
+
+    console.log(`[addWorkflowtemplate] ✓ Completed: ${stats.nodesAdded}/${stats.nodesRequested} nodes, ${stats.edgesAdded}/${stats.edgesRequested} edges`);
+    console.log("------------------------------------------");
+    console.log("------------------------------------------");
+    // Respond with detailed statistics
+    return res.json({
+      success: stats.nodesFailed === 0 && stats.edgesFailed === 0,
+      workflowId,
+      stats,
+      details
+    });
   } catch (err) {
-    console.error('POST /getworkflowtemplate/:workflowid error', err);
+    console.error('POST /addWorkflowtemplate/:workflowid error', err);
     return res.status(500).json({ success: false, error: String(err) });
   }
 });
+
 
   // ------------------ Get Components (APIs) ----------------------------------
   // Returns all API/component documents from Firestore collection `VariableManager-apis`
@@ -1365,18 +1596,20 @@ io.on('connection', (socket) => {
   });
 
   // Client adds a single edge to workflow
-  socket.on('add_edge', (data) => {
-    try {
-      const { projectId, edge } = data || {};
-      if (!projectId || !edge) return;
-      console.log(`[Socket] Client ${socket.id} requested add_edge for ${projectId}:`, edge && edge.id ? edge.id : '(no-id)');
-      const added = projectManager.addProjectEdge(projectId, edge);
-      socket.emit('add_edge_result', { success: !!added, projectId, edge: added || null });
-    } catch (e) {
-      console.error('add_edge handler error', e);
-      socket.emit('add_edge_result', { success: false, error: String(e) });
-    }
-  });
+socket.on('add_edge', (data) => {
+  try {
+    const { projectId, edge } = data || {};
+    addEdgeToWorkflow({ workflowId: projectId, ...edge })
+      .then((result) => socket.emit('add_edge_result', { success: true, projectId, edge: result.edge }))
+      .catch((err) => {
+        console.error('socket add_edge error', err);
+        socket.emit('add_edge_result', { success: false, projectId, error: err && err.error ? err.error : String(err) });
+      });
+  } catch (e) {
+    console.error('socket add_edge sync error', e);
+    socket.emit('add_edge_result', { success: false, error: String(e) });
+  }
+});
 
   // Client requests deletion of selected nodes/edges
   socket.on('delete_selected_items', (data) => {
@@ -2032,14 +2265,72 @@ app.get('/deleteworkflow/:workflowID', (req, res) => {
   }
 });
 
-//0319 http://localhost:3001/addnode
+
+//0320 http://localhost:3001/addedge
+/*
+workflowId(string), source(string), target(string), (required)
+id(string), label(string), expression(string) (optional)
+*/
+/*
+app.post('/addedge', async (req, res) => {
+  try {
+    const { workflowId, source, target, id, label, expression } = req.body || {};
+
+    if (!workflowId) return res.status(400).json({ success: false, error: 'workflowId required' });
+    if (!source) return res.status(400).json({ success: false, error: 'source required' });
+    if (!target) return res.status(400).json({ success: false, error: 'target required' });
+
+    console.log(`0320 [POST /addedge] Adding edge to ${workflowId}: ${source} -> ${target}`);
+
+    const edge = {};
+    if (id) edge.id = id;
+    edge.source = source;
+    edge.target = target;
+    if (label !== undefined) edge.label = label;
+    if (expression !== undefined) edge.expression = expression;
+
+    const added = projectManager.addProjectEdge(workflowId, edge);
+
+    if (!added) {
+      const wf = projectManager.getProject(workflowId) || projectManager.getWorkflowData(workflowId);
+      if (!wf) {
+        console.warn(`0320 [POST /addedge] Workflow not found: ${workflowId}`);
+        return res.status(404).json({ success: false, error: 'Workflow not found' });
+      }
+      console.error('0320 [POST /addedge] addProjectEdge returned falsy');
+      return res.status(500).json({ success: false, error: 'Failed to add edge' });
+    }
+
+    res.json({ success: true, projectId: workflowId, edge: added });
+  } catch (err) {
+    console.error('0320 [POST /addedge] error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+*/
+app.post('/addedge', async (req, res) => {
+  try {
+    const result = await addEdgeToWorkflow(req.body || {});
+    res.json(result);
+  } catch (err) {
+    if (err && err.code) return res.status(err.code).json({ success: false, error: err.error });
+    console.error('POST /addedge error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
+//0320 http://localhost:3001/addnode
 // server/index.js
 // POST /addnode - Add a new node to a workflow by component ID
 // Input: { workflowId, componentId, x (optional), y (optional) }
 // Process: Fetch workflow, fetch component, create node with component data, add to workflow
 app.post('/addnode', async (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ /addnode ************************');
+  console.log('****************************************************************');
   try {
-    const { workflowId, componentId, x, y } = req.body || {};
+    const { workflowId, componentId, nodeLabel, x, y } = req.body || {};
     
     // Validate required parameters
     if (!workflowId) return res.status(400).json({ success: false, error: 'workflowId required' });
@@ -2083,7 +2374,8 @@ app.post('/addnode', async (req, res) => {
     const componentName = componentDoc.name || 'Unnamed Component';
     const componentFunctionString = componentDoc.function || '';
     const componentFunctionInput = componentDoc.functionInput || '';
-    
+    const componentNodeLabel = nodeLabel || "";
+
     // Step 4: Create new node with unique ID
     const newNodeId = `node_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const newNode = {
@@ -2092,6 +2384,7 @@ app.post('/addnode', async (req, res) => {
       data: {
         labelText: componentName,
         label: componentName,
+        nodeLabel: componentNodeLabel,
         description: componentDoc.description || '',
         actions: [],
         fnString: componentFunctionString,
@@ -2112,14 +2405,17 @@ app.post('/addnode', async (req, res) => {
       }
     };
     
-    // Step 5: Add new node to workflow
-    const updatedNodes = [...currentNodes, newNode];
-    
-    // Step 6: Update workflow in projectManager (will broadcast to all clients)
+    // Step 5-7: Add node to workflow using projectManager method (will broadcast to all clients)
     console.log(`0319 [addnode] Adding node ${newNodeId} to workflow ${workflowId}`);
-    projectManager.updateProjectWorkflow(workflowId, updatedNodes, currentEdges);
+    const result = projectManager.addNodeToWorkflow(workflowId, newNode);
     
-    // Step 7: Return success with new node data
+    if (!result) {
+      return res.status(500).json({ success: false, error: 'Failed to add node to workflow' });
+    }
+
+  console.log('************************ /addnode END ************************');
+  console.log('****************************************************************');
+    
     res.json({
       success: true,
       workflowId,
@@ -2224,6 +2520,40 @@ app.patch('/api/workflows/:workflowId/style', (req, res) => {
     if (!updated) return res.status(404).json({ error: 'not_found' });
     res.json({ success: true, workflowId: finalWorkflowId, runflowId: workflowId !== finalWorkflowId ? workflowId : undefined });
   } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+
+
+// POST /api/update-global-var
+//http://localhost:3001/api/update-global-var
+//body: { projectcategoryid, varname, varvalue }
+app.post('/api/update-global-var', (req, res) => {
+  console.log('****************************************************************')
+  console.log('*********************** /api/update-global-var ***********************');
+  console.log('****************************************************************') 
+
+  const { projectcategoryid, varname, varvalue } = req.body || {};
+  if (!varname) return res.status(400).json({ error: 'varname_required' });
+  const key = String(varname).toLowerCase().replace(/\./g,'_');
+  projectManager.setGlobalVar(key, varvalue);
+  if (projectcategoryid) {
+    projectManager.broadcastToProjectCategory(projectcategoryid, 'global_store_vars_update', { globalStoreVars: projectManager.getGlobalVars() });
+  } else {
+    io.emit('global_store_vars_update', { globalStoreVars: projectManager.getGlobalVars() });
+  }
+  res.json({ success: true, key, value: varvalue });
+});
+
+//GET
+//http://localhost:3001/api/get-global-var/:projectcategoryid/:varname
+app.get('/api/get-global-var/:projectcategoryid/:varname', (req, res) => {
+  console.log('****************************************************************')
+  console.log('*********************** /api/get-global-var/:projectcategoryid/:varname ***********************');
+  console.log('****************************************************************')
+  const { projectcategoryid, varname } = req.params;
+  const key = String(varname || '').toLowerCase().replace(/\./g,'_');
+  const val = projectManager.getGlobalVars()[key];
+  res.json({ projectcategoryid, varname, value: val });
 });
 
 

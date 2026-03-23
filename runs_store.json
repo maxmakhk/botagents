@@ -1,783 +1,114 @@
 {
-  "savedAt": "2026-03-19T23:47:10.986Z",
+  "savedAt": "2026-03-23T09:50:56.818Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
       "nodes": [
         {
-          "id": "api_1773360389840",
+          "id": "createObjects",
           "position": {
-            "x": 228,
-            "y": 20
+            "x": 0,
+            "y": 0
           },
-          "type": "api",
-          "metadata": {
-            "apiId": "t18j2BxNlpLTRPNRpXZu",
-            "apiName": "createObjects",
-            "apiUrl": null,
-            "image": null,
-            "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "object",
-              "v2"
-            ]
-          },
+          "type": "workflowNode",
+          "metadata": {},
           "data": {
             "labelText": "createObjects",
-            "description": "api",
+            "description": "",
             "label": "createObjects",
-            "nodeLabel": "end",
-            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
+            "nodeLabel": "",
+            "fnString": "",
             "actions": [],
-            "metadata": {
-              "apiId": "t18j2BxNlpLTRPNRpXZu",
-              "apiName": "createObjects",
-              "apiUrl": null,
-              "image": null,
-              "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "object",
-                "v2"
-              ]
-            },
-            "width": 128,
-            "height": 64,
+            "metadata": {},
+            "width": 192,
+            "height": 96,
             "scale": "2:1"
           },
           "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
           },
-          "width": 128,
-          "height": 64
+          "width": 192,
+          "height": 96
         },
         {
-          "id": "api_1773360428322",
+          "id": "createAction",
           "position": {
-            "x": 20,
+            "x": 76,
             "y": 20
           },
-          "type": "api",
-          "metadata": {
-            "apiId": "9ciuxQlkizKAipN9n2Xb",
-            "apiName": "cleanOutputView",
-            "apiUrl": null,
-            "image": null,
-            "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action"
-            ]
-          },
+          "type": "workflowNode",
+          "metadata": {},
           "data": {
-            "labelText": "cleanOutputView",
-            "description": "api",
-            "label": "cleanOutputView",
-            "nodeLabel": "start",
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "",
-            "actions": [],
-            "metadata": {
-              "apiId": "9ciuxQlkizKAipN9n2Xb",
-              "apiName": "cleanOutputView",
-              "apiUrl": null,
-              "image": null,
-              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773678537842",
-          "position": {
-            "x": 436,
-            "y": 20
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "workflow waiting",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "workflow waiting",
-            "description": "api",
-            "label": "workflow waiting",
+            "labelText": "createAction",
+            "description": "",
+            "label": "createAction",
             "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log(\"waiting [Sb]\", input.var?.waitingTime);\n\n  const url = `http://localhost:3001/next/${input.runId}`;\nconsole.log(\"run waiting node\", url);\nconst resp = await fetch(url, { method: 'GET' });\nreturn {};\n}",
-            "functionInput": "{\nwaitingTime:2000\n}",
+            "fnString": "",
             "actions": [],
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "workflow waiting",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "width": 128,
-            "height": 64,
+            "metadata": {},
+            "width": 192,
+            "height": 96,
             "scale": "2:1"
           },
           "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
+            "width": 192,
+            "height": 96,
+            "minHeight": 96
           },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773744954433",
-          "position": {
-            "x": 20,
-            "y": 184
+          "width": 192,
+          "height": 96,
+          "selected": true,
+          "positionAbsolute": {
+            "x": 75.71428571428572,
+            "y": 18.571428571428555
           },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "position"
-            ]
-          },
-          "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "actionstart",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
-              "apiName": "MoveObjectController",
-              "apiUrl": null,
-              "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "position"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773744963761",
-          "position": {
-            "x": 852,
-            "y": 184
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "T7sJl75flCKvuLNb2053",
-            "apiName": "JumpToNodeByLabel",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action"
-            ]
-          },
-          "data": {
-            "labelText": "JumpToNodeByLabel",
-            "description": "api",
-            "label": "JumpToNodeByLabel",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "functionInput": "{\ntargetNodeLabel:\"actionstart\"\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "T7sJl75flCKvuLNb2053",
-              "apiName": "JumpToNodeByLabel",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773744969075",
-          "position": {
-            "x": 436,
-            "y": 184
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "position"
-            ]
-          },
-          "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
-              "apiName": "MoveObjectController",
-              "apiUrl": null,
-              "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "position"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773744979887",
-          "position": {
-            "x": 228,
-            "y": 184
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "workflow waiting",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "workflow waiting",
-            "description": "api",
-            "label": "workflow waiting",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "workflow waiting",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773745009015",
-          "position": {
-            "x": 644,
-            "y": 184
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "workflow waiting",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "workflow waiting",
-            "description": "api",
-            "label": "workflow waiting",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "workflow waiting",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773757534038",
-          "position": {
-            "x": 39.571428571428584,
-            "y": 353.0000000000001
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "position"
-            ]
-          },
-          "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "buttonA",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
-              "apiName": "MoveObjectController",
-              "apiUrl": null,
-              "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "position"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773757548388",
-          "position": {
-            "x": 509,
-            "y": 371
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "position"
-            ]
-          },
-          "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
-              "apiName": "MoveObjectController",
-              "apiUrl": null,
-              "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "position"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773757566074",
-          "position": {
-            "x": 279,
-            "y": 367
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-            "apiName": "workflow waiting",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "any",
-              "action",
-              "open"
-            ]
-          },
-          "data": {
-            "labelText": "workflow waiting",
-            "description": "api",
-            "label": "workflow waiting",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-            "actions": [],
-            "metadata": {
-              "apiId": "dmWZ28QrPYOoWQ2pcOyU",
-              "apiName": "workflow waiting",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  console.log(\"waiting\");\n  await new Promise(resolve => setTimeout(resolve, input.var.waitingTime));\n\n  try {\n    const resp = await fetch(`http://localhost:3001/next/${input.runId}`, { method: 'GET' });\n    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);\n    const data = await resp.json().catch(()=>null);\n    return { status: 'done', response: data };\n  } catch (err) {\n    console.error('fetch failed', err);\n    return { status: 'error', error: String(err) };\n  }\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "any",
-                "action",
-                "open"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773763819948",
-          "position": {
-            "x": 43,
-            "y": -154
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "Q4iDabdthrTztYd8uIrt",
-            "apiName": "createPanelObjects",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "object",
-              "panel"
-            ]
-          },
-          "data": {
-            "labelText": "createPanelObjects",
-            "description": "api",
-            "label": "createPanelObjects",
-            "nodeLabel": "setuppanel",
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "Q4iDabdthrTztYd8uIrt",
-              "apiName": "createPanelObjects",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "object",
-                "panel"
-              ]
-            },
-            "width": 128,
-            "height": 64,
-            "scale": "2:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64,
-            "height": 64
-          },
-          "width": 128,
-          "height": 64
-        },
-        {
-          "id": "api_1773936834903",
-          "position": {
-            "x": 440,
-            "y": 200
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "HRz75ZirMW71MGTGeGfp",
-            "apiName": "runScriptMachine",
-            "apiUrl": null,
-            "image": null,
-            "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nscriptString:\"\"\n}",
-            "cssStyle": null,
-            "size": "2:1",
-            "tags": [
-              "action",
-              "v2"
-            ]
-          },
-          "data": {
-            "labelText": "runScriptMachine",
-            "label": "runScriptMachine",
-            "description": "external api",
-            "actions": [],
-            "width": 128,
-            "height": 64,
-            "metadata": {
-              "apiId": "HRz75ZirMW71MGTGeGfp",
-              "apiName": "runScriptMachine",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-              "functionInput": "{\nscriptString:\"\"\n}",
-              "cssStyle": null,
-              "size": "2:1",
-              "tags": [
-                "action",
-                "v2"
-              ]
-            },
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nscriptString:\"\"\n}"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 128,
-            "minHeight": 64
-          }
+          "dragging": true
         }
       ],
       "edges": [
         {
-          "id": "edge_1773360432372",
-          "source": "api_1773360428322",
-          "target": "api_1773360389840",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050292717",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773678541604",
-          "source": "api_1773360389840",
-          "target": "api_1773678537842",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050369621",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773744985521",
-          "source": "api_1773744954433",
-          "target": "api_1773744979887",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050431776",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773744991346",
-          "source": "api_1773744979887",
-          "target": "api_1773744969075",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050551686",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773745014352",
-          "source": "api_1773744969075",
-          "target": "api_1773745009015",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050605974",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773745017649",
-          "source": "api_1773745009015",
-          "target": "api_1773744963761",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050671368",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         },
         {
-          "id": "edge_1773757572613",
-          "source": "api_1773757534038",
-          "target": "api_1773757566074",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1773757576722",
-          "source": "api_1773757566074",
-          "target": "api_1773757548388",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "id": "edge_1774050802177",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next"
         }
       ],
       "status": "stopped",
@@ -795,11 +126,363 @@
     },
     {
       "projectId": "rule_1773360383383_n0u551",
-      "nodes": [],
-      "edges": [],
+      "nodes": [
+        {
+          "id": "cleanOutputView",
+          "type": "api",
+          "data": {
+            "labelText": "cleanOutputView",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "description": "",
+            "actions": [],
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "",
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 50,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "cleanOutputView",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "createObjects",
+          "type": "api",
+          "data": {
+            "labelText": "createObjects",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "description": "create objects on the output view",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": {
+              "objects": [
+                {
+                  "id": "start_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#000033",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#001133",
+                  "zIndex": 2,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "button(start)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 250,
+                  "color": "#00aa00",
+                  "zIndex": 10,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "game_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#003300",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#004400",
+                  "zIndex": 2,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object1",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 100,
+                  "color": "#ff6600",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object2",
+                  "width": 50,
+                  "height": 50,
+                  "x": 200,
+                  "y": 150,
+                  "color": "#66ff00",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "cpanel",
+                  "width": 250,
+                  "height": 400,
+                  "x": 550,
+                  "y": 100,
+                  "color": "#333333",
+                  "zIndex": 8,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(up)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 120,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(left)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(right)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 650,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(down)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 280,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(skip)",
+                  "width": 100,
+                  "height": 50,
+                  "x": 580,
+                  "y": 360,
+                  "color": "#ff4400",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 50,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(distance)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 100,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(mark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 150,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(totalmark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 200,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "result_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#330000",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#440000",
+                  "zIndex": 2,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 300,
+                  "height": 60,
+                  "x": 250,
+                  "y": 150,
+                  "color": "#ffaa00",
+                  "zIndex": 10,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "button(restart)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 350,
+                  "color": "#00aa00",
+                  "zIndex": 12,
+                  "parent": "result_screen"
+                }
+              ]
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 200,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "createObjects",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "actionController",
+          "type": "api",
+          "data": {
+            "labelText": "actionController",
+            "label": "actionController",
+            "nodeLabel": "",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('button(start)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)').onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 350,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "actionController",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "startgame",
+          "type": "api",
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 500,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "runScriptMachine",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_1774114069483",
+          "source": "cleanOutputView",
+          "target": "createObjects",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774114069484",
+          "source": "createObjects",
+          "target": "actionController",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774114069485",
+          "source": "actionController",
+          "target": "startgame",
+          "label": "next",
+          "type": "next"
+        }
+      ],
       "status": "stopped",
       "storeVars": {},
-      "activeNodeId": null,
+      "activeNodeId": "startgame",
       "activeEdgeId": null,
       "apis": [],
       "stepDelay": 1000,
@@ -1059,11 +742,12 @@
           },
           "data": {
             "labelText": "buttonController",
+            "description": "api",
             "label": "buttonController",
-            "description": "external api",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}",
             "actions": [],
-            "width": 128,
-            "height": 64,
             "metadata": {
               "apiId": "v8ojtxUicPTCIzNU5skI",
               "apiName": "buttonController",
@@ -1078,21 +762,363 @@
                 "v2"
               ]
             },
-            "fnString": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}"
+            "width": 128,
+            "height": 64,
+            "scale": "2:1"
           },
           "style": {
             "borderRadius": 10,
             "padding": 8,
             "width": 128,
-            "minHeight": 64
+            "minHeight": 64,
+            "height": 64
           },
           "width": 128,
-          "height": 64,
+          "height": 64
+        },
+        {
+          "id": "node_1773993546109_7kkueq",
+          "position": {
+            "x": 853,
+            "y": 23
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runScriptMachine",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nscriptString:\"\"\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1773996551640_x2973f",
+          "position": {
+            "x": 1131,
+            "y": 104
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "locked": false,
+            "apiName": "createPanelObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "object",
+              "panel"
+            ]
+          },
+          "data": {
+            "labelText": "createPanelObjects",
+            "description": "api",
+            "label": "createPanelObjects",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+            "actions": [],
+            "metadata": {
+              "apiId": "Q4iDabdthrTztYd8uIrt",
+              "locked": false,
+              "apiName": "createPanelObjects",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "object",
+                "panel"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1773996573661_ztt1x4",
+          "position": {
+            "x": 1214,
+            "y": -66
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "B4ojA6yqEBrIXmRZH1uu",
+            "locked": false,
+            "apiName": "MoveObjectController",
+            "apiUrl": null,
+            "image": null,
+            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "position"
+            ]
+          },
+          "data": {
+            "labelText": "MoveObjectController",
+            "description": "api",
+            "label": "MoveObjectController",
+            "nodeLabel": "",
+            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "B4ojA6yqEBrIXmRZH1uu",
+              "locked": false,
+              "apiName": "MoveObjectController",
+              "apiUrl": null,
+              "image": null,
+              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "position"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1773996998136_tfftlz",
+          "position": {
+            "x": 1053,
+            "y": 350
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "t18j2BxNlpLTRPNRpXZu",
+            "locked": false,
+            "apiName": "createObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "object",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "createObjects",
+            "description": "api",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nobjects :[\n    { id: \"box1\", width: 50, height: 50, x: 50,  y: 50,  color: \"red\" },\n    { id: \"box2\", width: 50, height: 50, x: 150, y: 100, color: \"blue\" },\n  ]\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "t18j2BxNlpLTRPNRpXZu",
+              "locked": false,
+              "apiName": "createObjects",
+              "apiUrl": null,
+              "image": null,
+              "function": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "object",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1773999369115_gtv22z",
+          "position": {
+            "x": 1390,
+            "y": 264
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "locked": false,
+            "apiName": "createPanelObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "object",
+              "panel"
+            ]
+          },
+          "data": {
+            "labelText": "createPanelObjects",
+            "description": "api",
+            "label": "createPanelObjects",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+            "actions": [],
+            "metadata": {
+              "apiId": "Q4iDabdthrTztYd8uIrt",
+              "locked": false,
+              "apiName": "createPanelObjects",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "object",
+                "panel"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1773999415932_dmi85c",
+          "position": {
+            "x": 1600,
+            "y": 54
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "T7sJl75flCKvuLNb2053",
+            "locked": false,
+            "apiName": "JumpToNodeByLabel",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "JumpToNodeByLabel",
+            "description": "api",
+            "label": "JumpToNodeByLabel",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "functionInput": "{\ntargetNodeLabel:\"start\"\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "T7sJl75flCKvuLNb2053",
+              "locked": false,
+              "apiName": "JumpToNodeByLabel",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
           "selected": true,
           "positionAbsolute": {
-            "x": 341.4285714285714,
-            "y": -35.71428571428572
+            "x": 1601.4285714285713,
+            "y": 55.71428571428572
           },
           "dragging": true
         }
@@ -1105,6 +1131,49 @@
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774000227605",
+          "source": "api_1773938643203",
+          "target": "node_1773993546109_7kkueq",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774023287820",
+          "source": "node_1773996573661_ztt1x4",
+          "target": "node_1773999415932_dmi85c",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774023460184",
+          "source": "node_1773996551640_x2973f",
+          "target": "node_1773999415932_dmi85c",
+          "label": ""
+        },
+        {
+          "id": "edge_1774023489149",
+          "source": "node_1773996998136_tfftlz",
+          "target": "node_1773999415932_dmi85c",
+          "label": "",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774024410280",
+          "source": "node_1773999369115_gtv22z",
+          "target": "node_1773999415932_dmi85c",
+          "label": "",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774024850289",
+          "source": "node_1773993546109_7kkueq",
+          "target": "node_1773996551640_x2973f",
+          "label": "",
+          "type": "next"
         }
       ],
       "status": "stopped",
@@ -1114,6 +1183,390 @@
       "apis": [],
       "stepDelay": 1000,
       "categoryId": "zIbjcRkwOJwYKBNTit5D"
+    },
+    {
+      "projectId": "rule_0",
+      "nodes": [
+        {
+          "id": "createObjects",
+          "type": "api",
+          "data": {
+            "labelText": "createObjects",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "description": "create objects on the output view",
+            "actions": [],
+            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "objects": [
+                {
+                  "id": "start_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#000033",
+                  "zIndex": 1
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#001133",
+                  "zIndex": 2
+                },
+                {
+                  "id": "button(start)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 250,
+                  "color": "#00aa00",
+                  "zIndex": 10
+                },
+                {
+                  "id": "game_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#003300",
+                  "zIndex": 1
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#004400",
+                  "zIndex": 2
+                },
+                {
+                  "id": "object1",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 100,
+                  "color": "#ff6600",
+                  "zIndex": 5
+                },
+                {
+                  "id": "object2",
+                  "width": 50,
+                  "height": 50,
+                  "x": 200,
+                  "y": 150,
+                  "color": "#66ff00",
+                  "zIndex": 5
+                },
+                {
+                  "id": "cpanel",
+                  "width": 250,
+                  "height": 400,
+                  "x": 550,
+                  "y": 100,
+                  "color": "#333333",
+                  "zIndex": 8
+                },
+                {
+                  "id": "button(up)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 120,
+                  "color": "#0066ff",
+                  "zIndex": 10
+                },
+                {
+                  "id": "button(left)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10
+                },
+                {
+                  "id": "button(right)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 650,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10
+                },
+                {
+                  "id": "button(down)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 280,
+                  "color": "#0066ff",
+                  "zIndex": 10
+                },
+                {
+                  "id": "button(skip)",
+                  "width": 100,
+                  "height": 50,
+                  "x": 580,
+                  "y": 360,
+                  "color": "#ff4400",
+                  "zIndex": 10
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 50,
+                  "color": "#ffffff",
+                  "zIndex": 12
+                },
+                {
+                  "id": "showtext(distance)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 100,
+                  "color": "#ffffff",
+                  "zIndex": 12
+                },
+                {
+                  "id": "showtext(mark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 150,
+                  "color": "#ffffff",
+                  "zIndex": 12
+                },
+                {
+                  "id": "showtext(totalmark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 200,
+                  "color": "#ffffff",
+                  "zIndex": 12
+                },
+                {
+                  "id": "result_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#330000",
+                  "zIndex": 1
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#440000",
+                  "zIndex": 2
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 300,
+                  "height": 60,
+                  "x": 250,
+                  "y": 150,
+                  "color": "#ffaa00",
+                  "zIndex": 10
+                },
+                {
+                  "id": "button(restart)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 350,
+                  "color": "#00aa00",
+                  "zIndex": 12
+                }
+              ]
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 200,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "createObjects",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "createAction",
+          "type": "api",
+          "data": {
+            "labelText": "buttonController",
+            "label": "buttonController",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}",
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 200,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "buttonController",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "startgame",
+          "type": "api",
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 500,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "runScriptMachine",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "cleanOutputView",
+          "type": "api",
+          "data": {
+            "labelText": "cleanOutputView",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "description": "",
+            "actions": [],
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "",
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 50,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "cleanOutputView",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        },
+        {
+          "id": "actionController",
+          "type": "api",
+          "data": {
+            "labelText": "actionController",
+            "label": "actionController",
+            "nodeLabel": "",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('button(start)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)').onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": 350,
+            "y": 50
+          },
+          "metadata": {
+            "apiId": "actionController",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_1774052363607",
+          "source": "createObjects",
+          "target": "createAction",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774052363608",
+          "source": "createAction",
+          "target": "startgame",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774112147158",
+          "source": "cleanOutputView",
+          "target": "createObjects",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774112147159",
+          "source": "createObjects",
+          "target": "actionController",
+          "label": "next",
+          "type": "next"
+        },
+        {
+          "id": "edge_1774112147160",
+          "source": "actionController",
+          "target": "startgame",
+          "label": "next",
+          "type": "next"
+        }
+      ],
+      "status": "stopped",
+      "storeVars": {},
+      "activeNodeId": "startgame",
+      "activeEdgeId": null,
+      "apis": [],
+      "stepDelay": 1000,
+      "categoryId": "rule_0"
     }
   ],
   "runs": []
