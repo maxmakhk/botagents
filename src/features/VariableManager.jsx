@@ -3432,11 +3432,11 @@ const edges = [
   }, [userPromptInput, handleGenerateSystemPrompt, isOutputOpenLocal]);
 
   const sendWorkflowTemplate = useCallback(async () => {
-    console.log('[sendWorkflowTemplate] ', workflowTemplateText);
+    console.log('[sendWorkflowTemplate] A');
     try {
       if (!workflowTemplateText || !workflowTemplateText.trim()) {
         console.log('[sendWorkflowTemplate] Workflow template is empty');
-        setTimeout(() => setAiWarning(''), 2000);
+        //setTimeout(() => setAiWarning(''), 2000);
         return;
       }
       console.log("[sendWorkflowTemplate] nextB");
@@ -3445,8 +3445,22 @@ const edges = [
       try {
         parsed = JSON.parse(workflowTemplateText);
       } catch (e) {
-        console.log('Invalid JSON in workflow template');
-        setTimeout(() => console.log(''), 2500);
+        console.log('Invalid JSON in workflow template:', e.message);
+        // 嘗試從錯誤訊息抓 position（若有）
+        const m = String(e.message).match(/position\s+(\d+)/i);
+        if (m) {
+          const pos = Number(m[1]);
+          const start = Math.max(0, pos - 60);
+          const end = Math.min(workflowTemplateText.length, pos + 60);
+          console.log('Error position:', pos, 'text length:', workflowTemplateText.length);
+          console.log('Snippet around error:', workflowTemplateText.slice(start, end));
+          console.log('Chars with codes:', workflowTemplateText.slice(start, end).split('').map((c, i) => `${start + i}:${c.charCodeAt(0)}`).join(' '));
+        } else {
+          console.log('No position in error message. Text length:', workflowTemplateText.length);
+          console.log('First 500 chars:', workflowTemplateText.slice(0, 500));
+        }
+        // 常見自動修正嘗試（僅顯示，不直接使用）
+        console.log('Preview after normalizing CRLF -> LF:', workflowTemplateText.replace(/\r\n/g,'\n').slice(0,500));
         return;
       }
 
@@ -3462,7 +3476,7 @@ const edges = [
       if (!resp.ok) {
         const text = await resp.text().catch(() => '');
         setAiWarning('Failed to send template: ' + resp.status + ' ' + text);
-        setTimeout(() => setAiWarning(''), 3000);
+        //setTimeout(() => setAiWarning(''), 3000);
         return;
       }
 
@@ -3474,7 +3488,7 @@ const edges = [
     } catch (err) {
       console.error('sendWorkflowTemplate error', err);
       setAiWarning('Error sending template: ' + (err.message || String(err)));
-      setTimeout(() => setAiWarning(''), 3000);
+      //setTimeout(() => setAiWarning(''), 3000);
     }
   }, [workflowTemplateText, projectIdForRun, setAiWarning]);
 

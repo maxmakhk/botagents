@@ -128,6 +128,7 @@ async function runLoop({
     try {
       console.log(`\n========== WORKFLOW STATUS ==========`);
       if (runflowId) console.log(`RunID: ${runflowId}`);
+      console.log(`projectId`, projectId);
       console.log(`Status: running`);
       console.log(`Nodes:`);
       const nodesList = nodesArrHolder.getNodes();
@@ -224,7 +225,7 @@ async function runLoop({
     const key = normalizeVarKey(name);
 
     projectManager.setGlobalVar(key, value);
-    //broadcastLog('store_vars_update', { storeVars, projectId });
+    broadcastLog('store_vars_update', { storeVars, projectId });
     //broadcastState({ storeVars, projectId });
     // transient keys (waiting/node_*) remain only in local storeVars
     if (projectId && isTransientKey(key)) {
@@ -448,7 +449,6 @@ async function runLoop({
           broadcastLog('client_js_exec', { nodeId: currentNode.id, clientJS: result.clientJS });
         }
         
-
         // Log store snapshots after execution
         try {
           //console.log(`[Runner] after node ${currentNode.id} storeVars keys:`, Object.keys(storeVars || {}));

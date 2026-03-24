@@ -43,31 +43,31 @@ export default function PlayerView({ onBack }) {
       if (!s) return;
 
       const onClientJS = (data) => {
-        console.log(`[PlayerView] A`, data);
+        //console.log(`[PlayerView] A`, data);
         if (!data) {
-          console.log('[PlayerView] ⚠️ Received empty clientJS data');
+          //console.log('[PlayerView] ⚠️ Received empty clientJS data');
           return;
         }
         // try common locations for client JS code
         const code = data.clientJS || data.clientJs || data.client_code || (data.payload && (data.payload.clientJS || data.payload.clientJs));
         if (!code || typeof code !== 'string' || !code.trim()) {
-          console.log('[PlayerView] ℹ️ Received event but no clientJS code found');
+          //console.log('[PlayerView] ℹ️ Received event but no clientJS code found');
           return;
         }
-        console.log("[PlayerView] 📨 Received clientJS event:", { nodeId: data.nodeId, categoryId: data.categoryId, codeLength: code.length });
+        //console.log("[PlayerView] 📨 Received clientJS event:", { nodeId: data.nodeId, categoryId: data.categoryId, codeLength: code.length });
 
         // Filter by project category
         // Extract category from data payload
         const dataCategory = data?.categoryId || data?.category || data?.category_id || (data.payload && (data.payload.categoryId || data.payload.category || data.payload.category_id)) || null;
         const currentCat = selectedCategoryRef.current;
         
-        console.log(`[PlayerView] 🔍 Category check - Message categoryId: ${dataCategory}, Selected category: ${currentCat}`);
+        //console.log(`[PlayerView] 🔍 Category check - Message categoryId: ${dataCategory}, Selected category: ${currentCat}`);
         
         // If a specific category is selected, only execute clientJS from that category
         // If 'all' is selected, execute all clientJS regardless of category
         if (currentCat && currentCat !== 'all') {
           if (!dataCategory || String(dataCategory) !== String(currentCat)) {
-            console.log("[PlayerView] Skipping clientJS - category mismatch. Expected:", currentCat, "Got:", dataCategory);
+            //console.log("[PlayerView] Skipping clientJS - category mismatch. Expected:", currentCat, "Got:", dataCategory);
             return;
           }
         }
@@ -89,9 +89,9 @@ export default function PlayerView({ onBack }) {
         };
 
         try {
-          console.log("[PlayerView] clientJS", nodeId, code);
+          //console.log("[PlayerView] clientJS", nodeId, code);
           const fn = new Function('setGlobalVar', 'getGlobalVar', 'globalStoreVars', 'storeVars', code);
-          console.log("[PlayerView] B ", nodeId, code);
+          //console.log("[PlayerView] B ", nodeId, code);
           // execute; don't capture/print source — only log execution
           fn(setGlobalVarForClientJS, getGlobalVar, globalStoreVars || {}, storeVars || {});
           push({ type: 'client_js_exec', data: { nodeId, nodeName, message: 'executed', category: dataCategory } });

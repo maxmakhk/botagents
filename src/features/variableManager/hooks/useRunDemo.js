@@ -409,8 +409,9 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
     });
 
     // Execute clientJS immediately when received, without checking OutputView
+    /*
     socketRef.current.on('client_js_exec', (data) => {
-      //console.log(`[useRunDemo] A`, data);
+      console.log(`[useRunDemo] A`, data);
       try {
         if (data && data.clientJS && typeof data.clientJS === 'string') {
           //console.log(`[useRunDemo] B [clientJS]`, data.clientJS);
@@ -454,6 +455,7 @@ export default function useRunDemo({ rfNodes = [], rfEdges = [], stepDelay = 100
         console.error('[useRunDemo] clientJS execution error:', e);
       }
     });
+    */
 
     return () => {
       try {

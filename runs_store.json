@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-23T16:25:56.177Z",
+  "savedAt": "2026-03-24T16:53:13.603Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -132,10 +132,682 @@
     },
     {
       "projectId": "rule_1773360383383_n0u551",
-      "nodes": [],
-      "edges": [],
+      "nodes": [
+        {
+          "id": "cleanOutputView",
+          "position": {
+            "x": 22,
+            "y": 20
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "9ciuxQlkizKAipN9n2Xb",
+            "locked": false,
+            "apiName": "cleanOutputView",
+            "apiUrl": null,
+            "image": null,
+            "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "cleanOutputView",
+            "description": "api",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "fnString": "async function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n  console.log(\"cleanOutputView running server\");\n  console.log(\"cleanOutputView test call runId\", input.runId);\n  \n  const clientJS = `\n    console.log(\"cleanOutputView running client\", ${JSON.stringify(input.runId)});\n    const root = document.querySelector(${JSON.stringify(rootSelector)});\n    if (!root) {\n      console.warn(\"cleanOutputView: root not found\");\n    } else {\n      root.innerHTML = \"\";\n    }\n  `;\n\n  const resp = await fetch('http://localhost:3001/next/' + input.runId);\n  // 可選：const data = await resp.json(); 處理回應\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": {},
+            "actions": [],
+            "metadata": {
+              "apiId": "9ciuxQlkizKAipN9n2Xb",
+              "locked": false,
+              "apiName": "cleanOutputView",
+              "apiUrl": null,
+              "image": null,
+              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 0
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "createObjects",
+          "position": {
+            "x": 202,
+            "y": 20
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "t18j2BxNlpLTRPNRpXZu",
+            "locked": false,
+            "apiName": "createObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  if (cfg.bgimage) {\n  bgimageUrl = 'https://maxsolo.co.uk/images/uploads/img_69c12c77758f65.83921956.jpg';//cfg.bgimage;\n  el.style.backgroundImage = \"url(\" + bgimageUrl + \")\";\n  el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "object",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "createObjects",
+            "description": "api",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
+            "functionInput": {
+              "inputTest": "createobjects",
+              "objects": [
+                {
+                  "id": "start_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#000033",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#001133",
+                  "bgimage": "https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg",
+                  "zIndex": 2,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "button(start)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 250,
+                  "label": "Start",
+                  "color": "#00aa00",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "game_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#003300",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#004400",
+                  "zIndex": 2,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object1",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 100,
+                  "label": "Obj1",
+                  "color": "#ff6600",
+                  "textcolor": "#222333",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object2",
+                  "width": 50,
+                  "height": 50,
+                  "x": 90,
+                  "y": 150,
+                  "label": "Obj2",
+                  "color": "#66ff00",
+                  "textcolor": "#222333",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "cpanel",
+                  "width": 250,
+                  "height": 400,
+                  "x": 0,
+                  "y": 100,
+                  "color": "#333333",
+                  "zIndex": 8,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(up)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 50,
+                  "y": 120,
+                  "label": "Up",
+                  "color": "#0066ff",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "button(left)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 80,
+                  "y": 200,
+                  "label": "Left",
+                  "color": "#0066ff",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "button(right)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 20,
+                  "y": 200,
+                  "label": "Right",
+                  "color": "#0066ff",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "button(down)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 50,
+                  "y": 280,
+                  "label": "Down",
+                  "color": "#0066ff",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "button(skip)",
+                  "width": 100,
+                  "height": 50,
+                  "x": 50,
+                  "y": 360,
+                  "label": "Skip",
+                  "color": "#ff4400",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "showtext-time",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 50,
+                  "label": "ShowTime",
+                  "color": "#ffffff",
+                  "textcolor": "#222333",
+                  "zIndex": 12,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "showtext(distance)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 100,
+                  "label": "Distance",
+                  "color": "#ffffff",
+                  "textcolor": "#222333",
+                  "zIndex": 12,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "showtext(mark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "label": "Mark",
+                  "y": 150,
+                  "color": "#ffffff",
+                  "textcolor": "#222333",
+                  "zIndex": 12,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "showtext(totalmark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 200,
+                  "label": "TotalMark",
+                  "color": "#ffffff",
+                  "textcolor": "#222333",
+                  "zIndex": 12,
+                  "parent": "cpanel"
+                },
+                {
+                  "id": "result_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#330000",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#440000",
+                  "zIndex": 2,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 300,
+                  "height": 60,
+                  "x": 50,
+                  "y": 150,
+                  "label": "Time",
+                  "color": "#ffaa00",
+                  "textcolor": "#222333",
+                  "zIndex": 10,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "button(restart)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 50,
+                  "y": 350,
+                  "label": "Restart",
+                  "color": "#00aa00",
+                  "textcolor": "#222333",
+                  "zIndex": 12,
+                  "parent": "result_screen"
+                }
+              ]
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "t18j2BxNlpLTRPNRpXZu",
+              "locked": false,
+              "apiName": "createObjects",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  if (cfg.bgimage) {\n  bgimageUrl = 'https://maxsolo.co.uk/images/uploads/img_69c12c77758f65.83921956.jpg';//cfg.bgimage;\n  el.style.backgroundImage = \"url(\" + bgimageUrl + \")\";\n  el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "object",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 0
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "actionController",
+          "position": {
+            "x": 382,
+            "y": 20
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "v8ojtxUicPTCIzNU5skI",
+            "locked": false,
+            "apiName": "actionController",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "actionController",
+            "description": "api",
+            "label": "actionController",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('button(start)')?.onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)')?.onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)')?.onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "v8ojtxUicPTCIzNU5skI",
+              "locked": false,
+              "apiName": "actionController",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 0
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "startgame",
+          "position": {
+            "x": 562,
+            "y": 20
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runScriptMachine",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 0
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "counter1",
+          "position": {
+            "x": 35,
+            "y": 217
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runScriptMachine",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "start2",
+            "fnString": "async function processRequest(input) {\n  let clientJS = `\n    (function() {\nconsole.log('START RUN');\n      const div = document.getElementById('showtext-time');\n      if (!div) {\n        return;\n      }\n      \n      let current = div.textContent.trim();\n      let num = parseInt(current, 10);\n      \n      if (isNaN(num)) {\n        num = 0;\n      }\n      \n      num += 1;\n      div.textContent = num.toString();\n      console.log('Counter updated to:', num);\n    })();\n  `;\n  \n  return { clientJS };\n}",
+            "functionInput": "{\nclientJS:\"\"\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 1,
+            "_runningRuns": [
+              {
+                "runflowId": "run_a0766279-fcce-4d5a-8794-8c6c30ac866b",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T16:48:13.897Z",
+                "currentNodeId": "counter1",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T16:49:08.649Z",
+                "nodeCount": 6,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 5
+              }
+            ]
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": true,
+          "dragging": true,
+          "positionAbsolute": {
+            "x": 27.714285714285694,
+            "y": 216
+          }
+        },
+        {
+          "id": "JumpToNodeByLabel",
+          "position": {
+            "x": 202,
+            "y": 216
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "T7sJl75flCKvuLNb2053",
+            "locked": false,
+            "apiName": "JumpToNodeByLabel",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "JumpToNodeByLabel",
+            "description": "api",
+            "label": "JumpToNodeByLabel",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "functionInput": {
+              "targetNodeLabel": "start2"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "T7sJl75flCKvuLNb2053",
+              "locked": false,
+              "apiName": "JumpToNodeByLabel",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1",
+            "_runningCount": 0,
+            "_runningRuns": [
+              {
+                "runflowId": "run_852c424d-1431-494f-a50c-6fba1084fd76",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T16:41:02.855Z",
+                "currentNodeId": "JumpToNodeByLabel",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T16:41:59.057Z",
+                "nodeCount": 6,
+                "currentNodeName": "JumpToNodeByLabel",
+                "currentNodeIndex": 6
+              }
+            ]
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_1774305294305",
+          "source": "cleanOutputView",
+          "target": "createObjects",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774305294306",
+          "source": "createObjects",
+          "target": "actionController",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774305294307",
+          "source": "actionController",
+          "target": "startgame",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774305294307",
+          "source": "counter1",
+          "target": "JumpToNodeByLabel",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        }
+      ],
       "status": "stopped",
-      "storeVars": {},
+      "storeVars": {
+        "waiting_wait": false,
+        "node_JumpToNodeByLabel_status": "user_continued"
+      },
       "activeNodeId": "startgame",
       "activeEdgeId": null,
       "apis": [],
@@ -842,283 +1514,6 @@
       "projectId": "rule_0",
       "nodes": [
         {
-          "id": "createObjects",
-          "type": "api",
-          "data": {
-            "labelText": "createObjects",
-            "label": "createObjects",
-            "nodeLabel": "",
-            "description": "create objects on the output view",
-            "actions": [],
-            "fnString": "// CreateObjectsController\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\n\n  const existingMoveObjects = getVar(\"objects\") || [];\n\n  const objects = input.var.objects;\n\n  const newMoveObjects = objects\n    .filter(o => {\n      const existingSelector = existingMoveObjects.find(obj => obj.selector === `#${o.id}`);\n      return !existingSelector;\n    })\n    .map(o => ({\n      selector: `#${o.id}`,\n      x: o.x,\n      y: o.y,\n      speed: o.speed ?? 200,\n    }));\n\n  const moveObjects = [...existingMoveObjects, ...newMoveObjects];\n  setVar(\"objects\", moveObjects);\n\n  const clientJS = `\nconsole.log(\"CreateObjectsController running\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreateObjectsController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(\"div\");\n    el.id = cfg.id;\n    root.appendChild(el);\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = cfg.x + \"px\";\n  el.style.top  = cfg.y + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex != null ? String(cfg.zIndex) : \"1000\";\n});\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "objects": [
-                {
-                  "id": "start_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#000033",
-                  "zIndex": 1
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#001133",
-                  "zIndex": 2
-                },
-                {
-                  "id": "button(start)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 250,
-                  "color": "#00aa00",
-                  "zIndex": 10
-                },
-                {
-                  "id": "game_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#003300",
-                  "zIndex": 1
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#004400",
-                  "zIndex": 2
-                },
-                {
-                  "id": "object1",
-                  "width": 50,
-                  "height": 50,
-                  "x": 100,
-                  "y": 100,
-                  "color": "#ff6600",
-                  "zIndex": 5
-                },
-                {
-                  "id": "object2",
-                  "width": 50,
-                  "height": 50,
-                  "x": 200,
-                  "y": 150,
-                  "color": "#66ff00",
-                  "zIndex": 5
-                },
-                {
-                  "id": "cpanel",
-                  "width": 250,
-                  "height": 400,
-                  "x": 550,
-                  "y": 100,
-                  "color": "#333333",
-                  "zIndex": 8
-                },
-                {
-                  "id": "button(up)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 120,
-                  "color": "#0066ff",
-                  "zIndex": 10
-                },
-                {
-                  "id": "button(left)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10
-                },
-                {
-                  "id": "button(right)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 650,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10
-                },
-                {
-                  "id": "button(down)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 280,
-                  "color": "#0066ff",
-                  "zIndex": 10
-                },
-                {
-                  "id": "button(skip)",
-                  "width": 100,
-                  "height": 50,
-                  "x": 580,
-                  "y": 360,
-                  "color": "#ff4400",
-                  "zIndex": 10
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 50,
-                  "color": "#ffffff",
-                  "zIndex": 12
-                },
-                {
-                  "id": "showtext(distance)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 100,
-                  "color": "#ffffff",
-                  "zIndex": 12
-                },
-                {
-                  "id": "showtext(mark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 150,
-                  "color": "#ffffff",
-                  "zIndex": 12
-                },
-                {
-                  "id": "showtext(totalmark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 200,
-                  "color": "#ffffff",
-                  "zIndex": 12
-                },
-                {
-                  "id": "result_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#330000",
-                  "zIndex": 1
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#440000",
-                  "zIndex": 2
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 300,
-                  "height": 60,
-                  "x": 250,
-                  "y": 150,
-                  "color": "#ffaa00",
-                  "zIndex": 10
-                },
-                {
-                  "id": "button(restart)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 350,
-                  "color": "#00aa00",
-                  "zIndex": 12
-                }
-              ]
-            },
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 200,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "createObjects",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
-          "id": "createAction",
-          "type": "api",
-          "data": {
-            "labelText": "buttonController",
-            "label": "buttonController",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = '';\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\n{object:\"button1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"button2\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object1\",onclick:{document.getElementById('start_screen').style.display = 'none';}},\n{object:\"object2\",onclick:{document.getElementById('start_screen').style.display = 'none';}}\n}",
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 200,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "buttonController",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
-          "id": "startgame",
-          "type": "api",
-          "data": {
-            "labelText": "runScriptMachine",
-            "label": "runScriptMachine",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
-            },
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
-          "position": {
-            "x": 500,
-            "y": 50
-          },
-          "metadata": {
-            "apiId": "runScriptMachine",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          }
-        },
-        {
           "id": "cleanOutputView",
           "type": "api",
           "data": {
@@ -1131,11 +1526,12 @@
             "functionInput": "",
             "metadata": {
               "cssStyle": ""
-            }
+            },
+            "_runningCount": 0
           },
           "position": {
-            "x": 50,
-            "y": 50
+            "x": 20,
+            "y": 20
           },
           "metadata": {
             "apiId": "cleanOutputView",
@@ -1144,7 +1540,254 @@
           "style": {
             "borderRadius": 10,
             "padding": 8
-          }
+          },
+          "width": 220,
+          "height": 64
+        },
+        {
+          "id": "createObjects",
+          "type": "api",
+          "data": {
+            "labelText": "createObjects",
+            "label": "createObjects",
+            "nodeLabel": "",
+            "description": "create objects on the output view",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  if (cfg.bgimage) {\n  bgimageUrl = 'https://maxsolo.co.uk/images/uploads/img_69c12c77758f65.83921956.jpg';//cfg.bgimage;\n  el.style.backgroundImage = \"url(\" + bgimageUrl + \")\";\n  el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "functionInput": {
+              "objects": [
+                {
+                  "id": "start_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#000033",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#001133",
+                  "bgimage": "https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg",
+                  "zIndex": 2,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "button(start)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 250,
+                  "color": "#00aa00",
+                  "zIndex": 10,
+                  "parent": "start_screen"
+                },
+                {
+                  "id": "game_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#003300",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#004400",
+                  "zIndex": 2,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object1",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 100,
+                  "color": "#ff6600",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object2",
+                  "width": 50,
+                  "height": 50,
+                  "x": 200,
+                  "y": 150,
+                  "color": "#66ff00",
+                  "zIndex": 5,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "cpanel",
+                  "width": 250,
+                  "height": 400,
+                  "x": 550,
+                  "y": 100,
+                  "color": "#333333",
+                  "zIndex": 8,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(up)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 120,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(left)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(right)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 650,
+                  "y": 200,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(down)",
+                  "width": 60,
+                  "height": 60,
+                  "x": 580,
+                  "y": 280,
+                  "color": "#0066ff",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "button(skip)",
+                  "width": 100,
+                  "height": 50,
+                  "x": 580,
+                  "y": 360,
+                  "color": "#ff4400",
+                  "zIndex": 10,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 50,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(distance)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 100,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(mark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 150,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "showtext(totalmark)",
+                  "width": 150,
+                  "height": 40,
+                  "x": 50,
+                  "y": 200,
+                  "color": "#ffffff",
+                  "zIndex": 12,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "result_screen",
+                  "width": 800,
+                  "height": 600,
+                  "x": 0,
+                  "y": 0,
+                  "color": "#330000",
+                  "zIndex": 1,
+                  "parent": "ms-apiresults-body"
+                },
+                {
+                  "id": "background",
+                  "width": 780,
+                  "height": 580,
+                  "x": 10,
+                  "y": 10,
+                  "color": "#440000",
+                  "zIndex": 2,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "showtext(time)",
+                  "width": 300,
+                  "height": 60,
+                  "x": 250,
+                  "y": 150,
+                  "color": "#ffaa00",
+                  "zIndex": 10,
+                  "parent": "result_screen"
+                },
+                {
+                  "id": "button(restart)",
+                  "width": 200,
+                  "height": 60,
+                  "x": 300,
+                  "y": 350,
+                  "color": "#00aa00",
+                  "zIndex": 12,
+                  "parent": "result_screen"
+                }
+              ]
+            },
+            "metadata": {
+              "cssStyle": ""
+            },
+            "_runningCount": 0
+          },
+          "position": {
+            "x": 340,
+            "y": 20
+          },
+          "metadata": {
+            "apiId": "createObjects",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64
         },
         {
           "id": "actionController",
@@ -1161,11 +1804,12 @@
             },
             "metadata": {
               "cssStyle": ""
-            }
+            },
+            "_runningCount": 0
           },
           "position": {
-            "x": 350,
-            "y": 50
+            "x": 660,
+            "y": 20
           },
           "metadata": {
             "apiId": "actionController",
@@ -1174,50 +1818,174 @@
           "style": {
             "borderRadius": 10,
             "padding": 8
+          },
+          "width": 220,
+          "height": 64
+        },
+        {
+          "id": "startgame",
+          "type": "api",
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
+            },
+            "metadata": {
+              "cssStyle": ""
+            },
+            "_runningCount": 0
+          },
+          "position": {
+            "x": 980,
+            "y": 20
+          },
+          "metadata": {
+            "apiId": "runScriptMachine",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64
+        },
+        {
+          "id": "counter1",
+          "type": "api",
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "nodeLabel": "counter1start",
+            "description": "",
+            "actions": [],
+            "fnString": "let counter1 = getVar('counter1');\nif(!counter1){\n counter1 = 0;\n}\ncounter1++;\nsetVar('counter1', counter1);",
+            "functionInput": "{\nclientJS:\"\"\n}",
+            "metadata": {
+              "cssStyle": ""
+            },
+            "_runningCount": 0
+          },
+          "position": {
+            "x": 98.57142857142858,
+            "y": 348.57142857142867
+          },
+          "metadata": {
+            "apiId": "runScriptMachine",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64,
+          "selected": false,
+          "dragging": false,
+          "positionAbsolute": {
+            "x": 98.57142857142858,
+            "y": 348.57142857142867
           }
+        },
+        {
+          "id": "JumpToNodeByLabel",
+          "type": "api",
+          "data": {
+            "labelText": "JumpToNodeByLabel",
+            "label": "JumpToNodeByLabel",
+            "nodeLabel": "",
+            "description": "next node redirect to target label",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "functionInput": {
+              "targetNodeLabel": "counter1start"
+            },
+            "metadata": {
+              "cssStyle": ""
+            },
+            "_runningCount": 0
+          },
+          "position": {
+            "x": 496,
+            "y": 244
+          },
+          "metadata": {
+            "apiId": "JumpToNodeByLabel",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64,
+          "selected": true,
+          "positionAbsolute": {
+            "x": 495.7142857142858,
+            "y": 241.42857142857144
+          },
+          "dragging": true
         }
       ],
       "edges": [
         {
-          "id": "edge_1774052363607",
-          "source": "createObjects",
-          "target": "createAction",
-          "label": "next",
-          "type": "next"
-        },
-        {
-          "id": "edge_1774052363608",
-          "source": "createAction",
-          "target": "startgame",
-          "label": "next",
-          "type": "next"
-        },
-        {
-          "id": "edge_1774112147158",
+          "id": "edge_1774299446506",
           "source": "cleanOutputView",
           "target": "createObjects",
           "label": "next",
-          "type": "next"
+          "type": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
         },
         {
-          "id": "edge_1774112147159",
+          "id": "edge_1774299446507",
           "source": "createObjects",
           "target": "actionController",
           "label": "next",
-          "type": "next"
+          "type": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
         },
         {
-          "id": "edge_1774112147160",
+          "id": "edge_1774299446508",
           "source": "actionController",
           "target": "startgame",
           "label": "next",
-          "type": "next"
+          "type": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774299446508",
+          "source": "counter1",
+          "target": "JumpToNodeByLabel",
+          "label": "next",
+          "type": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774299446510",
+          "source": "JumpToNodeByLabel",
+          "target": "counter1",
+          "label": "next",
+          "type": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
         }
       ],
       "status": "stopped",
-      "storeVars": {},
-      "activeNodeId": "startgame",
-      "activeEdgeId": null,
+      "storeVars": {
+        "waiting_wait": false,
+        "node_JumpToNodeByLabel_status": "user_continued"
+      },
+      "activeNodeId": "JumpToNodeByLabel",
+      "activeEdgeId": "edge_1774299404895",
       "apis": [],
       "stepDelay": 1000,
       "categoryId": "rule_0"
