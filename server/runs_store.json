@@ -1,24 +1,214 @@
 {
   "runs": [
     {
-      "runId": "run_f7e0e7f8-f0a5-4643-937e-14b370e477db",
+      "runId": "run_3aa8b9cf-67aa-47da-a102-23216af30f18",
       "projectId": "rule_1773360383383_n0u551",
       "workflowId": "rule_1773360383383_n0u551",
       "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-24T16:52:54.014Z",
+      "startedAt": "2026-03-24T21:06:15.419Z",
       "currentNodeId": "startgame",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-24T16:52:59.248Z"
+      "lastHeartbeat": "2026-03-24T22:46:34.342Z"
     },
     {
-      "runId": "run_973387f4-42bc-4b7a-9f30-053cc61eaf3c",
+      "runId": "run_c27dc954-acf6-481d-a545-22867e127201",
       "projectId": "rule_1773360383383_n0u551",
       "workflowId": "rule_1773360383383_n0u551",
       "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-24T16:53:15.026Z",
-      "currentNodeId": "counter1",
+      "startedAt": "2026-03-24T21:07:23.377Z",
+      "currentNodeId": "startgame",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-24T16:54:57.635Z"
+      "lastHeartbeat": "2026-03-24T22:46:34.345Z"
+    },
+    {
+      "runId": "run_70dc371c-e0be-4f26-98e7-fb7f14a25934",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:09:49.636Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.347Z"
+    },
+    {
+      "runId": "run_26108fe9-1b08-4ba4-90a1-e8b44b272ec3",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:10:47.527Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.349Z"
+    },
+    {
+      "runId": "run_486b9f5b-70a7-4715-8f66-a86e56d5a076",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:11:51.600Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.351Z"
+    },
+    {
+      "runId": "run_6ad305a4-1d23-44d0-8281-78cf5292645a",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:15:29.263Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.353Z"
+    },
+    {
+      "runId": "run_851762b9-97df-4935-93f5-0eec06951113",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:16:13.318Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.355Z"
+    },
+    {
+      "runId": "run_b8de9dbb-d36d-4202-9b55-d2c008076b1f",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:16:24.621Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.378Z"
+    },
+    {
+      "runId": "run_0540990d-3b16-409d-99b7-bd57d9a6ccc7",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:17:32.106Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.381Z"
+    },
+    {
+      "runId": "run_783843d5-0cdd-469a-a6f6-da99771899fd",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T21:18:30.598Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.383Z"
+    },
+    {
+      "runId": "run_77d38f69-8398-44e9-b024-91bf7d46cae3",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:32:47.293Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.385Z"
+    },
+    {
+      "runId": "run_30363d3f-b823-4fd0-83ba-753b02f4a643",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:33:08.239Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.387Z"
+    },
+    {
+      "runId": "run_a3f30f9c-8f31-4322-9f20-d479903c221c",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:33:51.005Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.402Z"
+    },
+    {
+      "runId": "run_7a3da665-4f57-4e91-ad73-dd1af59a7a2a",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:35:08.545Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.404Z"
+    },
+    {
+      "runId": "run_7ad6ae46-f50f-4ce2-be73-4ca6a3ca03e6",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:46:11.268Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:34.407Z"
+    },
+    {
+      "runId": "run_96ee35ec-ad06-482b-a44a-9694a2ebe39e",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:46:41.913Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:46:47.214Z"
+    },
+    {
+      "runId": "run_2dd11b47-6f49-4394-88ea-84dc68f75383",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:47:01.635Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:47:06.881Z"
+    },
+    {
+      "runId": "run_03c12c39-c378-4fcb-bb4a-17ab3b462342",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:48:19.733Z",
+      "currentNodeId": "startgame",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:48:24.982Z"
+    },
+    {
+      "runId": "run_d94b03de-eb44-48e8-8790-ac4b4ead2417",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:48:27.338Z",
+      "currentNodeId": "node_1774385435819_aqjbpz",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:48:28.156Z"
+    },
+    {
+      "runId": "run_caf9e8d7-77a8-41f4-aae5-5d1c2a2895aa",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:48:33.795Z",
+      "currentNodeId": "node_1774385435819_aqjbpz",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:48:34.621Z"
+    },
+    {
+      "runId": "run_7b810e7b-b256-49f5-81cb-83d494724711",
+      "projectId": "rule_1773360383383_n0u551",
+      "workflowId": "rule_1773360383383_n0u551",
+      "categoryId": "zIbjcRkwOJwYKBNTit5D",
+      "startedAt": "2026-03-24T22:48:35.692Z",
+      "currentNodeId": "node_1774385435819_aqjbpz",
+      "currentEdgeId": null,
+      "lastHeartbeat": "2026-03-24T22:48:36.514Z"
     }
   ]
 }

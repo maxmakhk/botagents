@@ -744,6 +744,11 @@ export async function runWorkflow(socket, { projectId, runflowId, runId = null, 
           finalInput.runflowId = runflowId;
           finalInput.runId = runflowId;
         }
+        //* projectId = workflowId
+        if (projectId) {
+          finalInput.projectId = projectId;
+          finalInput.workflowId = projectId;
+        }
         return { ...currentNode, data: { ...data, input: finalInput } };
       } catch (e) { return currentNode; }
     })(),

@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-24T16:53:13.603Z",
+  "savedAt": "2026-03-24T22:48:17.021Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -187,12 +187,14 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "createObjects",
           "position": {
-            "x": 202,
+            "x": 200.5714285714286,
             "y": 20
           },
           "type": "api",
@@ -241,7 +243,7 @@
                   "parent": "start_screen"
                 },
                 {
-                  "id": "button(start)",
+                  "id": "button_start",
                   "width": 200,
                   "height": 60,
                   "x": 300,
@@ -281,7 +283,7 @@
                   "label": "Obj1",
                   "color": "#ff6600",
                   "textcolor": "#222333",
-                  "zIndex": 5,
+                  "zIndex": 50,
                   "parent": "game_screen"
                 },
                 {
@@ -293,7 +295,7 @@
                   "label": "Obj2",
                   "color": "#66ff00",
                   "textcolor": "#222333",
-                  "zIndex": 5,
+                  "zIndex": 50,
                   "parent": "game_screen"
                 },
                 {
@@ -307,7 +309,7 @@
                   "parent": "game_screen"
                 },
                 {
-                  "id": "button(up)",
+                  "id": "button_up",
                   "width": 60,
                   "height": 60,
                   "x": 50,
@@ -319,10 +321,10 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "button(left)",
+                  "id": "button_left",
                   "width": 60,
                   "height": 60,
-                  "x": 80,
+                  "x": 20,
                   "y": 200,
                   "label": "Left",
                   "color": "#0066ff",
@@ -331,10 +333,10 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "button(right)",
+                  "id": "button_right",
                   "width": 60,
                   "height": 60,
-                  "x": 20,
+                  "x": 80,
                   "y": 200,
                   "label": "Right",
                   "color": "#0066ff",
@@ -343,7 +345,7 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "button(down)",
+                  "id": "button_down",
                   "width": 60,
                   "height": 60,
                   "x": 50,
@@ -355,7 +357,7 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "button(skip)",
+                  "id": "button_skip",
                   "width": 100,
                   "height": 50,
                   "x": 50,
@@ -379,7 +381,7 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "showtext(distance)",
+                  "id": "showtext_distance",
                   "width": 150,
                   "height": 40,
                   "x": 50,
@@ -391,7 +393,7 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "showtext(mark)",
+                  "id": "showtext_mark",
                   "width": 150,
                   "height": 40,
                   "x": 50,
@@ -403,7 +405,7 @@
                   "parent": "cpanel"
                 },
                 {
-                  "id": "showtext(totalmark)",
+                  "id": "showtext_totalmark",
                   "width": 150,
                   "height": 40,
                   "x": 50,
@@ -435,7 +437,7 @@
                   "parent": "result_screen"
                 },
                 {
-                  "id": "showtext(time)",
+                  "id": "showtext_time",
                   "width": 300,
                   "height": 60,
                   "x": 50,
@@ -447,7 +449,7 @@
                   "parent": "result_screen"
                 },
                 {
-                  "id": "button(restart)",
+                  "id": "button_restart",
                   "width": 200,
                   "height": 60,
                   "x": 50,
@@ -490,13 +492,17 @@
           "width": 96,
           "height": 96,
           "selected": false,
-          "dragging": false
+          "dragging": false,
+          "positionAbsolute": {
+            "x": 200.5714285714286,
+            "y": 20
+          }
         },
         {
           "id": "actionController",
           "position": {
-            "x": 382,
-            "y": 20
+            "x": 385,
+            "y": 17
           },
           "type": "api",
           "metadata": {
@@ -518,10 +524,8 @@
             "description": "api",
             "label": "actionController",
             "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('button(start)')?.onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)')?.onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)')?.onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
-            },
+            "fnString": "async function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": "{\n  \"clientJS\": `\nconsole.log('action component');\n\nfunction moveBy(dx,dy){\n    console.log('moveBy');\n    try{\n        const el=document.getElementById('object1'); \n        if(!el) return; \n        if(!el.style.position || el.style.position==='') el.style.position='absolute'; \n        const px=(v)=>{\n            if(!v) \n            return 0; \n            return parseInt(String(v).replace('px',''))||0;\n            }; \n            let left = px(el.style.left) || (el.offsetLeft||0); \n            let top = px(el.style.top) || (el.offsetTop||0); \n            left += dx; top += dy; \n            el.style.left = left+'px'; el.style.top = top+'px'; \nconsole.log('move '+ left +', '+ top);\n        fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n    }catch(e){\n\n    }\n}\n\nconst div1 =document.getElementById('button_up');\ndiv1.onclick = function() {moveBy(0,-50);}\n\nconst div2 =document.getElementById('button_down');\ndiv2.onclick = function() {moveBy(0,50);}\n\nconst div3 =document.getElementById('button_left');\ndiv3.onclick = function() {moveBy(-50,0);}\n\nconst div4 =document.getElementById('button_right');\ndiv4.onclick = function() {moveBy(50,0);}\n\n `\n}",
             "actions": [],
             "metadata": {
               "apiId": "v8ojtxUicPTCIzNU5skI",
@@ -550,13 +554,19 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96
+          "height": 96,
+          "selected": true,
+          "dragging": false,
+          "positionAbsolute": {
+            "x": 382,
+            "y": 17.142857142857224
+          }
         },
         {
           "id": "startgame",
           "position": {
-            "x": 562,
-            "y": 20
+            "x": 559.1428571428572,
+            "y": 12.85714285714289
           },
           "type": "api",
           "metadata": {
@@ -600,7 +610,191 @@
             "width": 96,
             "height": 96,
             "scale": "1:1",
-            "_runningCount": 0
+            "_runningCount": 14,
+            "_runningRuns": [
+              {
+                "runflowId": "run_3aa8b9cf-67aa-47da-a102-23216af30f18",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:06:15.419Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:06:20.662Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_c27dc954-acf6-481d-a545-22867e127201",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:07:23.377Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:07:28.622Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_70dc371c-e0be-4f26-98e7-fb7f14a25934",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:09:49.636Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:09:54.863Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_26108fe9-1b08-4ba4-90a1-e8b44b272ec3",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:10:47.527Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:10:52.765Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_486b9f5b-70a7-4715-8f66-a86e56d5a076",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:11:51.600Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:11:56.841Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_6ad305a4-1d23-44d0-8281-78cf5292645a",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:15:29.263Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:15:34.500Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_851762b9-97df-4935-93f5-0eec06951113",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:16:13.318Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:16:18.560Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_b8de9dbb-d36d-4202-9b55-d2c008076b1f",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:16:24.621Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:16:29.845Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_0540990d-3b16-409d-99b7-bd57d9a6ccc7",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:17:32.106Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:17:37.343Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_783843d5-0cdd-469a-a6f6-da99771899fd",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T21:18:30.598Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T21:18:35.839Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_77d38f69-8398-44e9-b024-91bf7d46cae3",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T22:32:47.293Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T22:32:52.552Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_30363d3f-b823-4fd0-83ba-753b02f4a643",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T22:33:08.239Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T22:33:13.481Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_a3f30f9c-8f31-4322-9f20-d479903c221c",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T22:33:51.005Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T22:33:56.254Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              },
+              {
+                "runflowId": "run_7a3da665-4f57-4e91-ad73-dd1af59a7a2a",
+                "projectId": "rule_1773360383383_n0u551",
+                "workflowId": "rule_1773360383383_n0u551",
+                "categoryId": "zIbjcRkwOJwYKBNTit5D",
+                "startedAt": "2026-03-24T22:35:08.545Z",
+                "currentNodeId": "startgame",
+                "currentEdgeId": null,
+                "lastHeartbeat": "2026-03-24T22:35:13.799Z",
+                "nodeCount": 7,
+                "currentNodeName": "runScriptMachine",
+                "currentNodeIndex": 4
+              }
+            ]
           },
           "style": {
             "borderRadius": 10,
@@ -612,7 +806,11 @@
           "width": 96,
           "height": 96,
           "selected": false,
-          "dragging": false
+          "dragging": false,
+          "positionAbsolute": {
+            "x": 559.1428571428572,
+            "y": 12.85714285714289
+          }
         },
         {
           "id": "counter1",
@@ -660,22 +858,7 @@
             "width": 96,
             "height": 96,
             "scale": "1:1",
-            "_runningCount": 1,
-            "_runningRuns": [
-              {
-                "runflowId": "run_a0766279-fcce-4d5a-8794-8c6c30ac866b",
-                "projectId": "rule_1773360383383_n0u551",
-                "workflowId": "rule_1773360383383_n0u551",
-                "categoryId": "zIbjcRkwOJwYKBNTit5D",
-                "startedAt": "2026-03-24T16:48:13.897Z",
-                "currentNodeId": "counter1",
-                "currentEdgeId": null,
-                "lastHeartbeat": "2026-03-24T16:49:08.649Z",
-                "nodeCount": 6,
-                "currentNodeName": "runScriptMachine",
-                "currentNodeIndex": 5
-              }
-            ]
+            "_runningCount": 0
           },
           "style": {
             "borderRadius": 10,
@@ -686,12 +869,8 @@
           },
           "width": 96,
           "height": 96,
-          "selected": true,
-          "dragging": true,
-          "positionAbsolute": {
-            "x": 27.714285714285694,
-            "y": 216
-          }
+          "selected": false,
+          "dragging": false
         },
         {
           "id": "JumpToNodeByLabel",
@@ -739,22 +918,7 @@
             "width": 96,
             "height": 96,
             "scale": "1:1",
-            "_runningCount": 0,
-            "_runningRuns": [
-              {
-                "runflowId": "run_852c424d-1431-494f-a50c-6fba1084fd76",
-                "projectId": "rule_1773360383383_n0u551",
-                "workflowId": "rule_1773360383383_n0u551",
-                "categoryId": "zIbjcRkwOJwYKBNTit5D",
-                "startedAt": "2026-03-24T16:41:02.855Z",
-                "currentNodeId": "JumpToNodeByLabel",
-                "currentEdgeId": null,
-                "lastHeartbeat": "2026-03-24T16:41:59.057Z",
-                "nodeCount": 6,
-                "currentNodeName": "JumpToNodeByLabel",
-                "currentNodeIndex": 6
-              }
-            ]
+            "_runningCount": 0
           },
           "style": {
             "borderRadius": 10,
@@ -766,6 +930,43 @@
           "width": 96,
           "height": 96,
           "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774385435819_aqjbpz",
+          "type": "api",
+          "data": {
+            "labelText": "runScriptMachine",
+            "label": "runScriptMachine",
+            "nodeLabel": "check1",
+            "description": "",
+            "actions": [],
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nclientJS:\"console.log('check1');\"\n}",
+            "metadata": {
+              "cssStyle": ""
+            },
+            "_runningCount": 0
+          },
+          "position": {
+            "x": 65.71428571428567,
+            "y": 415.71428571428584
+          },
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64,
+          "selected": false,
+          "positionAbsolute": {
+            "x": 65.71428571428567,
+            "y": 415.71428571428584
+          },
           "dragging": false
         }
       ],
