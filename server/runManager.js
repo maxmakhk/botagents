@@ -638,6 +638,39 @@ class RunManager {
     } catch (e) { return false; }
   }
 
+  //from endpoint deleteAllruns
+  deleteAllRuns() {
+    try {
+      const allRuns = Object.values(this.runs);
+      let count = 0;
+
+      // Stop any running runs and clear them
+      for (const r of allRuns) {
+        try {
+          if (r && (r.status === 'running' || r.status === 'starting')) {
+            r.abort = true;
+            try { r.fakeSocket.__call('stop_workflow'); } catch (e) { }
+            try { r.fakeSocket.emit('run_stopped', { runId: r.runId }); } catch (e) { }
+          }
+          count++;
+        } catch (e) { /* ignore errors per run */ }
+      }
+
+      // Clear all runs
+      this.runs = {};
+
+      // Persist and broadcast
+      this._persist();
+      try { this._broadcastRunningList(); } catch (e) { }
+
+      console.log(`[runManager] deleteAllRuns() deleted ${count} runs`);
+      return true;
+    } catch (e) {
+      console.error('[runManager] deleteAllRuns() error:', e);
+      return false;
+    }
+  }
+
   // called by server when a client sends a control message
   receiveClientEvent(runId, event, payload) {
     const r = this.runs[runId];

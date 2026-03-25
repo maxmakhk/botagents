@@ -1854,6 +1854,7 @@ const VariableManager = ({ onBack }) => {
     return cleaned;
   }, []);
 
+  /*
   const deleteSelected = useCallback(() => {
     if (!selectedIds || !selectedIds.length) return;
     
@@ -1877,7 +1878,85 @@ const VariableManager = ({ onBack }) => {
     }
 
   }, [selectedIds, socketRef, projectIdForRun, rfNodes, setRfNodes, setRfEdges, setSelectedIds, cleanupOrphanedEdges, pushWorkflowUpdate]);
+*/
+  const deleteSelected = useCallback(async () => {
+    if (!selectedIds || !selectedIds.length) return;
+    
+    console.log('[Delete] Deleting selected items via endpoint:', selectedIds);
+    
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      
+      // Separate node IDs from edge IDs
+      const nodeIds = [];
+      const edgeIds = [];
+      
+      for (const id of selectedIds) {
+        const idStr = String(id);
+        const isNode = (rfNodes || []).some(n => String(n.id) === idStr);
+        if (isNode) {
+          nodeIds.push(idStr);
+        } else {
+          edgeIds.push(idStr);
+        }
+      }
 
+      console.log(`[Delete] Found ${nodeIds.length} nodes and ${edgeIds.length} edges to delete`);
+
+      // Delete nodes
+      for (const nodeId of nodeIds) {
+        try {
+          const res = await fetch(`${backendUrl}/deletenode/id/${encodeURIComponent(nodeId)}?projectId=${encodeURIComponent(projectIdForRun)}`);
+          const data = await res.json();
+          if (!data.success) {
+            console.warn(`[Delete] Failed to delete node ${nodeId}:`, data.error);
+          } else {
+            console.log(`[Delete] ✓ Deleted node ${nodeId}`);
+          }
+        } catch (err) {
+          console.error(`[Delete] Error deleting node ${nodeId}:`, err);
+        }
+      }
+
+      // Delete edges
+      for (const edgeId of edgeIds) {
+        try {
+          const res = await fetch(`${backendUrl}/deleteedge/id/${encodeURIComponent(edgeId)}?projectId=${encodeURIComponent(projectIdForRun)}`);
+          const data = await res.json();
+          if (!data.success) {
+            console.warn(`[Delete] Failed to delete edge ${edgeId}:`, data.error);
+          } else {
+            console.log(`[Delete] ✓ Deleted edge ${edgeId}`);
+          }
+        } catch (err) {
+          console.error(`[Delete] Error deleting edge ${edgeId}:`, err);
+        }
+      }
+
+      // Local state update: remove deleted items
+      const sel = (selectedIds || []).map((s) => String(s));
+      const newNodes = (rfNodes || []).filter((n) => !sel.includes(String(n.id)));
+      const newEdges = (rfEdges || []).filter((e) => !sel.includes(String(e.id)) && !sel.includes(String(e.source)) && !sel.includes(String(e.target)));
+      const cleanedEdges = cleanupOrphanedEdges(newNodes, newEdges);
+      
+      setRfNodes(newNodes);
+      setRfEdges(cleanedEdges);
+      setSelectedIds([]);
+      
+      // Optionally push workflow update
+      if (typeof pushWorkflowUpdate === 'function') {
+        pushWorkflowUpdate(newNodes, cleanedEdges);
+      }
+
+      console.log('[Delete] ✓ Deletion completed');
+      
+    } catch (err) {
+      console.error('[Delete] Error during deletion:', err);
+    }
+
+  }, [selectedIds, projectIdForRun, rfNodes, setRfNodes, rfEdges, setRfEdges, setSelectedIds, cleanupOrphanedEdges, pushWorkflowUpdate]);
+  
+  
   // Listen for nodes_edges_deleted events from server
   useEffect(() => {
     const handleNodesEdgesDeleted = (e) => {
