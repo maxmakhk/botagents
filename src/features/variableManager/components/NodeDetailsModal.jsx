@@ -15,9 +15,57 @@ const NodeDetailsModal = ({
   linkActionToRule,
   deleteActionFromNode,
   updateActionOnNode,
-  updateNodeDetails
+  updateNodeDetails,
+  projectIdForRun
 }) => {
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [saveMessage, setSaveMessage] = React.useState('');
+  
   if (!selectedNodeDetails) return null;
+
+  // ===== NEW: Save all node details to server =====
+  const handleSaveNodeDetails = async () => {
+    try {
+      if (!projectIdForRun) {
+        setSaveMessage('Error: No project ID available');
+        setTimeout(() => setSaveMessage(''), 3000);
+        return;
+      }
+
+      setIsSaving(true);
+      const updates = {
+        labelText: selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || '',
+        nodeLabel: selectedNodeDetails.data?.nodeLabel || '',
+        description: selectedNodeDetails.data?.description || ''
+      };
+
+      const response = await fetch('http://localhost:3001/updatenode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedNodeDetails.id,
+          projectId: projectIdForRun,
+          ...updates
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSaveMessage('✓ Saved successfully');
+        setTimeout(() => setSaveMessage(''), 2000);
+      } else {
+        setSaveMessage('✗ Save failed: ' + (result.error || 'Unknown error'));
+        setTimeout(() => setSaveMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('[handleSaveNodeDetails] Error:', err);
+      setSaveMessage('✗ Error: ' + err.message);
+      setTimeout(() => setSaveMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  // ===== END NEW FUNCTION =====
 
   return (
     <div
@@ -51,14 +99,13 @@ const NodeDetailsModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12}}>
           <div style={{flex:1, marginRight:12}}>
             <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Name</div>
             <input
               type="text"
               value={selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), labelText: e.target.value, label: e.target.value } }))}
-              onBlur={() => updateNodeDetails && updateNodeDetails(selectedNodeDetails.id, { labelText: selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || '', label: selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || '' })}
               placeholder="Node Name"
               style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
             />
@@ -67,7 +114,6 @@ const NodeDetailsModal = ({
               type="text"
               value={selectedNodeDetails.data?.nodeLabel || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), nodeLabel: e.target.value } }))}
-              onBlur={() => updateNodeDetails && updateNodeDetails(selectedNodeDetails.id, { nodeLabel: selectedNodeDetails.data?.nodeLabel || '' })}
               placeholder="Short label (shown in workflow)"
               style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
             />
@@ -75,13 +121,33 @@ const NodeDetailsModal = ({
               rows={2}
               value={selectedNodeDetails.data?.description || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), description: e.target.value } }))}
-              onBlur={() => updateNodeDetails && updateNodeDetails(selectedNodeDetails.id, { description: selectedNodeDetails.data?.description || '' })}
               placeholder="Node description"
               style={{width:'100%', marginTop:8, padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
             />
           </div>
-          <div style={{display:'flex', gap:8, alignItems:'center'}}>
-            <button onClick={() => setSelectedNodeDetails(null)} style={{background:'#3b82f6', border:'none', color:'#e5e7eb', fontSize:20}}>x</button>
+          <div style={{display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end'}}>
+            <button onClick={() => setSelectedNodeDetails(null)} style={{background:'#3b82f6', border:'none', color:'#e5e7eb', fontSize:20, cursor:'pointer', padding:'4px 8px', borderRadius:4}}>x</button>
+            <button 
+              onClick={handleSaveNodeDetails} 
+              disabled={isSaving}
+              style={{
+                background: isSaving ? '#475569' : '#10b981',
+                border:'none', 
+                color:'#e5e7eb', 
+                padding:'8px 16px',
+                borderRadius:6,
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                fontSize:'0.9rem',
+                fontWeight:'600'
+              }}
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+            {saveMessage && (
+              <div style={{fontSize:'0.85rem', color: saveMessage.includes('✓') ? '#10b981' : '#ef4444', marginTop:4}}>
+                {saveMessage}
+              </div>
+            )}
           </div>
         </div>
 

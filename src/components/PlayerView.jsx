@@ -13,6 +13,10 @@ export default function PlayerView({ onBack }) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  
+  // Run workflow by name state
+  const [workflowName, setWorkflowName] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => { selectedCategoryRef.current = selectedCategory; }, [selectedCategory]);
 
@@ -154,6 +158,34 @@ export default function PlayerView({ onBack }) {
     }
   }, [lines]);
 
+  // Run workflow by name using runnewbyname endpoint
+  const handleRunWorkflowByName = async () => {
+    if (!workflowName.trim()) {
+      alert('Please enter a workflow name');
+      return;
+    }
+    
+    try {
+      setIsRunning(true);
+      const response = await fetch(`${API_BASE}/runnewbyname/${encodeURIComponent(workflowName)}/start`);
+      if (!response.ok) {
+        const error = await response.json();
+        alert(`Failed to run workflow: ${error.error || 'Unknown error'}`);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log(`[PlayerView] Started workflow run: ${data.runId}`);
+      alert(`Workflow started! Run ID: ${data.runId}`);
+      setWorkflowName('');
+    } catch (err) {
+      console.error('[PlayerView] Error running workflow:', err);
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <div 
     id="outputview"
@@ -170,26 +202,26 @@ export default function PlayerView({ onBack }) {
               <option key={c.id} value={c.id}>{c.name || c.id}</option>
             ))}
           </select>
+        </div>
+        
+        {/* Run workflow by name */}
+        <div style={{marginLeft:16, display:'flex', gap:8, alignItems:'center'}}>
+          <label style={{marginRight:4}}>Run Workflow:</label>
+          <input 
+            type="text"
+            placeholder="workflow name"
+            value={workflowName}
+            onChange={(e) => setWorkflowName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleRunWorkflowByName()}
+            style={{padding:6, borderRadius:4, border:'1px solid #475569', background:'#0f1419', color:'#e5e7eb', minWidth:150}}
+          />
           <button 
-            onClick={() => {
-              // Refresh categories
-              const loadCategories = async () => {
-                try {
-                  const resp = await fetch(`${API_BASE}/api/rule-categories`);
-                  if (resp.ok) {
-                    const data = await resp.json();
-                    setCategories(Array.isArray(data) ? data : []);
-                  }
-                } catch (err) {
-                  console.error('Failed to refresh categories:', err);
-                }
-              };
-              loadCategories();
-            }}
-            style={{padding:'6px 10px', background:'#0ea5b7', color:'#000', border:'none', borderRadius:4, cursor:'pointer'}}
-            title="Refresh categories"
+            onClick={handleRunWorkflowByName}
+            disabled={isRunning}
+            style={{padding:'6px 12px', background:isRunning ? '#666' : '#10b981', color:'#000', border:'none', borderRadius:4, cursor:isRunning ? 'not-allowed' : 'pointer'}}
+            title="Run workflow from start node"
           >
-            ↻ Refresh
+            {isRunning ? 'Running...' : 'Run'}
           </button>
         </div>
       </div>

@@ -1240,6 +1240,7 @@ const VariableManager = ({ onBack }) => {
   const [isSysPromptModalOpen, setIsSysPromptModalOpen] = useState(false);
   const [userPromptInput, setUserPromptInput] = useState('');
   const [workflowTemplateText, setWorkflowTemplateText] = useState('');
+  const [keywordDeleteInput, setKeywordDeleteInput] = useState('');
   // store the latest generated prompts for display or copying
   const [lastUserPrompt, setLastUserPrompt] = useState('');
   const [lastSystemPrompt, setLastSystemPrompt] = useState('');
@@ -1955,6 +1956,74 @@ const VariableManager = ({ onBack }) => {
     }
 
   }, [selectedIds, projectIdForRun, rfNodes, setRfNodes, rfEdges, setRfEdges, setSelectedIds, cleanupOrphanedEdges, pushWorkflowUpdate]);
+
+  // Delete nodes/edges by keyword using endpoint
+  const handleDeleteByKeyword = useCallback(async () => {
+    const keyword = keywordDeleteInput?.trim();
+    if (!keyword) {
+      setAiWarning('Please enter a keyword');
+      setTimeout(() => setAiWarning(''), 3000);
+      return;
+    }
+
+    console.log('[DeleteByKeyword] Starting deletion with keyword:', keyword);
+    
+    try {
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      let totalNodesDeleted = 0;
+      let totalEdgesDeleted = 0;
+
+      // Delete nodes by keyword
+      try {
+        console.log(`[DeleteByKeyword] Calling /deletenode/keyword/${keyword}`);
+        const nodeRes = await fetch(
+          `${backendUrl}/deletenode/keyword/${encodeURIComponent(keyword)}?projectId=${encodeURIComponent(projectIdForRun)}`,
+          { method: 'GET' }
+        );
+        const nodeData = await nodeRes.json();
+        if (nodeData.success && nodeData.results) {
+          totalNodesDeleted = nodeData.results.reduce((sum, r) => sum + (r.matchedCount || 0), 0);
+          console.log(`[DeleteByKeyword] ✓ Deleted ${totalNodesDeleted} nodes:`, nodeData.results);
+        } else {
+          console.warn('[DeleteByKeyword] Node deletion failed:', nodeData.error);
+        }
+      } catch (err) {
+        console.error('[DeleteByKeyword] Error deleting nodes:', err);
+      }
+
+      // Delete edges by keyword
+      try {
+        console.log(`[DeleteByKeyword] Calling /deleteedge/keyword/${keyword}`);
+        const edgeRes = await fetch(
+          `${backendUrl}/deleteedge/keyword/${encodeURIComponent(keyword)}?projectId=${encodeURIComponent(projectIdForRun)}`,
+          { method: 'GET' }
+        );
+        const edgeData = await edgeRes.json();
+        if (edgeData.success && edgeData.results) {
+          totalEdgesDeleted = edgeData.results.reduce((sum, r) => sum + (r.matchedCount || 0), 0);
+          console.log(`[DeleteByKeyword] ✓ Deleted ${totalEdgesDeleted} edges:`, edgeData.results);
+        } else {
+          console.warn('[DeleteByKeyword] Edge deletion failed:', edgeData.error);
+        }
+      } catch (err) {
+        console.error('[DeleteByKeyword] Error deleting edges:', err);
+      }
+
+      // Show result summary
+      const summary = `✓ Deleted ${totalNodesDeleted} nodes and ${totalEdgesDeleted} edges`;
+      console.log('[DeleteByKeyword]', summary);
+      setAiWarning(summary);
+      
+      // Clear input after success
+      setKeywordDeleteInput('');
+      setTimeout(() => setAiWarning(''), 3000);
+
+    } catch (err) {
+      console.error('[DeleteByKeyword] Error:', err);
+      setAiWarning('Error deleting by keyword: ' + (err.message || 'Unknown error'));
+      setTimeout(() => setAiWarning(''), 3000);
+    }
+  }, [keywordDeleteInput, projectIdForRun, setAiWarning]);
   
   
   // Listen for nodes_edges_deleted events from server
@@ -2950,6 +3019,44 @@ const VariableManager = ({ onBack }) => {
         setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), ...(updates || {}) } }));
       }
 
+            // ========== SEND UPDATE TO SERVER VIA ENDPOINT (replaced socket.emit) ==========
+      if (projectIdForRun) {
+        try {
+          // Prepare payload: flatten updates.data into root level
+          const payload = {
+            id: nodeId,
+            projectId: projectIdForRun
+          };
+
+          // If updates contains .data, flatten it to root level
+          if (updates && updates.data && typeof updates.data === 'object') {
+            Object.assign(payload, updates.data);
+          } else {
+            // Otherwise merge updates directly
+            Object.assign(payload, updates);
+          }
+
+          console.log("[updateNodeDetails]");
+          console.log(payload);
+          
+          const response = await fetch('http://localhost:3001/updatenode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+          if (!result.success) {
+            console.warn('[updateNodeDetails] Server returned error:', result.error);
+            setAiWarning('Warning: Server update failed - ' + result.error);
+          }
+        } catch (err) {
+          console.error('[updateNodeDetails] Endpoint call failed:', err);
+          setAiWarning('Failed to save to server: ' + err.message);
+        }
+      }
+
+      /* 
+      ===== OLD SOCKET.IO CODE (COMMENTED OUT) =====
       // Send single node update to server (efficient)
       if (socketRef && socketRef.current && projectIdForRun) {
         socketRef.current.emit('update_node', {
@@ -2958,6 +3065,8 @@ const VariableManager = ({ onBack }) => {
           updates: updates
         });
       }
+      ===== END OLD SOCKET.IO CODE =====
+      */
 
       // Persist workflow
       persistWorkflowToRule(updatedNodes);
@@ -4089,6 +4198,7 @@ const edges = [
         deleteActionFromNode={deleteActionFromNode}
         updateActionOnNode={updateActionOnNode}
         updateNodeDetails={updateNodeDetails}
+        projectIdForRun={projectIdForRun}
       />
       {isOutputOpenLocal && (
         <OutputView onClose={() => setIsOutputOpenLocal(false)} socket={socketRef && socketRef.current ? socketRef.current : null} projectId={projectIdForRun} />
@@ -4111,6 +4221,7 @@ const edges = [
               <button onClick={() => { console.log('modal submit button clicked'); submitGeneratePrompt(); }} style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Submit</button>
             </div>
 
+            <h3 style={{ margin: '0 0 8px 0', color: '#fff' }}>Workflow Template</h3>
             <textarea
               id="workflowTemplate"
               value={workflowTemplateText}
@@ -4123,7 +4234,25 @@ const edges = [
                 id="workflowTemplateSubmitBtn"
                 onClick={() => sendWorkflowTemplate()}
                 style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-              >Submit</button>
+              >Submit New Workflow Template</button>
+            </div>
+
+            <h3 style={{ margin: '0 0 8px 0', color: '#fff' }}>Delete Node/Edge by Keyword</h3>
+            <input
+              type='text'
+              id="keywordDeleteInput"
+              value={keywordDeleteInput}
+              onChange={(e) => setKeywordDeleteInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleDeleteByKeyword()}
+              placeholder="Enter keyword to delete nodes/edges..."
+              style={{ width: '100%', padding: 8, marginTop: 15, borderRadius: 6, background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button 
+                id="keywordDeleteSubmitBtn"
+                onClick={handleDeleteByKeyword}
+                style={{ padding: '6px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+              >Delete Node/Edge by Keyword</button>
             </div>
 
           </div>

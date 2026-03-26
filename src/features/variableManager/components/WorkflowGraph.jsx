@@ -100,7 +100,9 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
           {/* Background overlay */}
           <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex: 10000}} onClick={() => setOpen(false)} />
           {/* Centered modal */}
-          <div style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
+          <div 
+          id="updateNodeFnForm"
+          style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
             
             <div style={{marginTop:12}}>
               <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6, fontWeight:600}}>Function Input (default input.var)</div>

@@ -1787,6 +1787,274 @@ app.get('/worlds', (req, res) => {
   res.json(rows);
 });
 
+// ==================== DELETE NODE/EDGE by ID or KEYWORD ====================
+
+// GET /deletenode/id/:id?projectId=xxx
+// Delete a node by its ID. Optional projectId query param to search specific project.
+app.get('/deletenode/id/:id', (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const projectIdParam = req.query.projectId; // optional filter
+
+    if (!nodeId) {
+      return res.status(400).json({ success: false, error: 'nodeId required' });
+    }
+
+    // Find all projects containing this node
+    const affectedProjects = [];
+    for (const [projectId, project] of projectManager.projects.entries()) {
+      // Skip if projectId filter provided and doesn't match
+      if (projectIdParam && String(projectId) !== String(projectIdParam)) {
+        continue;
+      }
+
+      const nodeExists = (project.nodes || []).some(n => String(n.id) === String(nodeId));
+      if (nodeExists) {
+        affectedProjects.push(projectId);
+      }
+    }
+
+    if (affectedProjects.length === 0) {
+      return res.status(404).json({ success: false, error: 'Node not found in any project' });
+    }
+
+    // Delete from each affected project
+    const results = [];
+    for (const projectId of affectedProjects) {
+      const deleteResult = projectManager.deleteSelectedItems(projectId, [nodeId]);
+      if (deleteResult) {
+        results.push({
+          projectId,
+          deleted: true,
+          removedNodeIds: deleteResult.removedNodeIds,
+          orphanedEdgesRemoved: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes.length,
+          remainingEdges: deleteResult.remainingEdges.length
+        });
+
+        // Broadcast update to watching clients
+        projectManager.broadcastToProject(projectId, 'nodes_edges_deleted', {
+          projectId,
+          removedNodeIds: deleteResult.removedNodeIds,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          orphanedEdgeCount: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes,
+          remainingEdges: deleteResult.remainingEdges
+        });
+      }
+    }
+
+    console.log(`[deletenode/id] Deleted node ${nodeId} from ${results.length} project(s)`);
+    res.json({ success: true, nodeId, results });
+  } catch (err) {
+    console.error('[deletenode/id] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /deleteedge/id/:id?projectId=xxx
+// Delete an edge by its ID. Optional projectId query param to search specific project.
+app.get('/deleteedge/id/:id', (req, res) => {
+  try {
+    const edgeId = req.params.id;
+    const projectIdParam = req.query.projectId; // optional filter
+
+    if (!edgeId) {
+      return res.status(400).json({ success: false, error: 'edgeId required' });
+    }
+
+    // Find all projects containing this edge
+    const affectedProjects = [];
+    for (const [projectId, project] of projectManager.projects.entries()) {
+      // Skip if projectId filter provided and doesn't match
+      if (projectIdParam && String(projectId) !== String(projectIdParam)) {
+        continue;
+      }
+
+      const edgeExists = (project.edges || []).some(e => String(e.id) === String(edgeId));
+      if (edgeExists) {
+        affectedProjects.push(projectId);
+      }
+    }
+
+    if (affectedProjects.length === 0) {
+      return res.status(404).json({ success: false, error: 'Edge not found in any project' });
+    }
+
+    // Delete from each affected project
+    const results = [];
+    for (const projectId of affectedProjects) {
+      const deleteResult = projectManager.deleteSelectedItems(projectId, [edgeId]);
+      if (deleteResult) {
+        results.push({
+          projectId,
+          deleted: true,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          remainingNodes: deleteResult.remainingNodes.length,
+          remainingEdges: deleteResult.remainingEdges.length
+        });
+
+        // Broadcast update to watching clients
+        projectManager.broadcastToProject(projectId, 'nodes_edges_deleted', {
+          projectId,
+          removedNodeIds: deleteResult.removedNodeIds,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          orphanedEdgeCount: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes,
+          remainingEdges: deleteResult.remainingEdges
+        });
+      }
+    }
+
+    console.log(`[deleteedge/id] Deleted edge ${edgeId} from ${results.length} project(s)`);
+    res.json({ success: true, edgeId, results });
+  } catch (err) {
+    console.error('[deleteedge/id] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /deletenode/keyword/:keyword?projectId=xxx
+// Delete all nodes whose description contains the keyword
+app.get('/deletenode/keyword/:keyword', (req, res) => {
+  try {
+    const keyword = req.params.keyword;
+    const projectIdParam = req.query.projectId; // optional filter
+    const keywordLower = String(keyword).toLowerCase();
+
+    if (!keyword) {
+      return res.status(400).json({ success: false, error: 'keyword required' });
+    }
+
+    const results = [];
+
+    // Search all projects for matching nodes
+    for (const [projectId, project] of projectManager.projects.entries()) {
+      // Skip if projectId filter provided and doesn't match
+      if (projectIdParam && String(projectId) !== String(projectIdParam)) {
+        continue;
+      }
+
+      // Find nodes matching keyword in description
+      const matchingNodeIds = [];
+      const nodes = project.nodes || [];
+      for (const node of nodes) {
+        const description = String(node.data?.description || '').toLowerCase();
+        if (description.includes(keywordLower)) {
+          matchingNodeIds.push(String(node.id));
+        }
+      }
+
+      if (matchingNodeIds.length === 0) {
+        continue; // No matches in this project
+      }
+
+      // Delete matching nodes
+      const deleteResult = projectManager.deleteSelectedItems(projectId, matchingNodeIds);
+      if (deleteResult) {
+        results.push({
+          projectId,
+          matchedCount: matchingNodeIds.length,
+          removedNodeIds: deleteResult.removedNodeIds,
+          orphanedEdgesRemoved: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes.length,
+          remainingEdges: deleteResult.remainingEdges.length
+        });
+
+        // Broadcast update to watching clients
+        projectManager.broadcastToProject(projectId, 'nodes_edges_deleted', {
+          projectId,
+          removedNodeIds: deleteResult.removedNodeIds,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          orphanedEdgeCount: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes,
+          remainingEdges: deleteResult.remainingEdges
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, error: 'No nodes found matching keyword' });
+    }
+
+    console.log(`[deletenode/keyword] Deleted nodes matching "${keyword}" from ${results.length} project(s)`);
+    res.json({ success: true, keyword, results });
+  } catch (err) {
+    console.error('[deletenode/keyword] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /deleteedge/keyword/:keyword?projectId=xxx
+// Delete all edges whose description contains the keyword
+app.get('/deleteedge/keyword/:keyword', (req, res) => {
+  try {
+    const keyword = req.params.keyword;
+    const projectIdParam = req.query.projectId; // optional filter
+    const keywordLower = String(keyword).toLowerCase();
+
+    if (!keyword) {
+      return res.status(400).json({ success: false, error: 'keyword required' });
+    }
+
+    const results = [];
+
+    // Search all projects for matching edges
+    for (const [projectId, project] of projectManager.projects.entries()) {
+      // Skip if projectId filter provided and doesn't match
+      if (projectIdParam && String(projectId) !== String(projectIdParam)) {
+        continue;
+      }
+
+      // Find edges matching keyword in description
+      const matchingEdgeIds = [];
+      const edges = project.edges || [];
+      for (const edge of edges) {
+        const description = String(edge.data?.description || '').toLowerCase();
+        if (description.includes(keywordLower)) {
+          matchingEdgeIds.push(String(edge.id));
+        }
+      }
+
+      if (matchingEdgeIds.length === 0) {
+        continue; // No matches in this project
+      }
+
+      // Delete matching edges
+      const deleteResult = projectManager.deleteSelectedItems(projectId, matchingEdgeIds);
+      if (deleteResult) {
+        results.push({
+          projectId,
+          matchedCount: matchingEdgeIds.length,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          remainingNodes: deleteResult.remainingNodes.length,
+          remainingEdges: deleteResult.remainingEdges.length
+        });
+
+        // Broadcast update to watching clients
+        projectManager.broadcastToProject(projectId, 'nodes_edges_deleted', {
+          projectId,
+          removedNodeIds: deleteResult.removedNodeIds,
+          removedEdgeIds: deleteResult.removedEdgeIds,
+          orphanedEdgeCount: deleteResult.orphanedEdgeCount,
+          remainingNodes: deleteResult.remainingNodes,
+          remainingEdges: deleteResult.remainingEdges
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, error: 'No edges found matching keyword' });
+    }
+
+    console.log(`[deleteedge/keyword] Deleted edges matching "${keyword}" from ${results.length} project(s)`);
+    res.json({ success: true, keyword, results });
+  } catch (err) {
+    console.error('[deleteedge/keyword] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ------------------ Socket.IO Workflow Execution -------------------------
 io.on('connection', (socket) => {
   console.log(`[Socket] ✅ Client connected: ${socket.id}`);
@@ -2497,6 +2765,94 @@ app.get('/runnew/:workflowId/:nodeLabelName', (req, res) => {
   }
 });
 
+// Create new run starting from a specific node label
+// http://localhost:3001/runnewbyname/:workflowName/:nodeLabelName
+app.get('/runnewbyname/:workflowName/:nodeLabelName', (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ RUN NEW by Workflow Name and Node Label Name ************');
+  console.log('workflowName =', req.params.workflowName, 'nodeLabelName =', req.params.nodeLabelName);
+  console.log('****************************************************************')
+  try {
+    const { workflowName, nodeLabelName } = req.params;
+    if (!workflowName || !nodeLabelName) {
+      return res.status(400).json({ error: 'workflowName and nodeLabelName required' });
+    }
+
+    // Find workflow by name
+    const allWorkflows = projectManager.getAllWorkflowStatus() || [];
+    const matchingWorkflow = allWorkflows.find(wf => wf.name === workflowName);
+    
+    if (!matchingWorkflow) {
+      const availableWorkflows = allWorkflows.map(w => w.name).join(', ');
+      return res.status(404).json({ 
+        error: `Workflow "${workflowName}" not found`,
+        availableWorkflows: availableWorkflows || '(no workflows)'
+      });
+    }
+
+    const workflowId = matchingWorkflow.id;
+
+    // Load workflow from projectManager memory
+    const workflow = projectManager.getWorkflowData(workflowId);
+    if (!workflow) {
+      return res.status(404).json({ error: `Workflow "${workflowName}" (id: ${workflowId}) not found in server memory` });
+    }
+
+    const nodes = workflow.nodes || [];
+    const edges = workflow.edges || [];
+    const apis = workflow.apis || [];
+    const projectId = workflow.id || workflowId;
+    const categoryId = workflow.categoryId || projectId;
+
+    // Find node by label
+    let startNodeId = null;
+    for (const node of nodes) {
+      const runNodeLabel = node?.data?.nodeLabel;
+      
+      if (runNodeLabel == nodeLabelName) {
+        startNodeId = node.id;
+        break;
+      }
+    }
+
+    if (!startNodeId) {
+      const availableLabels = nodes.map(n => n?.data?.nodeLabel || n?.data?.label || n?.label || '(unnamed)').join(', ');
+      return res.status(404).json({ 
+        error: `Node with label "${nodeLabelName}" not found in workflow`,
+        availableLabels: availableLabels || '(no nodes)'
+      });
+    }
+
+    // Create new run starting from the specified node
+    const options = { startNodeId };
+    const run = runManager.startRun({ 
+      projectId, 
+      workflowId, 
+      nodes, 
+      edges, 
+      apis, 
+      options 
+    });
+    
+    console.log(`[runnewbyname] Created run ${run.runId} from workflow "${workflowName}" (id: ${workflowId}), starting at node "${nodeLabelName}" (nodeId: ${startNodeId})`);
+    
+    res.json({ 
+      success: true, 
+      runId: run.runId,
+      runflowId: run.runId,
+      projectId: run.projectId,
+      workflowId: run.workflowId,
+      categoryId: run.categoryId,
+      startNodeId: startNodeId,
+      startNodeLabel: nodeLabelName,
+      workflowName: workflowName
+    });
+  } catch (err) { 
+    console.error('[runnewbyname] Error:', err);
+    res.status(500).json({ error: String(err) }); 
+  }
+});
+
 // Update workflow metadata (name, category)
 app.post('/updateworkflow', (req, res) => {
   try {
@@ -2730,6 +3086,149 @@ app.post('/addnode', async (req, res) => {
     });
   } catch (err) {
     console.error('0319 [POST /addnode] error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /updatenode
+// Update a node's properties (name, label, description, fnString, etc.)
+// Input: { id (nodeId), projectId (optional), updates: { name, label, description, fnString, ... } }
+app.post('/updatenode', (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ /updatenode ************************');
+  console.log('Request body:', req.body);
+  console.log('****************************************************************');
+  try {
+    const { id: nodeId, projectId, name, label, description, labelText, nodeLabel, fnString, functionInput } = req.body || {};
+    
+    if (!nodeId) return res.status(400).json({ success: false, error: 'nodeId (id) required' });
+
+    // Prepare updates object from request body
+    const updates = {};
+    if (name !== undefined) updates.labelText = name;
+    if (label !== undefined) updates.label = label;
+    if (labelText !== undefined) updates.labelText = labelText;
+    if (nodeLabel !== undefined) updates.nodeLabel = nodeLabel;
+    if (description !== undefined) updates.description = description;
+    if (fnString !== undefined) updates.fnString = fnString;
+    if (functionInput !== undefined) updates.functionInput = functionInput;
+
+    // If projectId not provided, search all projects for the nodeId
+    let projId = projectId;
+    let foundNode = null;
+
+    if (projId) {
+      console.log(`[/updatenode] Looking for nodeId ${nodeId} in projectId ${projId}`);
+      const project = projectManager.projects.get(projId);
+      if (!project) {
+        return res.status(404).json({ success: false, error: 'Project not found' });
+      } else {
+        foundNode = projectManager.updateNode(projId, nodeId, updates);
+      }
+    } else {
+      // Search across all projects to find this node
+      console.log(`[/updatenode] No projectId provided, searching all ${projectManager.projects.size} projects`);
+      for (const [pid, project] of projectManager.projects) {
+        const updated = projectManager.updateNode(pid, nodeId, updates);
+        if (updated) {
+          projId = pid;
+          foundNode = updated;
+          break;
+        }
+      }
+    }
+
+    if (!foundNode) {
+      console.error(`[/updatenode] Node not found: nodeId=${nodeId}, projId=${projId}`);
+      return res.status(404).json({ success: false, error: 'Node not found' });
+    }
+    
+    console.log(`[/updatenode] ✓ Node updated successfully`);
+    console.log(`[/updatenode] Updated data:`, foundNode.data);
+
+    res.json({ 
+      success: true, 
+      projectId: projId, 
+      nodeId, 
+      updates,
+      node: foundNode
+    });
+  } catch (err) {
+    console.error('[POST /updatenode] error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /updateedge
+// Update an edge's properties (label, description, etc.)
+// Input: { id (edgeId), projectId (optional), name, label, description, ... }
+app.post('/updateedge', (req, res) => {
+  console.log('****************************************************************')
+  console.log('************************ /updateedge ************************');
+  console.log('Request body:', req.body);
+  console.log('****************************************************************');
+  try {
+    const { id: edgeId, projectId, name, label, description } = req.body || {};
+    
+    if (!edgeId) return res.status(400).json({ success: false, error: 'edgeId (id) required' });
+
+    // Prepare updates object
+    const updates = {
+      label: label !== undefined ? label : name,
+      description: description !== undefined ? description : ''
+    };
+
+    let projId = projectId;
+    let foundEdge = null;
+    let edgeIndex = -1;
+
+    if (projId) {
+      const project = projectManager.projects.get(projId);
+      if (project && project.edges) {
+        edgeIndex = project.edges.findIndex(e => String(e.id) === String(edgeId));
+        if (edgeIndex !== -1) {
+          const edge = project.edges[edgeIndex];
+          edge.label = updates.label;
+          edge.data = edge.data || {};
+          if (updates.description !== undefined) edge.data.description = updates.description;
+          foundEdge = edge;
+          projectManager.scheduleSave(500);
+          projectManager.broadcastToProject(projId, 'edge_updated', { projectId: projId, edgeId, updates, updatedEdge: foundEdge });
+        }
+      }
+    } else {
+      // Search across all projects for the edge
+      for (const [pid, project] of projectManager.projects) {
+        if (project.edges) {
+          edgeIndex = project.edges.findIndex(e => String(e.id) === String(edgeId));
+          if (edgeIndex !== -1) {
+            projId = pid;
+            const edge = project.edges[edgeIndex];
+            edge.label = updates.label;
+            edge.data = edge.data || {};
+            if (updates.description !== undefined) edge.data.description = updates.description;
+            foundEdge = edge;
+            projectManager.scheduleSave(500);
+            projectManager.broadcastToProject(projId, 'edge_updated', { projectId: projId, edgeId, updates, updatedEdge: foundEdge });
+            break;
+          }
+        }
+      }
+    }
+
+    if (!foundEdge) {
+      return res.status(404).json({ success: false, error: 'Edge not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      projectId: projId, 
+      edgeId, 
+      updates,
+      edge: foundEdge
+    });
+  } catch (err) {
+    console.error('[POST /updateedge] error:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

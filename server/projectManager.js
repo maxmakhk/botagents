@@ -807,7 +807,7 @@ class ProjectManager {
     }
 
     // normalize edge object
-    const id = String(edge.id || `edge_${Date.now()}`);
+    const id = String(edge.id || `edge_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     const normalized = {
       id,
       source: String(edge.source || edge.from || ''),
@@ -861,8 +861,9 @@ class ProjectManager {
     if (updates.label !== undefined) data.label = updates.label;
     if (updates.nodeLabel !== undefined) data.nodeLabel = updates.nodeLabel;
     if (updates.description !== undefined) data.description = updates.description;
-    if (updates.fnString !== undefined) data.fnString = updates.fnString; // fnString is canonical in data only
-    
+    if (updates.fnString !== undefined) data.fnString = updates.fnString;
+    if (updates.functionInput !== undefined) data.functionInput = updates.functionInput;
+    console.log('[After Top-Level Merge]', { data });
     // Merge from updates.data if provided (preferred format, takes precedence)
     if (updates.data && typeof updates.data === 'object') {
       for (const [k, v] of Object.entries(updates.data)) {

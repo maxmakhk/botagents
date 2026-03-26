@@ -1,24 +1,14 @@
 {
   "runs": [
     {
-      "runId": "run_6e782144-e599-41ca-8e91-348fb22cc8ab",
+      "runId": "run_09c547c7-6807-49a4-bee0-0ec25188ab70",
       "projectId": "rule_1773360383383_n0u551",
       "workflowId": "rule_1773360383383_n0u551",
       "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-25T12:56:00.418Z",
+      "startedAt": "2026-03-26T09:22:41.619Z",
       "currentNodeId": "counter1",
       "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-25T13:25:40.566Z"
-    },
-    {
-      "runId": "run_40169335-b633-4488-a9e0-a5a5417c955a",
-      "projectId": "rule_1773360383383_n0u551",
-      "workflowId": "rule_1773360383383_n0u551",
-      "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-25T12:56:17.157Z",
-      "currentNodeId": "node_1774385435819_aqjbpz",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-25T13:21:21.409Z"
+      "lastHeartbeat": "2026-03-26T09:23:18.089Z"
     }
   ]
 }

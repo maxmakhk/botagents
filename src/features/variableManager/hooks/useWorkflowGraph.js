@@ -29,7 +29,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
     (connection) => {
       try {
         const newEdge = {
-          id: String(connection.id || `edge_${Date.now()}`),
+          id: String(connection.id || `edge_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`),
           source: String(connection.source || ''),
           target: String(connection.target || ''),
           label: connection.label || '',
@@ -138,7 +138,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
               metadata, // Also store at root level for export consistency
               data: {
                 labelText: restoredLabelText,
-                description: n.description || n.type || '',
+                description: n.data?.description || n.description || n.type || '',
                 label: restoredLabel,
                 nodeLabel: n.data?.nodeLabel || '', // Preserve node label from server
                 fnString: restoredFnString,
@@ -184,7 +184,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
                 return null;
               }
 
-              const edge = { id: String(e.id || `edge_${idx}`), source, target, label: e.label || '' };
+              const edge = { id: String(e.id || `edge_${idx}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`), source, target, label: e.label || '' };
               if (e.sourceHandle !== undefined && e.sourceHandle !== null && String(e.sourceHandle) !== 'undefined' && String(e.sourceHandle) !== '') {
                 edge.sourceHandle = String(e.sourceHandle);
               }
