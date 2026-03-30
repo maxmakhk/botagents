@@ -34,6 +34,7 @@ const VariablePromptPanel = ({
   setRfEdges,
   onRfNodesChange,
   onRfEdgesChange,
+  cloneWorkflow,
   selectedIds,
   onConnect,
   onSelectionChange,
@@ -76,6 +77,8 @@ const VariablePromptPanel = ({
   fetchWorkflows,
   socketRef,
   runningFlows = []
+  ,
+  projectIdForRun = null
 }) => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -316,6 +319,17 @@ const VariablePromptPanel = ({
               >
                 Delete Workflow
               </button>
+
+              <button
+                id="cloneWorkflowBtn"
+                className="btn-secondary"
+                onClick={() => { if (typeof cloneWorkflow === 'function') { cloneWorkflow(); } }}
+                style={{padding:'8px 10px', background:'#0891b2', color:'#fff'}}
+                title="Clone current workflow"
+              >
+                Clone Workflow
+              </button>
+
             </div>
             <button className="btn-secondary" onClick={() => { try { if (typeof generateSystemPrompt === 'function') generateSystemPrompt(); } catch (e) {} }} style={{padding: '6px 10px'}}>Generate SystemPrompt</button>
             {/* Run moved to floating Node Tools panel */}
@@ -464,7 +478,8 @@ const VariablePromptPanel = ({
           storeVars={storeVars}
           setStoreVars={setStoreVars}
           updateNodeDetails={updateNodeDetails}
-          runningFlows={runningFlows}
+            runningFlows={runningFlows}
+            projectIdForRun={projectIdForRun}
       />
 
       <form onSubmit={handleAiSubmit} style={{display:'flex', flexDirection:'column', gap:8}}>

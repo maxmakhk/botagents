@@ -99,10 +99,13 @@ const NodeDetailsModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12}}>
+        <div 
+        id="node-basic-details"
+        style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12}}>
           <div style={{flex:1, marginRight:12}}>
             <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Name</div>
             <input
+              id="nodeName"
               type="text"
               value={selectedNodeDetails.data?.labelText || selectedNodeDetails.data?.label || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), labelText: e.target.value, label: e.target.value } }))}
@@ -111,6 +114,7 @@ const NodeDetailsModal = ({
             />
             <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4, marginTop:8}}>Node Label (optional)</div>
             <input
+              id="nodeLabel"
               type="text"
               value={selectedNodeDetails.data?.nodeLabel || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), nodeLabel: e.target.value } }))}
@@ -118,6 +122,7 @@ const NodeDetailsModal = ({
               style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
             />
             <textarea
+              id="nodeDescription"
               rows={2}
               value={selectedNodeDetails.data?.description || ''}
               onChange={(e) => setSelectedNodeDetails((s) => ({ ...s, data: { ...(s.data || {}), description: e.target.value } }))}

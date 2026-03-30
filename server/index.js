@@ -12,6 +12,7 @@ import projectManager from './projectManager.js';
 import path from 'path';
 import { initializeApp } from 'firebase/app';
 import { addEdgeToWorkflow } from './edgeHelpers.js';
+import fs from 'fs/promises';
 
 // System prompt generator (moved out of client code)
 import { generateSystemPrompt } from './systemPromptGenerator.js';
@@ -823,7 +824,7 @@ app.get('/run/:workflowID', async (req, res) => {
           const nodes = (parsed && Array.isArray(parsed.nodes)) ? parsed.nodes : [];
           const edges = (parsed && Array.isArray(parsed.edges)) ? parsed.edges : [];
           const apis = (parsed && Array.isArray(parsed.apis)) ? parsed.apis : [];
-          const stepDelay = (parsed && parsed.stepDelay) ? parsed.stepDelay : 1000;
+          const stepDelay = (parsed && parsed.stepDelay) ? parsed.stepDelay : 100;
 
           projectManager.loadProject(r.id, nodes, edges, apis, stepDelay, r.category_id);
           // propagate stored rule name if available
@@ -1622,6 +1623,37 @@ app.delete('/api/rules/:id', (req, res) => {
     stmt.run(id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+// ----------------------------- 0326 variables manage ----------------------
+// GET /getvar?projectcategoryid=...&workflowid=...&varname=...
+app.get('/getvar', (req, res) => {
+  const { projectcategoryid, workflowid, varname } = req.query || {};
+  if (!projectcategoryid || !workflowid || !varname) {
+    return res.status(400).json({ success: false, error: 'projectcategoryid, workflowid and varname required' });
+  }
+  try {
+    const value = projectManager.getVar(projectcategoryid, workflowid, varname);
+    res.json({ success: true, value });
+  } catch (err) {
+    console.error('/getvar error', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /setvar  body: { projectcategoryid, workflowid, varname, value }
+app.post('/setvar', express.json(), (req, res) => {
+  const { projectcategoryid, workflowid, varname, value } = req.body || {};
+  if (!projectcategoryid || !workflowid || !varname) {
+    return res.status(400).json({ success: false, error: 'projectcategoryid, workflowid and varname required' });
+  }
+  try {
+    projectManager.setVar(projectcategoryid, workflowid, varname, value);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('/setvar error', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
 });
 
 // ------------------ Variables API ----------------------------------------
@@ -2602,6 +2634,189 @@ app.get('/api/projects/statuses', (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
+app.get('/nodeanalysis/:nodeId', (req, res) => {
+  //http://localhost:3001/nodeanalysis/JumpToNodeByLabel?workflowId=rule_1773360383383_n0u551
+  console.log('****************************************************************')
+  console.log('*********************** NODE ANALYSIS ************************');
+  console.log('nodeId =', req.params.nodeId);
+  console.log('****************************************************************')
+  try {
+    const { nodeId } = req.params;
+    if (!nodeId) return res.status(400).json({ error: 'nodeId required' });
+
+    // If client provided a workflowId (projectId), prefer that and avoid scanning all projects
+    const workflowIdQuery = req.query?.workflowId || null;
+    let node = null;
+    let workflow = null;
+
+    if (workflowIdQuery) {
+      try {
+        const wf = projectManager.getWorkflowData ? projectManager.getWorkflowData(workflowIdQuery) : (projectManager.getProject ? projectManager.getProject(workflowIdQuery) : projectManager.projects.get(workflowIdQuery));
+        if (wf && Array.isArray(wf.nodes)) {
+          const found = wf.nodes.find(n => String(n.id) === String(nodeId));
+          if (found) {
+            node = found;
+            workflow = wf;
+            console.log(`[Node Analysis] Found node ${nodeId} in provided workflow ${workflowIdQuery}`);
+          } else {
+            console.log(`[Node Analysis] Node ${nodeId} not found in provided workflow ${workflowIdQuery}`);
+          }
+        } else {
+          console.log(`[Node Analysis] Provided workflow ${workflowIdQuery} not found in server memory`);
+        }
+      } catch (e) {
+        console.warn('[Node Analysis] Error looking up provided workflowId:', e);
+      }
+    }
+
+    // Fallback: search all projects when no workflowId provided or when node not found in provided workflow
+    if (!node) {
+      for (const [projectId, project] of projectManager.projects.entries()) {
+        const nodes = project.nodes || [];
+        const found = nodes.find(n => String(n.id) === String(nodeId));
+        if (found) {
+          node = found;
+          workflow = project;
+          console.log(`[Node Analysis] Found node ${nodeId} in project ${projectId}`);
+          break;
+        }
+      }
+
+      if (!node) {
+        console.log(`[Node Analysis] Node ${nodeId} not found in any project`);
+        return res.status(404).json({ error: 'Node not found' });
+      }
+    }
+    
+    // ===== 提取所有需要的信息 =====
+    const nodeName = node.data?.labelText || node.data?.label || '(no name)';
+    const nodeLabel = node.data?.nodeLabel || '(no label)';
+    const nodeDescription = node.data?.description || '(no description)';
+    const fnString = node.data?.fnString;// || '(no function)';
+    const functionInput = node.data.functionInput;// || '(no input)';
+
+    // ===== Console.log 输出所有信息 =====
+    console.log('[📊 NODE ANALYSIS] ─────────────────────────────────────────');
+    console.log('[📊 NODE ANALYSIS] ➤ Node ID:', nodeId);
+    console.log('[📊 NODE ANALYSIS] ➤ Node Name:', nodeName);
+    console.log('[📊 NODE ANALYSIS] ➤ Node Label:', nodeLabel);
+    console.log('[📊 NODE ANALYSIS] ➤ Node Description:', nodeDescription);
+    console.log('[📊 NODE ANALYSIS] ➤ Function String:');
+    console.log('[📊 NODE ANALYSIS]   ', fnString);
+    console.log('[📊 NODE ANALYSIS] ➤ Function Input:');
+    console.log('[📊 NODE ANALYSIS]   ', functionInput);
+    console.log('[📊 NODE ANALYSIS] ─────────────────────────────────────────');
+    
+    /*
+    0330
+    i want to prepare a prompt, provide function input and string, 
+    and provide the input and output introduction,
+    after that, this introduction will be describe what this function work.
+    */
+
+    /*
+    let analysisPrompt = `You are a helpful assistant for analyzing nodes in a workflow.
+Your task is to take the provided function string, its input, and the node's description, and generate a clear and concise explanation of what this node does in the workflow.  
+Here are the details of the node:
+- Node Name: ${nodeName}
+- Node Label: ${nodeLabel}
+- Node Description: ${nodeDescription}
+- Function String: ${fnString}
+- Function Input: ${typeof functionInput === 'string' ? functionInput : JSON.stringify(functionInput, null, 2)} 
+Based on this information, please provide a detailed analysis of the node's purpose and how it processes its input to produce its output. Focus on explaining the function's role within the workflow and how it transforms the input data. 
+Please provide your analysis in a clear and structured manner, using bullet points or numbered steps if necessary.`;  
+*/
+let analysisPrompt = `You are a helpful assistant for analyzing nodes in a workflow.
+
+Analyze this node and output ONLY in this exact format for component documentation:
+
+{
+  input:"intro what inputs",
+  behavior:"One sentence describing what this function does, including data preparation, API calls, event handlers, DOM manipulation, or workflow progression."
+}
+
+Rules:
+- Exactly one sentence per field.
+- Focus on practical workflow role and side effects.
+- For clientJS nodes: mention what the client-side script enables.
+- Use component-catalog style wording.
+- No code line-by-line analysis.
+
+Node details:
+- Function Input: 
+${JSON.stringify(functionInput, null, 2)}
+
+- Function String: 
+${fnString}
+
+`;
+/*
+- Node Name: ${nodeName}
+- Node Label: ${nodeLabel}
+- Node Description: ${nodeDescription}
+*/
+
+    // 返回数据到前端 — only return a simplified version of the workflow
+    const simpleNodes = (workflow.nodes || []).map(n => ({
+      id: n.id,
+      name: n.data?.labelText || n.data?.label || '(no name)',
+      nodeLabel: n.data?.nodeLabel || '(no label)',
+      description: n.data?.description || '(no description)',
+      input: n.data?.functionInput ?? null
+    }));
+
+    const simpleEdges = (workflow.edges || []).map(e => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      label: e.label,
+      expression: e.expression
+    }));
+
+    const analysis = {
+      workflowStructure:{
+        //node:node,
+        nodeId,
+        workflow: workflow.id || null,
+        nodes: simpleNodes,
+        edges: simpleEdges,
+      },
+      success: true,
+      analysisPrompt
+    };
+
+    res.json(analysis);
+  } catch (err) { 
+    console.error('[NODE ANALYSIS] Error:', err);
+    res.status(500).json({ success: false, error: String(err) }); 
+  }
+});
+
+
+app.get('/cloneworkflow/:workflowId', (req, res) => {
+    console.log('****************************************************************')
+    console.log('*********************** CLONE WORKFLOW ************************');
+    console.log('workflowId =', req.params.workflowId);
+    console.log('****************************************************************')
+    
+  try {
+    const { workflowId } = req.params;
+    //console.log(`[CloneWorkflow] Request to clone workflowId=${workflowId}`);
+    if (!workflowId) return res.status(400).json({ 
+      error: 'workflowId required' 
+    });
+    //console.log(`[CloneWorkflow] L`);
+    
+    const newWorkflow = projectManager.cloneWorkflow(workflowId);
+    //console.log(`[CloneWorkflow] newWorkflow =`, newWorkflow);
+    
+    if (!newWorkflow) return res.status(404).json({ 
+      error: 'Workflow not found or failed to clone' 
+    });
+    res.json({ success: true, workflow: newWorkflow });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
 // ------------------ Workflow Management API -----------------------------
 
 app.get('/api/workflows/statuses', (req, res) => {
@@ -2899,27 +3114,98 @@ app.post('/updateworkflow', (req, res) => {
 });
 
 // Delete workflow (remove from DB and in-memory projects)
-app.get('/deleteworkflow/:workflowID', (req, res) => {
-  try {
-    const id = req.params.workflowID;
-    if (!id) return res.status(400).json({ success: false, error: 'workflowID required' });
+app.get('/deleteworkflow/:workflowID', async (req, res) => {
+  console.log('*********************** DELETE WORKFLOW ************************');
+  const rawId = req.params.workflowID;
+  const id = String(rawId ?? '').trim();
+  if (!id) return res.status(400).json({ success: false, error: 'workflowID required' });
 
+  try {
+    // 1) Try DB delete (best-effort)
     try {
       const stmt = db.prepare('DELETE FROM rules WHERE id = ?');
-      stmt.run(id);
+      const result = stmt.run(id);
+      console.log('[deleteworkflow] sqlite delete result:', result && result.changes ? result.changes : 0);
     } catch (e) {
       console.warn('[deleteworkflow] DB delete failed', e.message);
     }
 
+    // 2) Aggressively remove matching in-memory projects
     try {
-      // remove in-memory project
-      if (projectManager.projects.has(id)) {
-        projectManager.projects.delete(id);
+      const removed = [];
+      for (const key of Array.from(projectManager.projects.keys())) {
+        const k = String(key);
+        const project = projectManager.getProject(key) || {};
+        const name = String(project.name || '');
+        console.log(`[deleteworkflow] Checking in-memory project key='${k}' name='${name}' against id='${id}'`);
+
+        const shouldDelete =
+          k === id ||
+          k === `rule_${id}` ||
+          k.includes(id) ||
+          id.includes(k) ||
+          name === id ||
+          name.includes(id) ||
+          (!Number.isNaN(Number(k)) && String(Number(k)) === String(Number(id)));
+
+        if (shouldDelete) {
+          const ok = projectManager.projects.delete(key); // use original key (preserves type)
+          if (ok) removed.push(k);
+          else console.warn('[deleteworkflow] delete returned false for key=', key);
+        }
+      }
+
+    } catch (e) {
+      console.warn('[deleteworkflow] failed to remove in-memory project', e.message);
+    }
+
+    // 3) Remove from runs_store.json (backup + write)
+    try {
+      const fp = path.join(process.cwd(), 'runs_store.json');
+      const raw = await fs.readFile(fp, 'utf8');
+      const parsed = JSON.parse(raw || '{}');
+      const projects = Array.isArray(parsed.projects) ? parsed.projects : [];
+
+      const filtered = projects.filter(p => {
+        const pid = String(p.projectId ?? '').trim();
+        const pname = String(p.name ?? '').trim();
+        if (!pid) return true;
+        if (
+          pid === id ||
+          pid === `rule_${id}` ||
+          pid.includes(id) ||
+          id.includes(pid) ||
+          pname === id ||
+          pname.includes(id) ||
+          (!Number.isNaN(Number(pid)) && String(Number(pid)) === String(Number(id)))
+        ) {
+          return false; // drop
+        }
+        return true;
+      });
+
+      if (filtered.length !== projects.length) {
+        //const backupPath = `${fp}.bak.${Date.now()}`;
+        //await fs.writeFile(backupPath, raw, 'utf8');
+        parsed.projects = filtered;
+        parsed.savedAt = new Date().toISOString();
+        await fs.writeFile(fp, JSON.stringify(parsed, null, 2), 'utf8');
+        //console.log('[deleteworkflow] Removed project from runs_store.json and wrote backup:', backupPath);
+      } else {
+        console.log('[deleteworkflow] No matching project in runs_store.json; scheduled save as fallback');
         projectManager.scheduleSave(1000);
       }
-      // Broadcast status update so clients refresh lists
-      projectManager.sendAllWorkflowStatus();
-    } catch (e) { console.warn('[deleteworkflow] failed to cleanup in-memory project', e.message); }
+    } catch (e) {
+      console.warn('[deleteworkflow] runs_store.json update failed', e.message);
+      projectManager.scheduleSave(1000);
+    }
+
+    //
+    const data = projectManager.getAllWorkflowStatus();
+    console.log(data);
+
+    // 4) Broadcast updated statuses
+    try { projectManager.sendAllWorkflowStatus(); } catch (e) { /* ignore */ }
 
     res.json({ success: true, id });
   } catch (err) {

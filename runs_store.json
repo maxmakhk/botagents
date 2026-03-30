@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-03-26T09:14:14.836Z",
+  "savedAt": "2026-03-30T15:22:11.377Z",
   "projects": [
     {
       "projectId": "rule_1773360377217_1n6l7n",
@@ -719,7 +719,7 @@
       "activeNodeId": "JumpToNodeByLabel",
       "activeEdgeId": null,
       "apis": [],
-      "stepDelay": 1000,
+      "stepDelay": 100,
       "categoryId": "zIbjcRkwOJwYKBNTit5D"
     },
     {
@@ -729,13 +729,13 @@
           "id": "createObjects",
           "position": {
             "x": 202,
-            "y": 20
+            "y": 21.428571428571445
           },
           "type": "api",
           "metadata": {
             "apiId": "t18j2BxNlpLTRPNRpXZu",
             "locked": false,
-            "apiName": "createObjects",
+            "apiName": "gameA-createObjects",
             "apiUrl": null,
             "image": null,
             "function": "//createobjects\nasync function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
@@ -751,256 +751,13 @@
             "description": "object",
             "label": "createObjects",
             "nodeLabel": "set2",
-            "fnString": "async function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
-            "functionInput": {
-              "inputTest": "createobjects",
-              "objects": [
-                {
-                  "id": "start_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#000033",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#001133",
-                  "bgimage": "https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg",
-                  "zIndex": 2,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "button_start",
-                  "width": 200,
-                  "height": 60,
-                  "x": 50,
-                  "y": 100,
-                  "label": "Start",
-                  "color": "#00aa00",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "game_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#003300",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#004400",
-                  "zIndex": 2,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object1",
-                  "width": 50,
-                  "height": 50,
-                  "x": 100,
-                  "y": 100,
-                  "label": "Obj1",
-                  "color": "#ff6600",
-                  "textcolor": "#222333",
-                  "zIndex": 50,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object2",
-                  "width": 50,
-                  "height": 50,
-                  "x": 100,
-                  "y": 150,
-                  "label": "Obj2",
-                  "color": "#66ff00",
-                  "textcolor": "#222333",
-                  "zIndex": 50,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "cpanel",
-                  "width": 250,
-                  "height": 400,
-                  "x": 0,
-                  "y": 100,
-                  "color": "#333333",
-                  "zIndex": 8,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button_up",
-                  "width": 60,
-                  "height": 60,
-                  "x": 50,
-                  "y": 120,
-                  "label": "Up",
-                  "color": "#0066ff",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "button_left",
-                  "width": 60,
-                  "height": 60,
-                  "x": 20,
-                  "y": 200,
-                  "label": "Left",
-                  "color": "#0066ff",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "button_right",
-                  "width": 60,
-                  "height": 60,
-                  "x": 80,
-                  "y": 200,
-                  "label": "Right",
-                  "color": "#0066ff",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "button_down",
-                  "width": 60,
-                  "height": 60,
-                  "x": 50,
-                  "y": 280,
-                  "label": "Down",
-                  "color": "#0066ff",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "button_skip",
-                  "width": 100,
-                  "height": 50,
-                  "x": 50,
-                  "y": 360,
-                  "label": "Skip",
-                  "color": "#ff4400",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "showtext-time",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 50,
-                  "label": "ShowTime",
-                  "color": "#ffffff",
-                  "textcolor": "#222333",
-                  "zIndex": 12,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "showtext_distance",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 100,
-                  "label": "Distance",
-                  "color": "#ffffff",
-                  "textcolor": "#222333",
-                  "zIndex": 12,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "showtext_mark",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "label": "Mark",
-                  "y": 150,
-                  "color": "#ffffff",
-                  "textcolor": "#222333",
-                  "zIndex": 12,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "showtext_totalmark",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 200,
-                  "label": "TotalMark",
-                  "color": "#ffffff",
-                  "textcolor": "#222333",
-                  "zIndex": 12,
-                  "parent": "cpanel"
-                },
-                {
-                  "id": "result_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#330000",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#440000",
-                  "zIndex": 2,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "showtext_time",
-                  "width": 300,
-                  "height": 60,
-                  "x": 50,
-                  "y": 150,
-                  "label": "Time",
-                  "color": "#ffaa00",
-                  "textcolor": "#222333",
-                  "zIndex": 10,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "button_restart",
-                  "width": 200,
-                  "height": 60,
-                  "x": 50,
-                  "y": 350,
-                  "label": "Restart",
-                  "color": "#00aa00",
-                  "textcolor": "#222333",
-                  "zIndex": 12,
-                  "parent": "result_screen"
-                }
-              ]
-            },
+            "fnString": "async function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = cfg.position || \"absolute\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"none\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n  if (cfg.styles) {\n    Object.assign(el.style, cfg.styles);\n  }\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
+            "functionInput": "{\n  \"inputTest\": \"createobjects\",\n  \"objects\": [\n    {\n      \"id\": \"start_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"styles\":{\n        \"overflow\": \"hidden\"\n      },\n      \"color\": \"#001133\",\n      \"bgimage\": \"https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg\",\n      \"zIndex\": 2,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"maintitle\",\n      \"width\": 600,\n      \"height\": 100,\n      \"x\": 0,\n      \"y\": 100,\n      \"styles\":{\n        \"color\": \"#d1d1d1\",\n        \"fontSize\":\"50px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"FPS\",\n      \"zIndex\": 10,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"button_start\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 300,\n      \"height\": 60,\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Start\",\n      \"zIndex\": 10,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"game_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 10,\n      \"y\": 10,\n      \"color\": \"#004400\",\n      \"zIndex\": 2,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"object1\",\n      \"width\": 50,\n      \"height\": 50,\n      \"x\": 100,\n      \"y\": 100,\n      \"label\": \"Obj1\",\n      \"color\": \"#ff6600\",\n      \"textcolor\": \"#222333\",\n      \"styles\":{\n        \"backgroundColor\": \"#206120\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"100px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 55,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"object2\",\n      \"width\": 50,\n      \"height\": 50,\n      \"x\": 100,\n      \"y\": 150,\n      \"label\": \"Obj2\",\n      \"color\": \"#66ff00\",\n      \"textcolor\": \"#222333\",\n      \"styles\":{\n        \"backgroundColor\": \"#206120\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"100px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 50,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"cpanel\",\n      \"width\": 250,\n      \"height\": 400,\n      \"position\": 'fixed',\n      \"x\": 0,\n      \"y\": 100,\n      \"zIndex\": 8,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"button_up\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 200,\n      \"label\": \"Up\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_left\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 20,\n      \"y\": 250,\n      \"label\": \"Left\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_right\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 70,\n      \"y\": 250,\n      \"label\": \"Right\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_down\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 300,\n      \"label\": \"Down\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_skip\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 360,\n      \"height\": 50,\n      \"label\": \"Skip\",\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"displaypanel\",\n      \"width\": 600,\n      \"height\": 100,\n      \"position\": 'fixed',\n      \"x\": 0,\n      \"y\": 5,\n      \"zIndex\": 8,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"showtext-time\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 5,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"ShowTime\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"showtext_distance\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Distance\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\",\n      \"textAlign\":\"center\"\n    },\n    {\n      \"id\": \"showtext_mark\",\n      \"width\": 40,\n      \"height\": 40,\n      \"label\": \"Mark\",\n      \"x\": 95,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"showtext_totalmark\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 140,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"TotalMark\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"result_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 10,\n      \"y\": 10,\n      \"color\": \"#440000\",\n      \"zIndex\": 2,\n      \"parent\": \"result_screen\"\n    },\n    {\n      \"id\": \"showtext_time\",\n      \"width\": 300,\n      \"height\": 60,\n      \"x\": 50,\n      \"y\": 150,\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#ffaa00\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"40px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Time\",\n      \"zIndex\": 10,\n      \"parent\": \"result_screen\"\n    },\n    {\n      \"id\": \"button_restart\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 350,\n      \"height\": 60,\n      \"label\": \"Restart\",\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 12,\n      \"parent\": \"result_screen\"\n    }\n  ]\n}",
             "actions": [],
             "metadata": {
               "apiId": "t18j2BxNlpLTRPNRpXZu",
               "locked": false,
-              "apiName": "createObjects",
+              "apiName": "gameA-createObjects",
               "apiUrl": null,
               "image": null,
               "function": "//createobjects\nasync function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
@@ -1013,8 +770,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1029,8 +785,8 @@
         {
           "id": "actionController",
           "position": {
-            "x": 382,
-            "y": 20
+            "x": 29.142857142857096,
+            "y": 177.14285714285717
           },
           "type": "api",
           "metadata": {
@@ -1039,7 +795,7 @@
             "apiName": "actionController",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "//create actions\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
             "cssStyle": null,
             "size": "1:1",
             "tags": [
@@ -1049,10 +805,10 @@
           },
           "data": {
             "labelText": "actionController",
-            "description": "object",
+            "description": "setupaction",
             "label": "actionController",
-            "nodeLabel": "set3",
-            "fnString": "//create actions\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "nodeLabel": "setupaction",
+            "fnString": "async function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
             "functionInput": "{\n  \"clientJS\": `\nconsole.log('action component');\n\nfunction moveBy(dx,dy){\n    console.log('moveBy');\n    try{\n        const el=document.getElementById('object1'); \n        if(!el) return; \n        if(!el.style.position || el.style.position==='') el.style.position='absolute'; \n        const px=(v)=>{\n            if(!v) \n            return 0; \n            return parseInt(String(v).replace('px',''))||0;\n            }; \n            let left = px(el.style.left) || (el.offsetLeft||0); \n            let top = px(el.style.top) || (el.offsetTop||0); \n            left += dx; top += dy; \n            el.style.left = left+'px'; el.style.top = top+'px'; \nconsole.log('move '+ left +', '+ top);\n        fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n    }catch(e){\n\n    }\n}\n\nconst div1 =document.getElementById('button_up');\ndiv1.onclick = function() {moveBy(0,-50);}\n\nconst div2 =document.getElementById('button_down');\ndiv2.onclick = function() {moveBy(0,50);}\n\nconst div3 =document.getElementById('button_left');\ndiv3.onclick = function() {moveBy(-50,0);}\n\nconst div4 =document.getElementById('button_right');\ndiv4.onclick = function() {moveBy(50,0);}\n\n\nconst button_start =document.getElementById('button_start');\nbutton_start.onclick = function() {\n    document.getElementById('showtext-time').textContent = '0';\n    document.getElementById('showtext_mark').textContent = '0';\n    document.getElementById('showtext_totalmark').textContent = '3';\n\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'block';\n    document.getElementById('result_screen').style.display = 'none';\n}\n\nconst button_skip =document.getElementById('button_skip');\nbutton_skip.onclick = function() {\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'block';\n}\n\nconst button_restart =document.getElementById('button_restart');\nbutton_restart.onclick = function() {\n    document.getElementById('start_screen').style.display = 'block';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'none';\n}\n `\n}",
             "actions": [],
             "metadata": {
@@ -1061,7 +817,7 @@
               "apiName": "actionController",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "//create actions\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
               "cssStyle": null,
               "size": "1:1",
               "tags": [
@@ -1071,8 +827,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1087,8 +842,8 @@
         {
           "id": "startgame",
           "position": {
-            "x": 562,
-            "y": 21.428571428571388
+            "x": 402,
+            "y": 19
           },
           "type": "api",
           "metadata": {
@@ -1110,8 +865,8 @@
             "description": "object",
             "label": "runScriptMachine",
             "nodeLabel": "set4",
-            "fnString": "//init3\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replaceAll('#input.runId#', input.runId).replaceAll('#input.projectId#', input.projectId)\n    .replaceAll('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\n  \"clientJS\": `\n  document.getElementById('start_screen').style.display = 'block';\n  document.getElementById('game_screen').style.display = 'none';\n  document.getElementById('result_screen').style.display = 'none';\n\n\nfetch('http://localhost:3001/runnew/#input.projectId#/start2');\nfetch('http://localhost:3001/deleterun/#input.runId#');\n  `\n}",
+            "fnString": "//init3\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\n  \"clientJS\": `\nconsole.log('run init');\n  document.getElementById('start_screen').style.display = 'block';\n  document.getElementById('game_screen').style.display = 'none';\n  document.getElementById('result_screen').style.display = 'none';\n\n\nfetch('http://localhost:3001/deleterun/#input.runId#');\nfetch('http://localhost:3001/runnew/#input.projectId#/setupaction');\n  `\n}",
             "actions": [],
             "metadata": {
               "apiId": "HRz75ZirMW71MGTGeGfp",
@@ -1129,8 +884,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1141,18 +895,18 @@
           },
           "width": 96,
           "height": 96,
-          "selected": false,
-          "dragging": false,
+          "selected": true,
           "positionAbsolute": {
-            "x": 562,
-            "y": 21.428571428571388
-          }
+            "x": 401.5714285714286,
+            "y": 24.285714285714334
+          },
+          "dragging": true
         },
         {
           "id": "counter1",
           "position": {
-            "x": 22,
-            "y": 412
+            "x": 16.285714285714278,
+            "y": 500.57142857142856
           },
           "type": "api",
           "metadata": {
@@ -1171,9 +925,9 @@
           },
           "data": {
             "labelText": "runScriptMachine",
-            "description": "counter1",
+            "description": "api",
             "label": "runScriptMachine",
-            "nodeLabel": "start2",
+            "nodeLabel": "counter",
             "fnString": "async function processRequest(input) {\n  let clientJS = `\n    (function() {\nconsole.log('START RUN');\n      const div = document.getElementById('showtext-time');\n      if (!div) {\n        return;\n      }\n      \n      let current = div.textContent.trim();\n      let num = parseInt(current, 10);\n      \n      if (isNaN(num)) {\n        num = 0;\n      }\n      \n      num += 1;\n      div.textContent = num.toString();\n      console.log('Counter updated to:', num);\n    })();\n  `;\n  \n  return { clientJS };\n}",
             "functionInput": "{\nclientJS:\"\"\n}",
             "actions": [],
@@ -1193,23 +947,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 1,
-            "_runningRuns": [
-              {
-                "runflowId": "run_3f893eef-f2b1-481e-8492-30ba0ac10ec7",
-                "projectId": "rule_1773360383383_n0u551",
-                "workflowId": "rule_1773360383383_n0u551",
-                "categoryId": "zIbjcRkwOJwYKBNTit5D",
-                "startedAt": "2026-03-26T09:09:52.665Z",
-                "currentNodeId": "counter1",
-                "currentEdgeId": null,
-                "lastHeartbeat": "2026-03-26T09:10:56.477Z",
-                "nodeCount": 7,
-                "currentNodeName": "runScriptMachine",
-                "currentNodeIndex": 4
-              }
-            ]
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1219,15 +957,13 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96,
-          "selected": false,
-          "dragging": false
+          "height": 96
         },
         {
           "id": "JumpToNodeByLabel",
           "position": {
-            "x": 202,
-            "y": 412
+            "x": 224.42857142857144,
+            "y": 492.1428571428571
           },
           "type": "api",
           "metadata": {
@@ -1245,7 +981,7 @@
           },
           "data": {
             "labelText": "JumpToNodeByLabel",
-            "description": "counter1",
+            "description": "api",
             "label": "JumpToNodeByLabel",
             "nodeLabel": "",
             "fnString": "async function processRequest(input) {\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
@@ -1268,8 +1004,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1279,15 +1014,13 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96,
-          "selected": false,
-          "dragging": false
+          "height": 96
         },
         {
           "id": "node_1774385435819_aqjbpz",
           "position": {
-            "x": 22,
-            "y": 216
+            "x": 15.857142857142861,
+            "y": 363.1428571428571
           },
           "type": "api",
           "metadata": {
@@ -1309,7 +1042,7 @@
             "description": "api",
             "label": "runScriptMachine",
             "nodeLabel": "check1",
-            "fnString": "//check1\nasync function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n\nfetch('http://localhost:3001/deleterun/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "functionInput": "{\nclientJS:`console.log('check1');\n\nconst div1 = document.getElementById('object1');\nconst div2 = document.getElementById('object2');\n\nconst div1data = {\n  x: parseFloat(div1.style.left), // \"100px\" -> 100\n  y: parseFloat(div1.style.top)   // \"50px\"  -> 50\n};\n\nconst div2data = {\n  x: parseFloat(div2.style.left),\n  y: parseFloat(div2.style.top)\n};\n\nconst dx = div2data.x - div1data.x;\nconst dy = div2data.y - div1data.y;\n\nconst distance = Math.hypot(dx, dy);\nconsole.log('distance:', distance);\n\nfunction randMultipleOf10(min, max) {\n  const lo = Math.ceil(min / 50);\n  const hi = Math.floor(max / 50);\n  return (Math.floor(Math.random() * (hi - lo + 1)) + lo) * 50;\n}\n\ndocument.getElementById('showtext_distance').textContent = distance\n\nif(distance <= 10){\n\n    document.getElementById('showtext_time').textContent = document.getElementById('showtext-time').textContent;\n\n    let mark = parseInt(document.getElementById('showtext_mark').textContent);\n    mark += 1;\n    document.getElementById('showtext_mark').textContent = mark;\n\n    document.getElementById('object2').style.left = randMultipleOf10(0, 200) + 'px';\n    document.getElementById('object2').style.top = randMultipleOf10(150, 400) + 'px';\n\n    if(mark >= 3){\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'block';\n    }\n    \n}\n`\n}",
             "actions": [],
             "metadata": {
@@ -1328,8 +1061,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1344,17 +1076,17 @@
         {
           "id": "node_1774457059391_jd5zuy",
           "position": {
-            "x": 21,
-            "y": -139
+            "x": 22,
+            "y": 20
           },
           "type": "api",
           "metadata": {
             "apiId": "9ciuxQlkizKAipN9n2Xb",
             "locked": false,
-            "apiName": "cleanOutputView",
+            "apiName": "gameA-cleanOutputView",
             "apiUrl": null,
             "image": null,
-            "function": "// cleanOutputView\nasync function processRequest(input) {\n\n//const respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "// cleanOutputView\nasync function processRequest(input) {\n\nconst respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "1:1",
             "tags": [
@@ -1366,16 +1098,16 @@
             "description": "object",
             "label": "cleanOutputView",
             "nodeLabel": "start",
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n\nconst respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n\n//const respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "functionInput": "",
             "actions": [],
             "metadata": {
               "apiId": "9ciuxQlkizKAipN9n2Xb",
               "locked": false,
-              "apiName": "cleanOutputView",
+              "apiName": "gameA-cleanOutputView",
               "apiUrl": null,
               "image": null,
-              "function": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "// cleanOutputView\nasync function processRequest(input) {\n\nconst respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "1:1",
               "tags": [
@@ -1384,8 +1116,7 @@
             },
             "width": 96,
             "height": 96,
-            "scale": "1:1",
-            "_runningCount": 0
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
@@ -1395,70 +1126,13 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96,
-          "selected": true,
-          "dragging": true,
-          "positionAbsolute": {
-            "x": 21,
-            "y": -129.57142857142856
-          }
-        }
-      ],
-      "edges": [
-        {
-          "id": "edge_1774305294306",
-          "source": "createObjects",
-          "target": "actionController",
-          "label": "next",
-          "sourceHandle": "right",
-          "targetHandle": "left"
+          "height": 96
         },
         {
-          "id": "edge_1774305294307c",
-          "source": "actionController",
-          "target": "startgame",
-          "label": "next",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1774305294307d",
-          "source": "counter1",
-          "target": "JumpToNodeByLabel",
-          "label": "next",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1774457070647",
-          "source": "node_1774457059391_jd5zuy",
-          "target": "createObjects",
-          "label": "",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        }
-      ],
-      "status": "stopped",
-      "storeVars": {
-        "waiting_wait": false,
-        "node_JumpToNodeByLabel_status": "user_continued",
-        "rule_1773360383383_n0u551__queued_next_node": "counter1",
-        "queued_next_node": "counter1"
-      },
-      "activeNodeId": "JumpToNodeByLabel",
-      "activeEdgeId": null,
-      "apis": [],
-      "stepDelay": 1000,
-      "categoryId": "zIbjcRkwOJwYKBNTit5D"
-    },
-    {
-      "projectId": "rule_1773912676803_pidxam",
-      "nodes": [
-        {
-          "id": "node_1773993546109_7kkueq",
+          "id": "node_1774521522864_o0wqg0",
           "position": {
-            "x": 853,
-            "y": 23
+            "x": 396,
+            "y": 204
           },
           "type": "api",
           "metadata": {
@@ -1476,12 +1150,12 @@
             ]
           },
           "data": {
-            "labelText": "runScriptMachine",
-            "description": "api",
+            "labelText": "drag script",
+            "description": "object",
             "label": "runScriptMachine",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.scriptString;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nscriptString:\"\"\n}",
+            "nodeLabel": "object",
+            "fnString": "//drag action\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replaceAll('#input.runId#', input.runId).replaceAll('#input.projectId#', input.projectId)\n    .replaceAll('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\nfetch('http://localhost:3001/runnew/'+ input.projectId +'/counter');\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": "{\n  clientJS: `\n\nfetch('http://localhost:3001/deleterun/#input.runId#');\n\n    // Default drag handler for object1\n    const object1 = document.getElementById('object1');\n    let isDragging = false;\n    let offsetX = 0;\n    let offsetY = 0;\n\n    if (object1) {\n      // Make object draggable\n\n      object1.style.cursor = 'grab';\n      object1.style.userSelect = 'none';\n\n      object1.addEventListener('mousedown', (e) => {\n        \n        isDragging = true;\n        object1.style.cursor = 'grabbing';\n        \n        const rect = object1.getBoundingClientRect();\n        offsetX = e.clientX - rect.left;\n        offsetY = e.clientY - rect.top;\n      });\n\n      document.addEventListener('mousemove', (e) => {\n        if (!isDragging) return;\n        \n        const parent = object1.parentElement;\n        const parentRect = parent ? parent.getBoundingClientRect() : document.documentElement.getBoundingClientRect();\n        \n        const x = e.clientX - parentRect.left - offsetX;\n        const y = e.clientY - parentRect.top - offsetY;\n        \n        object1.style.position = 'absolute';\n        object1.style.left = x + 'px';\n        object1.style.top = y + 'px';\n      });\n\n      document.addEventListener('mouseup', () => {\n        if (isDragging) {\n          isDragging = false;\n          object1.style.cursor = 'grab';\n          \n          const finalPos = {\n            x: object1.offsetLeft,\n            y: object1.offsetTop\n          };\n          fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n        }\n      });\n    }\n  `\n}\n",
             "actions": [],
             "metadata": {
               "apiId": "HRz75ZirMW71MGTGeGfp",
@@ -1512,103 +1186,46 @@
           "height": 96
         },
         {
-          "id": "node_1773996551640_x2973f",
+          "id": "node_1774532532452_ct8lst",
           "position": {
-            "x": 1131,
-            "y": 104
+            "x": 17.142857142857025,
+            "y": -169.99999999999983
           },
           "type": "api",
           "metadata": {
-            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "apiId": "HRz75ZirMW71MGTGeGfp",
             "locked": false,
-            "apiName": "createPanelObjects",
+            "apiName": "runScriptMachine",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "cssStyle": null,
-            "size": "1:1",
-            "tags": [
-              "object",
-              "panel"
-            ]
-          },
-          "data": {
-            "labelText": "createPanelObjects",
-            "description": "api",
-            "label": "createPanelObjects",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
-            "actions": [],
-            "metadata": {
-              "apiId": "Q4iDabdthrTztYd8uIrt",
-              "locked": false,
-              "apiName": "createPanelObjects",
-              "apiUrl": null,
-              "image": null,
-              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-              "cssStyle": null,
-              "size": "1:1",
-              "tags": [
-                "object",
-                "panel"
-              ]
-            },
-            "width": 96,
-            "height": 96,
-            "scale": "1:1"
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8,
-            "width": 96,
-            "height": 96,
-            "minHeight": 96
-          },
-          "width": 96,
-          "height": 96
-        },
-        {
-          "id": "node_1773996573661_ztt1x4",
-          "position": {
-            "x": 1214,
-            "y": -66
-          },
-          "type": "api",
-          "metadata": {
-            "apiId": "B4ojA6yqEBrIXmRZH1uu",
-            "locked": false,
-            "apiName": "MoveObjectController",
-            "apiUrl": null,
-            "image": null,
-            "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
             "cssStyle": null,
             "size": "1:1",
             "tags": [
               "action",
-              "position"
+              "v2"
             ]
           },
           "data": {
-            "labelText": "MoveObjectController",
-            "description": "api",
-            "label": "MoveObjectController",
-            "nodeLabel": "",
-            "fnString": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nobjectActions : [\n{ selector: 'box1', targetX: 400, targetY: 200, speed: 200 },\n{ selector: 'box2', targetX: 100, targetY: 50,  speed: 100 },\n]\n}",
+            "labelText": "plan-createObject",
+            "description": "api2",
+            "label": "runScriptMachine",
+            "nodeLabel": "plan2",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nclientJS:\"\"\n}",
             "actions": [],
             "metadata": {
-              "apiId": "B4ojA6yqEBrIXmRZH1uu",
+              "apiId": "HRz75ZirMW71MGTGeGfp",
               "locked": false,
-              "apiName": "MoveObjectController",
+              "apiName": "runScriptMachine",
               "apiUrl": null,
               "image": null,
-              "function": "// MoveObjectsController\nasync function processRequest(input) {\n  console.log(\"move objects\", input);\n  const objects = input.var?.objectActions || [];\n\n  const clientJS = `\n    const configs = ${JSON.stringify(objects)};\n\n    console.log(\"MoveObjectsController start\", configs);\n\n    if (!Array.isArray(configs) || configs.length === 0) {\n      console.warn(\"MoveObjectsController: no objects\");\n      return;\n    }\n\n    const items = [];\n\n    configs.forEach(cfg => {\n      if (!cfg || !cfg.selector) return;\n      let el = document.getElementById(cfg.selector);  // Use selector as ID\n      if (!el) {\n        console.warn(\"MoveObjectsController: element not found\", cfg.selector);\n        return;\n      }\n\n      const style = window.getComputedStyle(el);\n      if (style.position === \"static\") {\n        el.style.position = \"absolute\";\n      }\n\n      const rect = el.getBoundingClientRect();\n      const startX = rect.left + window.scrollX;\n      const startY = rect.top + window.scrollY;\n\n      const targetX = cfg.targetX ?? startX;\n      const targetY = cfg.targetY ?? startY;\n      const speed = cfg.speed ?? 200;  // px/s\n\n      items.push({\n        el, startX, startY, targetX, targetY, speed, done: false\n      });\n    });\n\n    if (items.length === 0) {\n      console.warn(\"MoveObjectsController: no valid items\");\n      return;\n    }\n\n    let startTime = null;\n\n    function step(timestamp) {\n      if (!startTime) startTime = timestamp;\n      const elapsed = (timestamp - startTime) / 1000;\n\n      let allDone = true;\n\n      items.forEach(item => {\n        if (item.done) return;\n\n        const dx = item.targetX - item.startX;\n        const dy = item.targetY - item.startY;\n        const distance = Math.sqrt(dx * dx + dy * dy);\n        if (distance === 0) {\n          item.done = true;\n          return;\n        }\n\n        const duration = distance / item.speed;\n        const t = Math.min(elapsed / duration, 1);\n\n        const x = item.startX + dx * t;\n        const y = item.startY + dy * t;\n\n        item.el.style.left = x + \"px\";\n        item.el.style.top = y + \"px\";\n\n        if (t >= 1) {\n          item.done = true;\n        } else {\n          allDone = false;\nconst resp = fetch('http://localhost:3001/run/main');\n        }\n      });\n\n      if (!allDone) {\n        window.requestAnimationFrame(step);\n      }\n    }\n\n    window.requestAnimationFrame(step);\n  `;\n\nconst resp = fetch('http://localhost:3001/run/Game1runner');\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
               "cssStyle": null,
               "size": "1:1",
               "tags": [
                 "action",
-                "position"
+                "v2"
               ]
             },
             "width": 96,
@@ -1626,46 +1243,398 @@
           "height": 96
         },
         {
-          "id": "node_1773999369115_gtv22z",
+          "id": "node_1774532569831_3ycssn",
           "position": {
-            "x": 1390,
-            "y": 264
+            "x": 287.14285714285705,
+            "y": -172.85714285714272
           },
           "type": "api",
           "metadata": {
-            "apiId": "Q4iDabdthrTztYd8uIrt",
+            "apiId": "HRz75ZirMW71MGTGeGfp",
             "locked": false,
-            "apiName": "createPanelObjects",
+            "apiName": "runScriptMachine",
             "apiUrl": null,
             "image": null,
-            "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "plan-createAction",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nclientJS:\"\"\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1774532688823_yshlxq",
+          "position": {
+            "x": 547,
+            "y": -163.28571428571433
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "plan-init",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "plan",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nclientJS:\"\"\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "node_1774614412333_h5iewc",
+          "position": {
+            "x": 194,
+            "y": 200
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "thownItemAction",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "action",
+            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": "{\nclientJS:`\nfetch('http://localhost:3001/deleterun/#input.runId#');\n\n// Default drag handler for object2\nconst object1 = document.getElementById('object2');\nlet isDragging = false;\nlet offsetX = 0, offsetY = 0;\nlet velX = 0, velY = 0;  // 新增：速度追蹤\nlet lastX = 0, lastY = 0;\nlet lastTime = 0;\nconst FRICTION = 0.9;  // 摩擦係數 (0.9-0.98)\nconst THRESHOLD = 15;    // 最小拋出速度 (px/frame)\nlet rafId = null;       // animation frame ID\n\nif (object1) {\n  object1.style.cursor = 'grab';\n  object1.style.userSelect = 'none';\n  object1.style.transition = 'none';  // 避免預設動畫干擾\n\n  object1.addEventListener('mousedown', (e) => {\n    isDragging = true;\n    object1.style.cursor = 'grabbing';\n    object1.style.transition = 'none';  // 拖拽時無動畫\n    \n    const rect = object1.getBoundingClientRect();\n    offsetX = e.clientX - rect.left;\n    offsetY = e.clientY - rect.top;\n    velX = velY = 0;  // 重置速度\n    cancelAnimationFrame(rafId);  // 停止慣性\n  });\n\n  document.addEventListener('mousemove', (e) => {\n    if (!isDragging) return;\n    \n    const now = performance.now();\n    const parent = object1.parentElement;\n    const parentRect = parent ? parent.getBoundingClientRect() : document.documentElement.getBoundingClientRect();\n    \n    const x = e.clientX - parentRect.left - offsetX;\n    const y = e.clientY - parentRect.top - offsetY;\n    \n    // 計算速度 (delta / deltaTime)\n    if (lastTime > 0) {\n      const dt = Math.max(1, now - lastTime) / 16;  // 標準化到 60fps\n      velX = (x - lastX) / dt;\n      velY = (y - lastY) / dt;\n    }\n    lastX = x;\n    lastY = y;\n    lastTime = now;\n    \n    object1.style.position = 'absolute';\n    object1.style.left = x + 'px';\n    object1.style.top = y + 'px';\n  });\n\n  document.addEventListener('mouseup', () => {\n    if (isDragging) {\n      isDragging = false;\n      object1.style.cursor = 'grab';\n      \n      // Throw 判斷：如果向上速度足夠 (velY < -THRESHOLD)\n      if (velY < -THRESHOLD) {\n        object1.style.transition = 'none';\n        throwAnimation();  // 啟動拋出\n      } else {\n        // 否則正常儲存\n        const finalPos = { x: parseFloat(object1.style.left), y: parseFloat(object1.style.top) };\n        fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n      }\n    }\n  });\n}\n\n// 拋出動畫函數\nfunction throwAnimation() {\n  const rect = object1.getBoundingClientRect();\n  const parentRect = object1.parentElement.getBoundingClientRect();\n  \n  // 邊界檢查 (簡單版：不超出父容器)\n  const newX = parseFloat(object1.style.left) + velX;\n  let newY = parseFloat(object1.style.top) + velY;\n  \n  if (newY > 0 && newY + rect.height < parentRect.height) {\n    object1.style.left = newX + 'px';\n    object1.style.top = newY + 'px';\n    \n    velX *= FRICTION;\n    velY *= FRICTION;\n    \n    // 持續直到速度小於閾值\n    if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {\n      rafId = requestAnimationFrame(throwAnimation);\n    } else {\n      // 結束後呼叫 API\n      fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n    }\n  } else {\n    // 撞邊界停止並呼叫 API\n    fetch('http://localhost:3001/runnew/#input.projectId#/check1');\n  }\n}\n`\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_1774305294307d",
+          "source": "counter1",
+          "target": "JumpToNodeByLabel",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774457070647",
+          "source": "node_1774457059391_jd5zuy",
+          "target": "createObjects",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774524914168_5vwxrq",
+          "source": "createObjects",
+          "target": "startgame",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774532739164_wseksc",
+          "source": "node_1774532532452_ct8lst",
+          "target": "node_1774532569831_3ycssn",
+          "label": ""
+        },
+        {
+          "id": "edge_1774532740829_bhk5r2",
+          "source": "node_1774532569831_3ycssn",
+          "target": "node_1774532688823_yshlxq",
+          "label": ""
+        },
+        {
+          "id": "edge_1774614611067_u3mwnk",
+          "source": "actionController",
+          "target": "node_1774614412333_h5iewc",
+          "label": ""
+        },
+        {
+          "id": "edge_1774614612509_129g60",
+          "source": "node_1774614412333_h5iewc",
+          "target": "node_1774521522864_o0wqg0",
+          "label": ""
+        }
+      ],
+      "status": "stopped",
+      "storeVars": {
+        "waiting_wait": false,
+        "node_JumpToNodeByLabel_status": "user_continued"
+      },
+      "activeNodeId": "JumpToNodeByLabel",
+      "activeEdgeId": null,
+      "apis": [],
+      "stepDelay": 100,
+      "categoryId": "zIbjcRkwOJwYKBNTit5D"
+    },
+    {
+      "projectId": "rule_1773912676803_pidxam",
+      "nodes": [
+        {
+          "id": "node_1774617287806_6be9kz",
+          "type": "api",
+          "data": {
+            "labelText": "gameA-createObjects",
+            "label": "gameA-createObjects",
+            "nodeLabel": "",
+            "description": "create objects on the output view",
+            "actions": [],
+            "fnString": "//createobjects\nasync function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
+            "functionInput": {
+              "objects": [
+                {
+                  "id": "object1",
+                  "x": 100,
+                  "height": 50,
+                  "parent": "game_screen",
+                  "label": "Obj1",
+                  "textcolor": "#222333",
+                  "color": "#ff6600",
+                  "zIndex": 50,
+                  "y": 100,
+                  "width": 50
+                },
+                {
+                  "width": 50,
+                  "y": 150,
+                  "zIndex": 50,
+                  "textcolor": "#222333",
+                  "color": "#66ff00",
+                  "label": "Obj2",
+                  "parent": "game_screen",
+                  "height": 50,
+                  "id": "object2",
+                  "x": 100
+                }
+              ],
+              "inputTest": "createobjects"
+            },
+            "metadata": {
+              "cssStyle": ""
+            }
+          },
+          "position": {
+            "x": -74,
+            "y": -16
+          },
+          "metadata": {
+            "apiId": "t18j2BxNlpLTRPNRpXZu",
+            "locked": false
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8
+          },
+          "width": 220,
+          "height": 64,
+          "selected": true,
+          "positionAbsolute": {
+            "x": -72.85714285714288,
+            "y": -15.714285714285722
+          },
+          "dragging": true
+        }
+      ],
+      "edges": [],
+      "status": "stopped",
+      "storeVars": {},
+      "activeNodeId": null,
+      "activeEdgeId": null,
+      "apis": [],
+      "stepDelay": 100,
+      "categoryId": "zIbjcRkwOJwYKBNTit5D"
+    },
+    {
+      "projectId": "rule_1774616788776_sv6k",
+      "nodes": [
+        {
+          "id": "createObjects",
+          "position": {
+            "x": 522,
+            "y": 218
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "t18j2BxNlpLTRPNRpXZu",
+            "locked": false,
+            "apiName": "gameA-createObjects",
+            "apiUrl": null,
+            "image": null,
+            "function": "//createobjects\nasync function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
             "cssStyle": null,
             "size": "1:1",
             "tags": [
               "object",
-              "panel"
+              "v2"
             ]
           },
           "data": {
-            "labelText": "createPanelObjects",
-            "description": "api",
-            "label": "createPanelObjects",
-            "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"panelContainer1\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 0,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(0,0,0,0.5)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"panelContainer2\",\n      \"type\": \"container\",\n      \"parent\": \"ms-apiresults-body\",\n      \"x\": 320,\n      \"y\": 200,\n      \"width\": 300,\n      \"height\": 200,\n      \"color\": \"rgba(255,255,255,0.1)\",\n      \"zIndex\": 999\n    },\n    {\n      \"id\": \"btnToggle1\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"orange\",\n      \"label\": \"Toggle C1/C2\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c1Hidden = c1.style.display === 'none';\n\n          if (c1Hidden) {\n            // C1 目前是 hidden → 顯示 C1、隱藏 C2\n            c1.style.display = '';\n            c2.style.display = 'none';\n          } else {\n            // C1 目前是顯示 → 隱藏 C1、顯示 C2\n            c1.style.display = 'none';\n            c2.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btnToggle2\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer2\",\n      \"x\": 0, \"y\": 0, \"width\": 120, \"height\": 50,\n      \"color\": \"purple\",\n      \"label\": \"Toggle C2/C1\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          const c1 = document.getElementById('panelContainer1');\n          const c2 = document.getElementById('panelContainer2');\n          const c2Hidden = c2.style.display === 'none';\n\n          if (c2Hidden) {\n            // C2 目前是 hidden → 顯示 C2、隱藏 C1\n            c2.style.display = '';\n            c1.style.display = 'none';\n          } else {\n            // C2 目前是顯示 → 隱藏 C2、顯示 C1\n            c2.style.display = 'none';\n            c1.style.display = '';\n          }\n        `\n      }\n    },\n    {\n      \"id\": \"btn22\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 130, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"blue\",\n      \"label\": \"Custom JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          console.log('Custom button clicked at', new Date().toISOString());\n          alert('Custom JS executed from btn22!');\n        `\n      }\n    },\n    {\n      \"id\": \"btn3\",\n      \"type\": \"button\",\n      \"parent\": \"panelContainer1\",\n      \"x\": 220, \"y\": 0, \"width\": 80, \"height\": 50,\n      \"color\": \"green\",\n      \"label\": \"Test JS\",\n      \"onclick\": {\n        \"type\": \"js\",\n        \"code\": `\n          alert('Hello from btn3!');\n          console.log('Test JS executed successfully');\n        `\n      }\n    }\n  ]\n}\n",
+            "labelText": "createObjects",
+            "description": "{\ninput:\"Accepts an objects array defining UI elements with layout, styling, content, and parent container configuration.\",\nbehavior:\"Generates client-side JavaScript to create or update DOM elements with specified properties and append them to target containers, enabling dynamic rendering of interactive UI components within the workflow.\"\n}",
+            "label": "createObjects",
+            "nodeLabel": "set2",
+            "fnString": "async function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = cfg.position || \"absolute\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"none\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n  if (cfg.styles) {\n    Object.assign(el.style, cfg.styles);\n  }\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
+            "functionInput": {
+              "objects": [
+                {
+                  "id": "object1",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 100,
+                  "label": "Obj1",
+                  "color": "#ff6600",
+                  "textcolor": "#222333",
+                  "styles": {
+                    "backgroundColor": "#206120",
+                    "color": "#ffffff",
+                    "borderRadius": "100px",
+                    "textAlign": "center"
+                  },
+                  "zIndex": 55,
+                  "parent": "game_screen"
+                },
+                {
+                  "id": "object2",
+                  "width": 50,
+                  "height": 50,
+                  "x": 100,
+                  "y": 150,
+                  "label": "Obj2",
+                  "color": "#66ff00",
+                  "textcolor": "#222333",
+                  "styles": {
+                    "backgroundColor": "#206120",
+                    "color": "#ffffff",
+                    "borderRadius": "100px",
+                    "textAlign": "center"
+                  },
+                  "zIndex": 50,
+                  "parent": "game_screen"
+                }
+              ]
+            },
             "actions": [],
             "metadata": {
-              "apiId": "Q4iDabdthrTztYd8uIrt",
+              "apiId": "t18j2BxNlpLTRPNRpXZu",
               "locked": false,
-              "apiName": "createPanelObjects",
+              "apiName": "gameA-createObjects",
               "apiUrl": null,
               "image": null,
-              "function": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent) || root;\n  }\n  if (!el.parentElement) {\n    parentEl.appendChild(el);\n  }\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
+              "function": "//createobjects\nasync function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
               "cssStyle": null,
               "size": "1:1",
               "tags": [
                 "object",
-                "panel"
+                "v2"
               ]
             },
             "width": 96,
@@ -1680,13 +1649,212 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
-          "id": "node_1773999415932_dmi85c",
+          "id": "actionController",
           "position": {
-            "x": 1600,
-            "y": 54
+            "x": 29,
+            "y": 440
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "v8ojtxUicPTCIzNU5skI",
+            "locked": false,
+            "apiName": "actionController",
+            "apiUrl": null,
+            "image": null,
+            "function": "//create actions\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "buttons_control_object_moving",
+            "description": "{\ninput:\"Accepts a target element ID and moveDistance value that configure which game object to move and by how many pixels per control action.\",\nbehavior:\"Generates client-side JavaScript that wires up button click handlers to move the target DOM element, notify the backend via a fetch call, and toggle between start, game, and result screens to drive interactive gameplay flow.\"\n}",
+            "label": "actionController",
+            "nodeLabel": "setupaction",
+            "fnString": "async function processRequest(input) {\n  const { target, moveDistance } = input.var;\n\n  const clientJS = `\nconsole.log('action component');\n\n(function () {\n  const targetId = '${target}';\n  const step = ${Number(moveDistance) || 50};\n\n  function moveBy(dx, dy) {\n    console.log('moveBy');\n    try {\n      const el = document.getElementById(targetId);\n      if (!el) return;\n\n      if (!el.style.position || el.style.position === '') {\n        el.style.position = 'absolute';\n      }\n\n      const px = (v) => {\n        if (!v) return 0;\n        return parseInt(String(v).replace('px', ''), 10) || 0;\n      };\n\n      let left = px(el.style.left) || el.offsetLeft || 0;\n      let top = px(el.style.top) || el.offsetTop || 0;\n\n      left += dx;\n      top += dy;\n\n      el.style.left = left + 'px';\n      el.style.top = top + 'px';\n\n      console.log('move ' + left + ', ' + top);\n\n      fetch('http://localhost:3001/runnew/${input.projectId}/check1');\n    } catch (e) {\n      console.error(e);\n    }\n  }\n\n  document.getElementById('button_up')?.addEventListener('click', () => moveBy(0, -step));\n  document.getElementById('button_down')?.addEventListener('click', () => moveBy(0, step));\n  document.getElementById('button_left')?.addEventListener('click', () => moveBy(-step, 0));\n  document.getElementById('button_right')?.addEventListener('click', () => moveBy(step, 0));\n\n  document.getElementById('button_start')?.addEventListener('click', () => {\n    document.getElementById('showtext-time').textContent = '0';\n    document.getElementById('showtext_mark').textContent = '0';\n    document.getElementById('showtext_totalmark').textContent = '3';\n\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'block';\n    document.getElementById('result_screen').style.display = 'none';\n  });\n\n  document.getElementById('button_skip')?.addEventListener('click', () => {\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'block';\n  });\n\n  document.getElementById('button_restart')?.addEventListener('click', () => {\n    document.getElementById('start_screen').style.display = 'block';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'none';\n  });\n})();\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": {
+              "target": "object1",
+              "moveDistance": 25
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "v8ojtxUicPTCIzNU5skI",
+              "locked": false,
+              "apiName": "actionController",
+              "apiUrl": null,
+              "image": null,
+              "function": "//create actions\nasync function processRequest(input) {\n  let { clientJS } = input.var;\n\n  clientJS = clientJS\n    .replace('#input.runId#', input.runId).replace('#input.projectId#', input.projectId)\n    .replace('#input.var.targetNodeLabel#', input.var.targetNodeLabel);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "startgame",
+          "position": {
+            "x": 772,
+            "y": 218
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "divControl",
+            "description": "{\ninput:\"Accepts componentSetting array specifying DOM element IDs and their target display values for UI state configuration.\",\nbehavior:\"Builds client-side JavaScript that sets display styles on specified DOM elements to toggle component visibility and control frontend screen transitions in the workflow.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "action",
+            "fnString": "async function processRequest(input) {\n  let { componentSetting } = input.var;\n\n  let clientJS = '';\n  for (let i in componentSetting) {\n    clientJS += `document.getElementById('${componentSetting[i].divId}').style.display = '${componentSetting[i].displayValue}';`;\n  }\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": {
+              "componentSetting": [
+                {
+                  "divId": "start_screen",
+                  "displayValue": "block"
+                },
+                {
+                  "divId": "game_screen",
+                  "displayValue": "none"
+                },
+                {
+                  "divId": "result_screen",
+                  "displayValue": "none"
+                }
+              ]
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "counter1",
+          "position": {
+            "x": 22,
+            "y": 20
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "counterFunction",
+            "description": "{\ninput:\"Accepts a divId indicating which counter display element in the DOM should be read and updated.\",\nbehavior:\"Generates client-side JavaScript that locates the target element, parses its text as a number, increments it, and writes the new value back to the DOM to advance a visible counter in the workflow.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "counter",
+            "fnString": "async function processRequest(input) {\n  \n  let clientJS = `\nconsole.log('START RUN');\n      const div = document.getElementById('${input.var.divId}');\n      if (!div) {\n        return;\n      }\n      \n      let current = div.textContent.trim();\n      let num = parseInt(current, 10);\n      \n      if (isNaN(num)) {\n        num = 0;\n      }\n      \n      num += 1;\n      div.textContent = num.toString();\n      console.log('Counter updated to:', num);\n\n  `;\n  \n  return { clientJS };\n}",
+            "functionInput": {
+              "divId": "showtext-time"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "JumpToNodeByLabel",
+          "position": {
+            "x": 272,
+            "y": 20
           },
           "type": "api",
           "metadata": {
@@ -1704,11 +1872,13 @@
           },
           "data": {
             "labelText": "JumpToNodeByLabel",
-            "description": "api",
+            "description": "{\ninput:\"Accepts a targetNodeLabel specifying which workflow node should execute next, along with the current runId context.\",\nbehavior:\"Performs a backend API call to advance the workflow by instructing the server to jump to and run the specified target node for the current run instance.\"\n}",
             "label": "JumpToNodeByLabel",
             "nodeLabel": "",
-            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "functionInput": "{\ntargetNodeLabel:\"start\"\n}",
+            "fnString": "async function processRequest(input) {\n//go node label to run\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
+            "functionInput": {
+              "targetNodeLabel": "counter"
+            },
             "actions": [],
             "metadata": {
               "apiId": "T7sJl75flCKvuLNb2053",
@@ -1735,534 +1905,695 @@
             "minHeight": 96
           },
           "width": 96,
-          "height": 96
+          "height": 96,
+          "selected": false,
+          "dragging": false
         },
         {
-          "id": "node_1774445823061_cdd06d",
-          "type": "api",
-          "data": {
-            "labelText": "actionController",
-            "label": "actionController",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "{\nclientJS:\"console.log('Action Controller Loaded')\"\n}",
-            "metadata": {
-              "cssStyle": ""
-            }
-          },
+          "id": "node_1774385435819_aqjbpz",
           "position": {
-            "x": 1400,
-            "y": 50
+            "x": 22,
+            "y": 812
           },
+          "type": "api",
           "metadata": {
-            "apiId": "v8ojtxUicPTCIzNU5skI",
-            "locked": false
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "check1",
+            "description": "{\ninput:\"Uses the current DOM state without requiring configured inputs, relying on existing game objects and score display elements already rendered in the interface.\",\nbehavior:\"Generates client-side JavaScript that measures the distance between two DOM elements, updates on-screen status values, repositions the target object on a successful hit, and switches to the result screen when the score threshold is reached.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "check1",
+            "fnString": "async function processRequest(input) {\n\nlet clientJS = `\nconsole.log('check1');\n\nconst div1 = document.getElementById('object1');\nconst div2 = document.getElementById('object2');\n\nconst div1data = {\n  x: parseFloat(div1.style.left), // \"100px\" -> 100\n  y: parseFloat(div1.style.top)   // \"50px\"  -> 50\n};\n\nconst div2data = {\n  x: parseFloat(div2.style.left),\n  y: parseFloat(div2.style.top)\n};\n\nconst dx = div2data.x - div1data.x;\nconst dy = div2data.y - div1data.y;\n\nconst distance = Math.hypot(dx, dy);\nconsole.log('distance:', distance);\n\nfunction randMultipleOf10(min, max) {\n  const lo = Math.ceil(min / 50);\n  const hi = Math.floor(max / 50);\n  return (Math.floor(Math.random() * (hi - lo + 1)) + lo) * 50;\n}\n\ndocument.getElementById('showtext_distance').textContent = distance\n\nif(distance <= 10){\n\n    document.getElementById('showtext_time').textContent = document.getElementById('showtext-time').textContent;\n\n    let mark = parseInt(document.getElementById('showtext_mark').textContent);\n    mark += 1;\n    document.getElementById('showtext_mark').textContent = mark;\n\n    document.getElementById('object2').style.left = randMultipleOf10(0, 200) + 'px';\n    document.getElementById('object2').style.top = randMultipleOf10(150, 400) + 'px';\n\n    if(mark >= 3){\n    document.getElementById('start_screen').style.display = 'none';\n    document.getElementById('game_screen').style.display = 'none';\n    document.getElementById('result_screen').style.display = 'block';\n    }\n    \n}\n`\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {},
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
           },
           "style": {
             "borderRadius": 10,
-            "padding": 8
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
           },
-          "width": 220,
-          "height": 64
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774457059391_jd5zuy",
+          "position": {
+            "x": 22,
+            "y": 218
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "9ciuxQlkizKAipN9n2Xb",
+            "locked": false,
+            "apiName": "gameA-cleanOutputView",
+            "apiUrl": null,
+            "image": null,
+            "function": "// cleanOutputView\nasync function processRequest(input) {\n\nconst respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action"
+            ]
+          },
+          "data": {
+            "labelText": "cleanOutputView4",
+            "description": "{\ninput:\"Accepts a targetDiv CSS selector indicating which container element in the page should be cleared before rendering new content.\",\nbehavior:\"Generates client-side JavaScript that locates the target container and empties its innerHTML to reset the output area, preparing the DOM for the next step in the workflow.\"\n}",
+            "label": "cleanOutputView",
+            "nodeLabel": "start",
+            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n\n//const respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = input.var.targetDiv;\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  //const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "functionInput": {
+              "targetDiv": "#ms-apiresults-body"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "9ciuxQlkizKAipN9n2Xb",
+              "locked": false,
+              "apiName": "gameA-cleanOutputView",
+              "apiUrl": null,
+              "image": null,
+              "function": "// cleanOutputView\nasync function processRequest(input) {\n\nconst respdeleteallruns = fetch('http://localhost:3001/deleteallruns');\n\n\n  const rootSelector = \"#ms-apiresults-body\";\n  const clientJS = `\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774521522864_o0wqg0",
+          "position": {
+            "x": 522,
+            "y": 418
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "drag script",
+            "description": "{\ninput:\"nodeLabel and related variables configure runtime triggers and inject dynamic values into the client-side drag script.\",\nbehavior:\"Replaces placeholders in a client-side drag-and-drop script, triggers a backend runtime start, and returns executable clientJS that enables draggable UI interaction with event-driven API calls.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "object",
+            "fnString": "// drag action\nasync function processRequest(input) {\n  const objectId = input.var.object;\n\nconst clientJS = `\n  const object1 = document.getElementById('${objectId}');\n  let isDragging = false;\n  let offsetX = 0;\n  let offsetY = 0;\n\n  if (!object1) return;\n\n  object1.style.cursor = 'grab';\n  object1.style.userSelect = 'none';\n\n  object1.addEventListener('mousedown', (e) => {\n    isDragging = true;\n    object1.style.cursor = 'grabbing';\n\n    const rect = object1.getBoundingClientRect();\n    offsetX = e.clientX - rect.left;\n    offsetY = e.clientY - rect.top;\n  });\n\n  document.addEventListener('mousemove', (e) => {\n    if (!isDragging) return;\n\n    const parent = object1.parentElement;\n    const parentRect = parent\n      ? parent.getBoundingClientRect()\n      : document.documentElement.getBoundingClientRect();\n\n    const x = e.clientX - parentRect.left - offsetX;\n    const y = e.clientY - parentRect.top - offsetY;\n\n    object1.style.position = 'absolute';\n    object1.style.left = x + 'px';\n    object1.style.top = y + 'px';\n  });\n\n  document.addEventListener('mouseup', () => {\n    if (!isDragging) return;\n\n    isDragging = false;\n    object1.style.cursor = 'grab';\n\n    const finalPos = {\n      x: object1.offsetLeft,\n      y: object1.offsetTop\n    };\nconsole.log('check1 mouseup http://localhost:3001/runnew/${input.projectId}/check1');\n//run new runtime check1\nfetch('http://localhost:3001/runnew/${input.projectId}/check1');\n  });\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": {
+              "object": "object1"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774614412333_h5iewc",
+          "position": {
+            "x": 272,
+            "y": 418
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "thownItemAction",
+            "description": "{\ninput:\"Defines draggable object configuration including element id, motion friction, and velocity threshold parameters\",\nbehavior:\"Generates client-side script that enables drag-and-throw interaction with inertia physics, applies DOM event handlers for movement, and triggers backend API calls based on release velocity or animation completion.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "action",
+            "fnString": "async function processRequest(input) {\n  const {\n    id = 'object2',\n    friction = 0.95,\n    threshold = 5\n  } = input.var;\n\n  const clientJS = `\nfetch('http://localhost:3001/deleterun/${input.runId}');\n\n(function () {\n  const object1 = document.getElementById('${id}');\n  let isDragging = false;\n  let offsetX = 0, offsetY = 0;\n  let velX = 0, velY = 0;\n  let lastX = 0, lastY = 0;\n  let lastTime = 0;\n  const FRICTION = ${Number(friction) || 0.95};\n  const THRESHOLD = ${Number(threshold) || 5};\n  let rafId = null;\n\n  if (!object1) return;\n\n  object1.style.cursor = 'grab';\n  object1.style.userSelect = 'none';\n  object1.style.transition = 'none';\n\n  object1.addEventListener('mousedown', (e) => {\n    isDragging = true;\n    object1.style.cursor = 'grabbing';\n    object1.style.transition = 'none';\n\n    const rect = object1.getBoundingClientRect();\n    offsetX = e.clientX - rect.left;\n    offsetY = e.clientY - rect.top;\n\n    velX = 0;\n    velY = 0;\n    lastX = parseFloat(object1.style.left) || object1.offsetLeft || 0;\n    lastY = parseFloat(object1.style.top) || object1.offsetTop || 0;\n    lastTime = performance.now();\n\n    cancelAnimationFrame(rafId);\n  });\n\n  document.addEventListener('mousemove', (e) => {\n    if (!isDragging) return;\n\n    const now = performance.now();\n    const parent = object1.parentElement;\n    const parentRect = parent\n      ? parent.getBoundingClientRect()\n      : document.documentElement.getBoundingClientRect();\n\n    const x = e.clientX - parentRect.left - offsetX;\n    const y = e.clientY - parentRect.top - offsetY;\n\n    if (lastTime > 0) {\n      const dt = Math.max(1, now - lastTime) / 16;\n      velX = (x - lastX) / dt;\n      velY = (y - lastY) / dt;\n    }\n\n    lastX = x;\n    lastY = y;\n    lastTime = now;\n\n    object1.style.position = 'absolute';\n    object1.style.left = x + 'px';\n    object1.style.top = y + 'px';\n  });\n\n  document.addEventListener('mouseup', () => {\n    if (!isDragging) return;\n\n    isDragging = false;\n    object1.style.cursor = 'grab';\n\n    if (velY < -THRESHOLD) {\n      object1.style.transition = 'none';\n      throwAnimation();\n    } else {\n      fetch('http://localhost:3001/runnew/${input.projectId}/check1');\n    }\n  });\n\n  function throwAnimation() {\n    const rect = object1.getBoundingClientRect();\n    const parent = object1.parentElement;\n    const parentRect = parent\n      ? parent.getBoundingClientRect()\n      : document.documentElement.getBoundingClientRect();\n\n    let newX = (parseFloat(object1.style.left) || 0) + velX;\n    let newY = (parseFloat(object1.style.top) || 0) + velY;\n\n    if (newY < 0) newY = 0;\n    if (newY + rect.height > parentRect.height) {\n      newY = parentRect.height - rect.height;\n    }\n\n    object1.style.left = newX + 'px';\n    object1.style.top = newY + 'px';\n\n    velX *= FRICTION;\n    velY *= FRICTION;\n\n    if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {\n      rafId = requestAnimationFrame(throwAnimation);\n    } else {\n      fetch('http://localhost:3001/runnew/${input.projectId}/check1');\n    }\n  }\n})();\n`;\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}",
+            "functionInput": {
+              "id": "object2",
+              "friction": 0.95,
+              "threshold": 5
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774718639008_geozev",
+          "position": {
+            "x": 200,
+            "y": 216
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "createPanel",
+            "description": "{\ninput:\"Accepts a JSON-encoded objects array describing UI elements, their layout, styles, labels, and parent containers for the start, game, and result screens.\",\nbehavior:\"Generates client-side JavaScript that creates or updates styled DOM elements and attaches them to their configured parents, enabling dynamic construction of the full multi-screen game UI within the workflow.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "object",
+            "fnString": "async function processRequest(input) {\n\n  const objects = input.var.objects;\n  console.log(\"inputTest\", input.var.inputTest );\n  console.log(\"CreatePanelController running(A)\", objects.length);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(\"#ms-apiresults-body\");\n\nconst objs = `+ JSON.stringify(objects) +`;\n\nconst byId = {};\n\nobjs.forEach(cfg => {\n\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n  }\n  byId[cfg.id] = el;\n\n  if (cfg.bgimage) {\n    el.style.backgroundImage = 'url(\"' + cfg.bgimage + '\")';\n    el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = cfg.position || \"absolute\";\n  el.style.left = (cfg.x || 0) + \"px\";\n  el.style.top = (cfg.y || 0) + \"px\";\n  el.style.width = (cfg.width || 50) + \"px\";\n  el.style.height = (cfg.height || 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"none\";\n  el.style.color = cfg.textcolor || \"black\";\n  el.style.zIndex = cfg.zIndex || \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.fontSize = \"14px\";\n  el.style.fontWeight = \"bold\";\n  if (cfg.styles) {\n    Object.assign(el.style, cfg.styles);\n  }\n\n  if (cfg.label) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if (cfg.parent) {\n    parentEl = document.getElementById(cfg.parent);\n    if (!parentEl) parentEl = root;\n  }\n  parentEl.appendChild(el);\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}",
+            "functionInput": "{\n  \"objects\": [\n    {\n      \"id\": \"start_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"styles\":{\n        \"overflow\": \"hidden\"\n      },\n      \"color\": \"#001133\",\n      \"bgimage\": \"https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg\",\n      \"zIndex\": 2,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"maintitle\",\n      \"width\": 600,\n      \"height\": 100,\n      \"x\": 0,\n      \"y\": 100,\n      \"styles\":{\n        \"color\": \"#d1d1d1\",\n        \"fontSize\":\"50px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"FPS\",\n      \"zIndex\": 10,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"button_start\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 300,\n      \"height\": 60,\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Start\",\n      \"zIndex\": 10,\n      \"parent\": \"start_screen\"\n    },\n    {\n      \"id\": \"game_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 10,\n      \"y\": 10,\n      \"color\": \"#004400\",\n      \"zIndex\": 2,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"cpanel\",\n      \"width\": 250,\n      \"height\": 400,\n      \"position\": 'fixed',\n      \"x\": 0,\n      \"y\": 100,\n      \"zIndex\": 8,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"button_up\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 200,\n      \"label\": \"Up\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_left\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 20,\n      \"y\": 250,\n      \"label\": \"Left\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_right\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 70,\n      \"y\": 250,\n      \"label\": \"Right\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_down\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 300,\n      \"label\": \"Down\",\n      \"styles\":{\n        \"backgroundColor\": \"#363c69\",\n        \"color\": \"#ffffff\",\n        \"borderRadius\": \"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"button_skip\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 360,\n      \"height\": 50,\n      \"label\": \"Skip\",\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 10,\n      \"parent\": \"cpanel\"\n    },\n    {\n      \"id\": \"displaypanel\",\n      \"width\": 600,\n      \"height\": 100,\n      \"position\": 'fixed',\n      \"x\": 0,\n      \"y\": 5,\n      \"zIndex\": 8,\n      \"parent\": \"game_screen\"\n    },\n    {\n      \"id\": \"showtext-time\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 5,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"ShowTime\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"showtext_distance\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 50,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Distance\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\",\n      \"textAlign\":\"center\"\n    },\n    {\n      \"id\": \"showtext_mark\",\n      \"width\": 40,\n      \"height\": 40,\n      \"label\": \"Mark\",\n      \"x\": 95,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"showtext_totalmark\",\n      \"width\": 40,\n      \"height\": 40,\n      \"x\": 140,\n      \"y\": 0,\n      \"styles\":{\n        \"backgroundColor\": \"#ffffff\",\n        \"color\": \"#646464\",\n        \"borderRadius\": \"10px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"TotalMark\",\n      \"zIndex\": 12,\n      \"parent\": \"displaypanel\"\n    },\n    {\n      \"id\": \"result_screen\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 0,\n      \"y\": 0,\n      \"zIndex\": 1,\n      \"parent\": \"ms-apiresults-body\"\n    },\n    {\n      \"id\": \"background\",\n      \"width\": 600,\n      \"height\": 800,\n      \"x\": 10,\n      \"y\": 10,\n      \"color\": \"#440000\",\n      \"zIndex\": 2,\n      \"parent\": \"result_screen\"\n    },\n    {\n      \"id\": \"showtext_time\",\n      \"width\": 300,\n      \"height\": 60,\n      \"x\": 50,\n      \"y\": 150,\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#ffaa00\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"40px\",\n        \"textAlign\":\"center\"\n      },\n      \"label\": \"Time\",\n      \"zIndex\": 10,\n      \"parent\": \"result_screen\"\n    },\n    {\n      \"id\": \"button_restart\",\n      \"x\": 300,\n      \"width\": 150,\n      \"y\": 350,\n      \"height\": 60,\n      \"label\": \"Restart\",\n      \"styles\":{\n        \"backgroundColor\": \"#222333\",\n        \"color\": \"#d1d1d1\",\n        \"borderRadius\": \"10px\",\n        \"fontSize\":\"20px\",\n        \"textAlign\":\"center\"\n      },\n      \"zIndex\": 12,\n      \"parent\": \"result_screen\"\n    }\n  ]\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774719124858_6x809j",
+          "position": {
+            "x": 1020,
+            "y": 216
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runNewRunTime",
+            "description": "{\ninput:\"Accepts a nodeLabel identifying which backend workflow action to trigger along with the projectId context.\",\nbehavior:\"Triggers a backend workflow execution by sending a fetch request to a local API endpoint to run the specified node action and advance the process.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "action",
+            "fnString": "async function processRequest(input) {\n\n  fetch('http://localhost:3001/runnew/' + input.projectId + '/'+ input.var.nodeLabel);\n\n  return {\n    status: \"ready\"\n  };\n}\n",
+            "functionInput": {
+              "nodeLabel": "setupaction"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774719832435_jgwylt",
+          "position": {
+            "x": 200,
+            "y": 810
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "removeCurrentRunTime",
+            "description": "{\ninput:\"Relies on the current runId provided by the workflow runtime context without requiring additional configured inputs.\",\nbehavior:\"Sends a backend API request to delete the active runtime instance for the current run, performing server-side workflow cleanup without changing the client interface.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n\n//delete runtime\nfetch('http://localhost:3001/deleterun/'+ input.runId);\n\n  return {\n    status: \"ready\"\n  };\n}\n",
+            "functionInput": {},
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774726796383_rraoso",
+          "position": {
+            "x": 1020,
+            "y": 416
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "removeCurrentRunTime",
+            "description": "{\ninput:\"Relies on the implicit runId from the workflow runtime context without requiring additional configuration inputs.\",\nbehavior:\"Issues a backend API request to delete the current run instance by runId, cleaning up workflow execution state on the server while leaving the client UI unchanged.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n\n//delete runtime by runId\nfetch('http://localhost:3001/deleterun/'+ input.runId);\n\n  return {\n    status: \"ready\"\n  };\n}\n",
+            "functionInput": {},
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774726893278_wva4u3",
+          "position": {
+            "x": 700,
+            "y": 416
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "runNewRunTime",
+            "description": "{\ninput:\"Accepts a nodeLabel identifying which project node to start along with the current projectId context.\",\nbehavior:\"Calls a backend API to create and run a new workflow instance for the specified node, initiating a fresh runtime execution without modifying the client DOM.\"\n}",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n\n//endpoint to run the new runtime\n  fetch('http://localhost:3001/runnew/' + input.projectId + '/'+ input.var.nodeLabel);\n\n  return {\n    status: \"ready\"\n  };\n}\n",
+            "functionInput": {
+              "nodeLabel": "counter"
+            },
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96,
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "node_1774727060792_rnsa5d",
+          "position": {
+            "x": 1340,
+            "y": 216
+          },
+          "type": "api",
+          "metadata": {
+            "apiId": "HRz75ZirMW71MGTGeGfp",
+            "locked": false,
+            "apiName": "runScriptMachine",
+            "apiUrl": null,
+            "image": null,
+            "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+            "cssStyle": null,
+            "size": "1:1",
+            "tags": [
+              "action",
+              "v2"
+            ]
+          },
+          "data": {
+            "labelText": "removeCurrentRunTime",
+            "description": "api",
+            "label": "runScriptMachine",
+            "nodeLabel": "",
+            "fnString": "async function processRequest(input) {\n\nfetch('http://localhost:3001/deleterun/'+ input.runId);\n\n  return {\n    status: \"ready\"\n  };\n}\n",
+            "functionInput": "{\nintroduction:\"remove current run time\",\n\"whatOutput\":\"\",\n}",
+            "actions": [],
+            "metadata": {
+              "apiId": "HRz75ZirMW71MGTGeGfp",
+              "locked": false,
+              "apiName": "runScriptMachine",
+              "apiUrl": null,
+              "image": null,
+              "function": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
+              "cssStyle": null,
+              "size": "1:1",
+              "tags": [
+                "action",
+                "v2"
+              ]
+            },
+            "width": 96,
+            "height": 96,
+            "scale": "1:1"
+          },
+          "style": {
+            "borderRadius": 10,
+            "padding": 8,
+            "width": 96,
+            "height": 96,
+            "minHeight": 96
+          },
+          "width": 96,
+          "height": 96
         }
       ],
       "edges": [
         {
-          "id": "edge_1774023287820",
-          "source": "node_1773996573661_ztt1x4",
-          "target": "node_1773999415932_dmi85c",
+          "id": "edge_1774305294307d",
+          "source": "counter1",
+          "target": "JumpToNodeByLabel",
+          "label": "next",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774614611067_u3mwnk",
+          "source": "actionController",
+          "target": "node_1774614412333_h5iewc",
           "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         },
         {
-          "id": "edge_1774023460184",
-          "source": "node_1773996551640_x2973f",
-          "target": "node_1773999415932_dmi85c",
-          "label": ""
+          "id": "edge_1774614612509_129g60",
+          "source": "node_1774614412333_h5iewc",
+          "target": "node_1774521522864_o0wqg0",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
         },
         {
-          "id": "edge_1774024850289",
-          "source": "node_1773993546109_7kkueq",
-          "target": "node_1773996551640_x2973f",
-          "label": ""
-        }
-      ],
-      "status": "stopped",
-      "storeVars": {},
-      "activeNodeId": null,
-      "activeEdgeId": null,
-      "apis": [],
-      "stepDelay": 1000,
-      "categoryId": "zIbjcRkwOJwYKBNTit5D"
-    },
-    {
-      "projectId": "rule_0",
-      "nodes": [
-        {
-          "id": "cleanOutputView",
-          "type": "api",
-          "data": {
-            "labelText": "cleanOutputView",
-            "label": "cleanOutputView",
-            "nodeLabel": "start",
-            "description": "",
-            "actions": [],
-            "fnString": "// cleanOutputView\nasync function processRequest(input) {\n  const rootSelector = \"#ms-apiresults-body\";\nconsole.log(\"cleanOutputView running server\");\nconsole.log(\"cleanOutputView test call runId\", input.runId);\n  const clientJS = `\nconsole.log(\"cleanOutputView running client\", input.runId);\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"cleanOutputView: root not found\");\n} else {\n  root.innerHTML = \"\";\n}\n`;\n\n  const resp = fetch('http://localhost:3001/next/'+ input.runId);\n\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": "",
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 20,
-            "y": 20
-          },
-          "metadata": {
-            "apiId": "cleanOutputView",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64
+          "id": "edge_1774718763422_ql2p34",
+          "source": "node_1774457059391_jd5zuy",
+          "target": "node_1774718639008_geozev",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
         },
         {
-          "id": "createObjects",
-          "type": "api",
-          "data": {
-            "labelText": "createObjects",
-            "label": "createObjects",
-            "nodeLabel": "",
-            "description": "create objects on the output view",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\n  const objects = input.var.objects || [];\n\n  const rootSelector = \"#ms-apiresults-body\";\n\n  console.log(\"CreatePanelController running(A)\", objects);\n\n  const clientJS = `\nconsole.log(\"CreatePanelController running(B)\");\n\nconst root = document.querySelector(${JSON.stringify(rootSelector)});\nif (!root) {\n  console.warn(\"CreatePanelController: root not found\");\n  return;\n}\n\nconst objs = ${JSON.stringify(objects)};\nconst byId = {};\n\nobjs.forEach(cfg => {\n  let el = document.getElementById(cfg.id);\n  if (!el) {\n    el = document.createElement(cfg.type === \"button\" ? \"button\" : \"div\");\n    el.id = cfg.id;\n    byId[cfg.id] = el;\n  } else {\n    byId[cfg.id] = el;\n  }\n\n  if (cfg.bgimage) {\n  bgimageUrl = 'https://maxsolo.co.uk/images/uploads/img_69c12c77758f65.83921956.jpg';//cfg.bgimage;\n  el.style.backgroundImage = \"url(\" + bgimageUrl + \")\";\n  el.style.backgroundSize = \"cover\";\n  }\n\n  el.style.position = \"fixed\";\n  el.style.left = (cfg.x ?? 0) + \"px\";\n  el.style.top  = (cfg.y ?? 0) + \"px\";\n  el.style.width  = (cfg.width  ?? 50) + \"px\";\n  el.style.height = (cfg.height ?? 50) + \"px\";\n  el.style.backgroundColor = cfg.color || \"gray\";\n  el.style.zIndex = cfg.zIndex ?? \"1000\";\n  el.style.borderRadius = cfg.type === \"button\" ? \"8px\" : \"0\";\n  el.style.cursor = cfg.type === \"button\" ? \"pointer\" : \"default\";\n\n  if (cfg.label && !el.textContent) {\n    el.textContent = cfg.label;\n  }\n\n  let parentEl = root;\n  if(!cfg.parent){\n    cfg.parent =\"ms-apiresults-body\"\n  }\n    parentEl = document.getElementById(cfg.parent);\n    console.log(\"under parent:\", cfg.parent);\n    parentEl.appendChild(el);\n\n  if (cfg.onclick) {\n    const onclickCfg = cfg.onclick; // ← 這裡直接用 cfg.onclick\n    \n    el.onclick = async function(ev) {\n      ev.stopPropagation();\n      try {\n        if (onclickCfg.type === \"fetch\") {\n          const url = onclickCfg.url;\n          const options = {\n            method: onclickCfg.method || \"GET\",\n            headers: { \"Content-Type\": \"application/json\" }\n          };\n          if (onclickCfg.body) {\n            options.body = JSON.stringify(onclickCfg.body);\n          } else if (onclickCfg.params) {\n            const params = new URLSearchParams(onclickCfg.params).toString();\n            window.open(url + (url.includes('?') ? '&' : '?') + params, '_blank');\n            return;\n          }\n          const resp = await fetch(url, options);\n          let data;\n          try {\n            data = await resp.json();\n          } catch (e) {\n            data = await resp.text();\n          }\n          console.log(\"Fetch result:\", data);\n        } else if (onclickCfg.type === \"js\") {\n          eval(onclickCfg.code);\n        } else if (onclickCfg.type === \"url\") {\n          window.open(onclickCfg.url, '_blank');\n        }\n      } catch (err) {\n        console.error(\"Button\", cfg.id, \"error:\", err);\n      }\n    };\n  }\n});\n`;\n\n  return {\n    status: \"ready\",\n    clientJS\n  };\n}\n",
-            "functionInput": {
-              "objects": [
-                {
-                  "id": "start_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#000033",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#001133",
-                  "bgimage": "https://maxsolo.co.uk/images/uploads/img_69c127d8af1883.34822870.jpg",
-                  "zIndex": 2,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "button(start)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 250,
-                  "color": "#00aa00",
-                  "zIndex": 10,
-                  "parent": "start_screen"
-                },
-                {
-                  "id": "game_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#003300",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#004400",
-                  "zIndex": 2,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object1",
-                  "width": 50,
-                  "height": 50,
-                  "x": 100,
-                  "y": 100,
-                  "color": "#ff6600",
-                  "zIndex": 5,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "object2",
-                  "width": 50,
-                  "height": 50,
-                  "x": 200,
-                  "y": 150,
-                  "color": "#66ff00",
-                  "zIndex": 5,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "cpanel",
-                  "width": 250,
-                  "height": 400,
-                  "x": 550,
-                  "y": 100,
-                  "color": "#333333",
-                  "zIndex": 8,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(up)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 120,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(left)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(right)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 650,
-                  "y": 200,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(down)",
-                  "width": 60,
-                  "height": 60,
-                  "x": 580,
-                  "y": 280,
-                  "color": "#0066ff",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "button(skip)",
-                  "width": 100,
-                  "height": 50,
-                  "x": 580,
-                  "y": 360,
-                  "color": "#ff4400",
-                  "zIndex": 10,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 50,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(distance)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 100,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(mark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 150,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "showtext(totalmark)",
-                  "width": 150,
-                  "height": 40,
-                  "x": 50,
-                  "y": 200,
-                  "color": "#ffffff",
-                  "zIndex": 12,
-                  "parent": "game_screen"
-                },
-                {
-                  "id": "result_screen",
-                  "width": 800,
-                  "height": 600,
-                  "x": 0,
-                  "y": 0,
-                  "color": "#330000",
-                  "zIndex": 1,
-                  "parent": "ms-apiresults-body"
-                },
-                {
-                  "id": "background",
-                  "width": 780,
-                  "height": 580,
-                  "x": 10,
-                  "y": 10,
-                  "color": "#440000",
-                  "zIndex": 2,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "showtext(time)",
-                  "width": 300,
-                  "height": 60,
-                  "x": 250,
-                  "y": 150,
-                  "color": "#ffaa00",
-                  "zIndex": 10,
-                  "parent": "result_screen"
-                },
-                {
-                  "id": "button(restart)",
-                  "width": 200,
-                  "height": 60,
-                  "x": 300,
-                  "y": 350,
-                  "color": "#00aa00",
-                  "zIndex": 12,
-                  "parent": "result_screen"
-                }
-              ]
-            },
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 340,
-            "y": 20
-          },
-          "metadata": {
-            "apiId": "createObjects",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64
-        },
-        {
-          "id": "actionController",
-          "type": "api",
-          "data": {
-            "labelText": "actionController",
-            "label": "actionController",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('button(start)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';};document.getElementById('button(skip)').onclick = function() {document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'block';};document.getElementById('button(restart)').onclick = function() {document.getElementById('start_screen').style.display = 'block';document.getElementById('game_screen').style.display = 'none';document.getElementById('result_screen').style.display = 'none';};"
-            },
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 660,
-            "y": 20
-          },
-          "metadata": {
-            "apiId": "actionController",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64
-        },
-        {
-          "id": "startgame",
-          "type": "api",
-          "data": {
-            "labelText": "runScriptMachine",
-            "label": "runScriptMachine",
-            "nodeLabel": "",
-            "description": "",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\nlet clientJS = input.var.clientJS;\n  return {\n    status: \"ready\",\n    clientJS,\n  };\n}\n",
-            "functionInput": {
-              "clientJS": "document.getElementById('start_screen').style.display = 'none';document.getElementById('game_screen').style.display = 'block';document.getElementById('result_screen').style.display = 'none';"
-            },
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 980,
-            "y": 20
-          },
-          "metadata": {
-            "apiId": "runScriptMachine",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64
-        },
-        {
-          "id": "counter1",
-          "type": "api",
-          "data": {
-            "labelText": "runScriptMachine",
-            "label": "runScriptMachine",
-            "nodeLabel": "counter1start",
-            "description": "",
-            "actions": [],
-            "fnString": "let counter1 = getVar('counter1');\nif(!counter1){\n counter1 = 0;\n}\ncounter1++;\nsetVar('counter1', counter1);",
-            "functionInput": "{\nclientJS:\"\"\n}",
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 98.57142857142858,
-            "y": 348.57142857142867
-          },
-          "metadata": {
-            "apiId": "runScriptMachine",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64,
-          "selected": false,
-          "dragging": false,
-          "positionAbsolute": {
-            "x": 98.57142857142858,
-            "y": 348.57142857142867
-          }
-        },
-        {
-          "id": "JumpToNodeByLabel",
-          "type": "api",
-          "data": {
-            "labelText": "JumpToNodeByLabel",
-            "label": "JumpToNodeByLabel",
-            "nodeLabel": "",
-            "description": "next node redirect to target label",
-            "actions": [],
-            "fnString": "async function processRequest(input) {\n  console.log('Triggering workflow for node label:', input.var.targetNodeLabel);\n  fetch('http://localhost:3001/go/'+ input.runId +'/'+ input.var.targetNodeLabel);\n  return {};\n}",
-            "functionInput": {
-              "targetNodeLabel": "counter1start"
-            },
-            "metadata": {
-              "cssStyle": ""
-            },
-            "_runningCount": 0
-          },
-          "position": {
-            "x": 496,
-            "y": 244
-          },
-          "metadata": {
-            "apiId": "JumpToNodeByLabel",
-            "locked": false
-          },
-          "style": {
-            "borderRadius": 10,
-            "padding": 8
-          },
-          "width": 220,
-          "height": 64,
-          "selected": true,
-          "positionAbsolute": {
-            "x": 495.7142857142858,
-            "y": 241.42857142857144
-          },
-          "dragging": true
-        }
-      ],
-      "edges": [
-        {
-          "id": "edge_1774299446506",
-          "source": "cleanOutputView",
+          "id": "edge_1774718766047_euch0g",
+          "source": "node_1774718639008_geozev",
           "target": "createObjects",
-          "label": "next",
-          "type": "next",
+          "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         },
         {
-          "id": "edge_1774299446507",
+          "id": "edge_1774718768349_ejuent",
           "source": "createObjects",
-          "target": "actionController",
-          "label": "next",
-          "type": "next",
-          "sourceHandle": "right",
-          "targetHandle": "left"
-        },
-        {
-          "id": "edge_1774299446508",
-          "source": "actionController",
           "target": "startgame",
-          "label": "next",
-          "type": "next",
+          "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         },
         {
-          "id": "edge_1774299446508",
-          "source": "counter1",
-          "target": "JumpToNodeByLabel",
-          "label": "next",
-          "type": "next",
+          "id": "edge_1774719320303_ylqels",
+          "source": "startgame",
+          "target": "node_1774719124858_6x809j",
+          "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         },
         {
-          "id": "edge_1774299446510",
-          "source": "JumpToNodeByLabel",
-          "target": "counter1",
-          "label": "next",
-          "type": "next",
+          "id": "edge_1774726720879_s0e5t0",
+          "source": "node_1774385435819_aqjbpz",
+          "target": "node_1774719832435_jgwylt",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774727019529_qdwotd",
+          "source": "node_1774521522864_o0wqg0",
+          "target": "node_1774726893278_wva4u3",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774727021388_kqtg2w",
+          "source": "node_1774726893278_wva4u3",
+          "target": "node_1774726796383_rraoso",
+          "label": "",
+          "sourceHandle": "right",
+          "targetHandle": "left"
+        },
+        {
+          "id": "edge_1774727095256_wlsg3k",
+          "source": "node_1774719124858_6x809j",
+          "target": "node_1774727060792_rnsa5d",
+          "label": "",
           "sourceHandle": "right",
           "targetHandle": "left"
         }
@@ -2272,12 +2603,23 @@
         "waiting_wait": false,
         "node_JumpToNodeByLabel_status": "user_continued"
       },
-      "activeNodeId": "JumpToNodeByLabel",
-      "activeEdgeId": "edge_1774299404895",
+      "activeNodeId": "node_1774719832435_jgwylt",
+      "activeEdgeId": null,
       "apis": [],
-      "stepDelay": 1000,
-      "categoryId": "rule_0"
+      "stepDelay": 100,
+      "categoryId": "zIbjcRkwOJwYKBNTit5D"
     }
   ],
-  "runs": []
+  "runs": [],
+  "globalStoreVars": {
+    "cat1": {
+      "wf1": {
+        "mykey": {
+          "x": 100
+        }
+      }
+    },
+    "node_node_1774385435819_aqjbpz_error": "Invalid or unexpected token",
+    "node_node_1774521522864_o0wqg0_error": "Missing } in template expression"
+  }
 }

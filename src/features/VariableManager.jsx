@@ -3771,26 +3771,30 @@ const edges = [
   }, [setAiWarning]);
 
   // Monitor socket updates to global store vars
-  // This ensures UI updates when server broadcasts changes
+  // This ensures UI updates when server broadcasts changes via store_vars_update event
   useEffect(() => {
     if (!socketRef?.current) {
       console.log('⚠️ socketRef not available yet');
       return;
     }
 
-    const handleGlobalVarsUpdate = (data) => {
-      console.log('📡 [VariableManager] Received global_store_vars_update event:', data);
-      // The globalStoreVars state from useRunDemo should update automatically
-      // This is just for logging/debugging to confirm we're getting the updates
-      if (data?.globalStoreVars) {
-        console.log('✅ Global store vars successfully updated from server:', Object.keys(data.globalStoreVars || {}));
+    const handleStoreVarsUpdate = (data) => {
+      console.log('📡 [VariableManager] Received store_vars_update event:', data);
+      // Update globalStoreVars state when server broadcasts individual variable changes
+      if (data && typeof data === 'object') {
+        const { projectcategoryid, workflowid, varname, value } = data;
+        if (projectcategoryid && workflowid && varname !== undefined) {
+          // This will trigger re-render of StoreVarsFloating and other components
+          // that depend on globalStoreVars
+          console.log('✅ Store variable updated:', { projectcategoryid, workflowid, varname, value });
+        }
       }
     };
 
-    socketRef.current.on('global_store_vars_update', handleGlobalVarsUpdate);
+    socketRef.current.on('store_vars_update', handleStoreVarsUpdate);
 
     return () => {
-      socketRef.current?.off('global_store_vars_update', handleGlobalVarsUpdate);
+      socketRef.current?.off('store_vars_update', handleStoreVarsUpdate);
     };
   }, [socketRef]);
 
@@ -4048,6 +4052,7 @@ const edges = [
 
         {activeTab === 'variablePrompt' && (
           <VariablePromptPanel
+            projectIdForRun={projectIdForRun}
             selectedRuleCategoryId={selectedRuleCategoryId}
             setSelectedRuleCategoryId={setSelectedRuleCategoryId}
             ruleCategories={ruleCategories}
@@ -4066,6 +4071,57 @@ const edges = [
             updateNodeDetails={updateNodeDetails}
             socketRef={socketRef}
             addNewWorkflow={addNewWorkflow}
+            cloneWorkflow={async () => {
+              try {
+                // Get the rule ID to clone
+                const ruleId = functionsList && functionsList[selectedRuleIndex] && functionsList[selectedRuleIndex].id;
+                if (!ruleId) {
+                  setAiWarning('Cannot clone: workflow not found');
+                  return;
+                }
+
+                // Call clone endpoint
+                const result = await fetch(`http://localhost:3001/cloneworkflow/${encodeURIComponent(ruleId)}`, {
+                  method: 'GET'
+                }).then(r => r.json());
+
+                if (!result.success) {
+                  setAiWarning('Failed to clone workflow: ' + (result.error || 'unknown error'));
+                  return;
+                }
+
+                const clonedWorkflow = result.workflow;
+
+                // Add cloned workflow to state (append to arrays)
+                setRuleSource([...(ruleSource || []), '']);
+                setRulePrompts([...(rulePrompts || []), '']);
+                setRuleNames([...(ruleNames || []), clonedWorkflow.name || `${ruleNames[selectedRuleIndex]} (clone)`]);
+                setRuleTypes([...(ruleTypes || []), ruleTypes[selectedRuleIndex] || '']);
+                setRuleSystemPrompts([...(ruleSystemPrompts || []), ruleSystemPrompts[selectedRuleIndex] || '']);
+                setRuleDetectPrompts([...(ruleDetectPrompts || []), ruleDetectPrompts[selectedRuleIndex] || '']);
+                setRuleRelatedFields([...(ruleRelatedFields || []), ruleRelatedFields[selectedRuleIndex] || '']);
+                setRuleCategoryIds([...(ruleCategoryIds || []), clonedWorkflow.categoryId || selectedRuleCategoryId]);
+                setExpression([...(ruleExpressions || []), '']);
+                
+                // Add to functionsList
+                if (functionsList) {
+                  setFunctionsList([...functionsList, {
+                    id: clonedWorkflow.id,
+                    name: clonedWorkflow.name,
+                    type: 'workflow'
+                  }]);
+                }
+
+                // Switch to cloned workflow
+                setSelectedRuleIndex((ruleNames && ruleNames.length) ? ruleNames.length : 0);
+                
+                setAiWarning('Workflow cloned successfully: ' + clonedWorkflow.name);
+                setTimeout(() => setAiWarning(''), 3000);
+              } catch (err) {
+                console.error('Clone workflow error:', err);
+                setAiWarning('Error cloning workflow: ' + (err.message || 'unknown'));
+              }
+            }}
             deleteWorkflow={async () => {
               try {
                 // Get the rule ID to delete

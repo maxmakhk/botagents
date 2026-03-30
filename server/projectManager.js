@@ -8,6 +8,7 @@ import { executeWorkflow } from './workflowRunner.js';
 import db from './db.js';
 import fs from 'fs/promises';
 import path from 'path';
+import e from 'express';
 
 class ProjectManager {
   constructor() {
@@ -49,6 +50,7 @@ class ProjectManager {
 
     // Debounced workflow-structure broadcast timers (projectId -> Timeout)
     this.sendNodesTimers = new Map();
+
   }
 
   // NEW: Generate a unique runId
@@ -154,6 +156,38 @@ class ProjectManager {
     } catch (e) { /* ignore */ }
   }
 
+  //0326
+  getVar(projectCategoryId, workflowId, varName) {
+    this.globalStoreVars = this.globalStoreVars || {};
+    const cat = this.globalStoreVars[projectCategoryId];
+    if (!cat) return undefined;
+    const wf = cat[workflowId];
+    if (!wf) return undefined;
+    return wf.hasOwnProperty(varName) ? wf[varName] : undefined;
+  };
+
+  setVar(projectCategoryId, workflowId, varName, value) {
+    this.globalStoreVars = this.globalStoreVars || {};
+    if (!this.globalStoreVars[projectCategoryId]) this.globalStoreVars[projectCategoryId] = {};
+    if (!this.globalStoreVars[projectCategoryId][workflowId]) this.globalStoreVars[projectCategoryId][workflowId] = {};
+    this.globalStoreVars[projectCategoryId][workflowId][varName] = value;
+
+    // broadcast to clients watching this category
+    try {
+      if (this.io) {
+        this.io.to(`projectcategory_${projectCategoryId}`).emit('store_vars_update', {
+          projectcategoryid: projectCategoryId,
+          workflowid: workflowId,
+          varname: varName,
+          value
+        });
+      }
+    } catch (e) {
+      console.warn('projectManager.setVar broadcast failed', e);
+    }
+    return { success: true };
+  };
+
   replaceGlobalVars(obj) {
     try {
       this.globalStoreVars = Object.assign({}, obj || {});
@@ -166,6 +200,7 @@ class ProjectManager {
   }
 
   /**
+   * 0326
    * Load projects from runs_store.json (if exists)
    */
   async loadFromDisk(filePath) {
@@ -176,6 +211,13 @@ class ProjectManager {
       const fp = filePath || path.join(process.cwd(), 'runs_store.json');
       const raw = await fs.readFile(fp, 'utf8');
       const parsed = JSON.parse(raw);
+      
+      // Load globalStoreVars
+      if (parsed.globalStoreVars && typeof parsed.globalStoreVars === 'object') {
+        this.globalStoreVars = parsed.globalStoreVars;
+        console.log(`[ProjectManager] Loaded globalStoreVars from ${fp}`);
+      }
+      
       if (Array.isArray(parsed.projects)) {
         for (const p of parsed.projects) {
           // Restore minimal project shape
@@ -236,10 +278,11 @@ class ProjectManager {
       const out = { 
         savedAt: new Date().toISOString(), 
         projects,
-        runs: existingRuns
+        runs: existingRuns,
+        globalStoreVars: this.globalStoreVars || {}
       };
       await fs.writeFile(fp, JSON.stringify(out, null, 2), 'utf8');
-      this.log(`Saved ${projects.length} projects to ${fp}`);
+      this.log(`Saved ${projects.length} projects and globalStoreVars to ${fp}`);
     } catch (e) {
       //console.error('[ProjectManager] Error saving runs_store.json:', e);
     }
@@ -600,6 +643,8 @@ class ProjectManager {
         name: displayName,
         nodeNumber: Array.isArray(project?.nodes) ? project.nodes.length : 0,
         edgeNumber: Array.isArray(project?.edges) ? project.edges.length : 0,
+        nodes: project?.nodes || [],
+        edges: project?.edges || [],
         runningStatus: (project?.status || 'stopped') === 'running'
       };
     });
@@ -1019,6 +1064,74 @@ class ProjectManager {
       statuses[projectId] = project.status || 'stopped';
     }
     return statuses;
+  }
+
+    /**
+     * 0327
+   * Clone a workflow: create a new workflow with copied nodes/edges
+   * New workflow name: "originalName (clone)"
+   */
+  cloneWorkflow(workflowId) {
+    // tolerant lookup: try given id, numeric, and prefixed forms
+    let originalWorkflow = this.projects.get(workflowId);
+    if (!originalWorkflow) {
+      // try numeric key
+      const numKey = Number(workflowId);
+      if (!Number.isNaN(numKey)) originalWorkflow = this.projects.get(numKey);
+    }
+    if (!originalWorkflow) {
+      // try prefixed key
+      originalWorkflow = this.projects.get(`rule_${workflowId}`);
+    }
+    if (!originalWorkflow) {
+      return null;
+    }
+
+    // new id: string with prefix to avoid numeric/string mismatch
+    const newWorkflowId = `rule_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+
+    // Deep copy nodes/edges/apis
+    const clonedWorkflow = {
+      id: newWorkflowId,
+      nodes: JSON.parse(JSON.stringify(originalWorkflow.nodes || [])),
+      edges: JSON.parse(JSON.stringify(originalWorkflow.edges || [])),
+      apis: JSON.parse(JSON.stringify(originalWorkflow.apis || [])),
+      stepDelay: originalWorkflow.stepDelay || 1000,
+      status: 'stopped',
+      storeVars: {},
+      activeNodeId: null,
+      activeEdgeId: null,
+      categoryId: originalWorkflow.categoryId || null,
+      name: `${originalWorkflow.name || 'Workflow'} (clone)`,
+      createdAt: new Date().toISOString()
+    };
+
+    // store as string-keyed project
+    this.projects.set(newWorkflowId, clonedWorkflow);
+
+    // persist immediately to avoid race (best-effort)
+    try {
+      this.saveToDisk(this.diskSavePath).catch(e => this.log('saveToDisk failed after clone: ' + String(e)));
+    } catch (e) {
+      // ignore
+    }
+
+    // notify clients
+    this.broadcastToAllClients('workflow_cloned', {
+      originalWorkflowId: workflowId,
+      newWorkflowId,
+      newWorkflow: clonedWorkflow
+    });
+
+    console.log(`[ProjectManager] Cloned workflow ${workflowId} -> ${newWorkflowId} with name "${clonedWorkflow.name}"`);
+
+    return {
+      id: newWorkflowId,
+      name: clonedWorkflow.name,
+      categoryId: clonedWorkflow.categoryId,
+      nodes: clonedWorkflow.nodes,
+      edges: clonedWorkflow.edges
+    };
   }
 
   /**

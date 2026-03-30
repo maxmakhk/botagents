@@ -25,7 +25,8 @@ const ensureInjectedCss = (cssText) => {
 };
 
 // EditFnButton: opens a centered modal to view/edit node.data.fnString and save back to nodes
-const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [] }) => {
+/*
+const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [], projectIdForRun = null }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [functionInput, setFunctionInput] = useState('');
@@ -97,9 +98,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
       <button title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
       {open && ReactDOM.createPortal(
         <>
-          {/* Background overlay */}
           <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex: 10000}} onClick={() => setOpen(false)} />
-          {/* Centered modal */}
           <div 
           id="updateNodeFnForm"
           style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
@@ -123,6 +122,223 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     </div>
   );
 };
+*/
+const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis = [], projectIdForRun = null }) => {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [functionInput, setFunctionInput] = useState('');
+  // ===== 新增：添加节点信息字段 =====
+  const [nodeName, setNodeName] = useState('');
+  const [nodeLabel, setNodeLabel] = useState('');
+  const [nodeDescription, setNodeDescription] = useState('');
+  // ===== 结束新增 =====
+
+  const handleClick = (ev) => {
+    ev.stopPropagation();
+    const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+    const current = (node && (node.data?.fnString || '')) || '';
+    setText(current || '');
+    const currentInput = (node && (node.data?.functionInput || '')) || '';
+    setFunctionInput(typeof currentInput === 'string' ? currentInput : JSON.stringify(currentInput, null, 2));
+    // ===== 新增：获取节点基本信息 =====
+    setNodeName(node?.data?.labelText || node?.data?.label || '');
+    setNodeLabel(node?.data?.nodeLabel || '');
+    setNodeDescription(node?.data?.description || '');
+    // ===== 结束新增 =====
+    setOpen(true);
+  };
+
+  const handleLoadDefault = () => {
+    const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+    if (!node) {
+      alert('Node not found');
+      return;
+    }
+    // Prefer component library source; fallback to original metadata snapshot
+    let defaultFn = '';
+    
+    // If not found and apis available, try to look up by apiId
+    if (Array.isArray(apis) && apis.length > 0) {
+      const apiId = node.metadata?.apiId || node.data?.metadata?.apiId;
+      if (apiId) {
+        const api = apis.find(a => String(a.id) === String(apiId));
+        defaultFn = api ? (api.function || api.fnString) : '';
+      }
+    }
+
+    if (!defaultFn) {
+      defaultFn = node.data?.metadata?.function || node.metadata?.defaultFunction || node.metadata?.function || '';
+    }
+    
+    if (defaultFn) {
+      setText(String(defaultFn));
+    } else {
+      alert('No default function found for this component.');
+    }
+  };
+
+  const handleCancel = () => { 
+    setOpen(false); 
+    setText(''); 
+    // ===== 新增：重置节点信息 =====
+    setNodeName('');
+    setNodeLabel('');
+    setNodeDescription('');
+    // ===== 结束新增 =====
+  };
+
+  // ===== 新增：分析节点函数 =====
+  const handleAnalysis = async (ev) => {
+    ev.stopPropagation();
+    try {
+      // 获取当前节点
+      const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+      if (!node) {
+        alert('Node not found');
+        return;
+      }
+
+      console.log(node)
+
+      // 从节点数据中获取 workflowId
+      const workflowId = projectIdForRun || null;
+
+      // 调用服务器 endpoint (server supports node-only lookup; include workflowId as query when available)
+      const url = `http://localhost:3001/nodeanalysis/${onNodeId}${workflowId ? `?workflowId=${workflowId}` : ''}`;
+      console.log(url);
+      console.log("workflowId:", workflowId);
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('[Analysis] ✓ Analysis complete. Check server console.');
+        console.log(result);
+        console.log('--- Node Analysis Result ---');
+        console.log(result.analysisPrompt);
+        console.log('----------------------------');
+        //alert('✓ Analysis complete!\n\nCheck browser console and server logs for detailed node information.');
+      } else {
+        console.error('✗ Analysis failed: ' + result.error);
+      }
+    } catch (err) {
+      console.error('[Analysis] Error:', err);
+      //alert('✗ Error: ' + err.message);
+    }
+  };
+  // ===== 结束新增 =====
+
+  const handleSave = () => {
+    try {
+      const node = Array.isArray(rfNodes) ? rfNodes.find(n => String(n.id) === String(onNodeId)) : null;
+      if (!node) return;
+      let parsedInput = functionInput;
+      try {
+        parsedInput = functionInput && typeof functionInput === 'string' ? JSON.parse(functionInput) : functionInput;
+      } catch (e) {
+        parsedInput = functionInput;
+      }
+      // ===== 修改：同时更新节点信息和函数数据 =====
+      const newData = { 
+        ...(node.data || {}), 
+        labelText: nodeName,          // 节点名称
+        nodeLabel: nodeLabel,         // 节点标签
+        description: nodeDescription, // 节点描述
+        fnString: text,               // 函数代码
+        functionInput: parsedInput    // 函数输入
+      };
+      // ===== 结束修改 =====
+      const updates = { data: newData };
+      if (typeof updateNodeData === 'function') {
+        updateNodeData(onNodeId, updates);
+      }
+    } catch (e) { console.error('EditFnButton save error:', e); }
+    setOpen(false);
+    setText('');
+    // ===== 新增：重置节点信息 =====
+    setNodeName('');
+    setNodeLabel('');
+    setNodeDescription('');
+    // ===== 结束新增 =====
+  };
+
+  return (
+    <div>
+      <button title="Edit function" onClick={handleClick} style={{backgroundColor:'#021827', border:'none', cursor:'pointer', fontSize:12}}>✏️</button>
+      {open && ReactDOM.createPortal(
+        <>
+          {/* Background overlay */}
+          <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex: 10000}} onClick={() => setOpen(false)} />
+          {/* Centered modal */}
+          <div 
+          id="updateNodeFnForm"
+          style={{position:'fixed', left:'50%', top:'50%', transform:'translate(-50%, -50%)', zIndex: 10001, background:'#021827', border:'1px solid #13353b', padding:16, borderRadius:8, minWidth:500, maxWidth:'90vw', maxHeight:'85vh', overflow:'auto', boxShadow:'0 10px 40px rgba(0,0,0,0.8)'}} onClick={(e) => e.stopPropagation()}>
+            
+            {/* ===== 新增：节点基本信息部分 ===== */}
+            <div style={{marginBottom:16, padding:12, background:'#0a1f2a', borderRadius:6, border:'1px solid #13353b'}}>
+              <div style={{fontSize:'0.9rem', fontWeight:600, color:'#7dd3fc', marginBottom:10}}>Node Details</div>
+              <div>onNodeId: {onNodeId}</div>
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Name</div>
+                <input
+                  type="text"
+                  value={nodeName}
+                  onChange={(e) => setNodeName(e.target.value)}
+                  placeholder="Node Name"
+                  style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
+                />
+              </div>
+
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Label (optional)</div>
+                <input
+                  type="text"
+                  value={nodeLabel}
+                  onChange={(e) => setNodeLabel(e.target.value)}
+                  placeholder="Short label (shown in workflow)"
+                  style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
+                />
+              </div>
+
+              <div>
+                <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Description</div>
+                <textarea
+                  rows={2}
+                  value={nodeDescription}
+                  onChange={(e) => setNodeDescription(e.target.value)}
+                  placeholder="Node description"
+                  style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
+                />
+              </div>
+            </div>
+            {/* ===== 结束新增 ===== */}
+
+            <div style={{marginTop:12}}>
+              <div style={{fontSize:'0.85rem', color:'#9fd6e1', marginBottom:6, fontWeight:600}}>Function Input (default input.var)</div>
+              <textarea rows={8} value={functionInput} onChange={(e) => setFunctionInput(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:8, borderRadius:6, fontFamily:'monospace', fontSize:'0.85rem'}} placeholder='例如 JSON array，代表 input.var' />
+            </div>
+            
+            <div style={{fontSize:'0.9rem', color:'#9fd6e1', marginBottom:10, fontWeight:600}}>Edit node function (fnString)</div>
+            <textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} style={{width:'100%', resize:'vertical', background:'#071427', color:'#e6f6ff', border:'1px solid #13353b', padding:8, borderRadius:6, fontFamily:'monospace', fontSize:'0.85rem'}} placeholder="Paste function body here" />
+            
+            <div style={{display:'flex', gap:10, justifyContent:'flex-end', marginTop:12}}><button className="btn-cancel" onClick={handleCancel} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Close</button>
+              <button 
+                onClick={handleAnalysis}
+                className="btn-warning" 
+                style={{padding:'8px 14px', fontSize:'0.9rem'}}
+              >
+                Analysis
+              </button>
+              <button className="btn-secondary" onClick={handleLoadDefault} title="Load original component function" style={{padding:'8px 14px', fontSize:'0.9rem'}}>Default Function</button>
+              <button className="btn-primary" onClick={handleSave} style={{padding:'8px 14px', fontSize:'0.9rem'}}>Submit</button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+    </div>
+  );
+};
+
 
 const defaultNodeCss = `.api-node {
   font-weight: 700;
@@ -327,7 +543,7 @@ const WorkflowNode = ({ id, data }) => {
         </div>
       )}
       {/* lock button + info icon + prompt icon top-right */}
-      <div style={{position:'absolute', right:2, top:2, display:'flex', gap:2, flexDirection: 'row'}}>
+        <div style={{position:'absolute', right:2, top:2, display:'flex', gap:2, flexDirection: 'row'}}>
         <button
           title={data?.locked || data?.metadata?.locked ? 'Unlock node' : 'Lock node'}
           onClick={(ev) => { ev.stopPropagation(); try { if (typeof onToggleNodeLock === 'function') onToggleNodeLock(id); } catch(e){} }}
@@ -343,7 +559,7 @@ const WorkflowNode = ({ id, data }) => {
           ℹ️
         </button>
         <PromptButton onNodeId={id} onSubmit={onNodePromptSubmit} onGetRelated={onGetRelated} rfNodes={rfNodes} rfEdges={rfEdges} />
-        <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} apis={data?.apis} />
+        <EditFnButton onNodeId={id} rfNodes={rfNodes} updateNodeData={data?.updateNodeData} apis={data?.apis} projectIdForRun={data?.projectIdForRun} />
       </div>
       <Handle
         type="target"
@@ -525,6 +741,7 @@ const WorkflowGraph = ({
   selectedIds = []
   ,
   updateNodeDetails,
+  projectIdForRun = null,
   runningFlows = []
 }) => {
   const hasNodes = rfNodes && rfNodes.length > 0;
@@ -635,6 +852,7 @@ const WorkflowGraph = ({
         storeVars,
         setStoreVars,
         runningFlows,
+        projectIdForRun,
         // provide a helper to collect related nodes and edges for this node
         getRelated: (nodeId) => {
           const nodesArr = Array.isArray(rfNodes) ? rfNodes : [];

@@ -1,14 +1,3 @@
 {
-  "runs": [
-    {
-      "runId": "run_09c547c7-6807-49a4-bee0-0ec25188ab70",
-      "projectId": "rule_1773360383383_n0u551",
-      "workflowId": "rule_1773360383383_n0u551",
-      "categoryId": "zIbjcRkwOJwYKBNTit5D",
-      "startedAt": "2026-03-26T09:22:41.619Z",
-      "currentNodeId": "counter1",
-      "currentEdgeId": null,
-      "lastHeartbeat": "2026-03-26T09:23:18.089Z"
-    }
-  ]
+  "runs": []
 }
