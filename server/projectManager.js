@@ -908,6 +908,7 @@ class ProjectManager {
     if (updates.description !== undefined) data.description = updates.description;
     if (updates.fnString !== undefined) data.fnString = updates.fnString;
     if (updates.functionInput !== undefined) data.functionInput = updates.functionInput;
+    if (updates.tag !== undefined) data.tag = updates.tag;
     console.log('[After Top-Level Merge]', { data });
     // Merge from updates.data if provided (preferred format, takes precedence)
     if (updates.data && typeof updates.data === 'object') {

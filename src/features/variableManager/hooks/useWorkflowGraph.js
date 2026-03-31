@@ -141,6 +141,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
                 description: n.data?.description || n.description || n.type || '',
                 label: restoredLabel,
                 nodeLabel: n.data?.nodeLabel || '', // Preserve node label from server
+                tag: n.data?.tag || '', // Preserve tag from workflow
                 fnString: restoredFnString,
                 functionInput: restoredFunctionInput,
                 actions: Array.isArray(n.actions) ? n.actions : (n.data && Array.isArray(n.data.actions) ? n.data.actions : []),
@@ -238,6 +239,7 @@ export default function useWorkflowGraph({ onEdgeAdd } = {}) {
       actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
       data: {
         nodeLabel: n.data?.nodeLabel || '',
+        tag: n.data?.tag || '',
         fnString: n.data?.fnString || '', // Preserve node fnString when exporting
         functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
       }

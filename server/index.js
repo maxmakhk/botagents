@@ -2761,7 +2761,7 @@ ${fnString}
       id: n.id,
       name: n.data?.labelText || n.data?.label || '(no name)',
       nodeLabel: n.data?.nodeLabel || '(no label)',
-      description: n.data?.description || '(no description)',
+      description: 'describe what this node does:'+ n.data?.description || '(no description)',
       input: n.data?.functionInput ?? null
     }));
 
@@ -2792,6 +2792,44 @@ ${fnString}
   }
 });
 
+app.get('/removenodebykeyword/:workflowId', (req, res) => {
+  /*
+  [POST]
+{keyword: "abc"}
+*/
+console.log('****************************************************************')
+console.log('*********************** REMOVE NODE BY KEYWORD ************************');
+console.log('keyword =', req.query.keyword);
+console.log('****************************************************************')
+  try {
+    const { keyword } = req.query || {};
+    if (!keyword) return res.status(400).json({ error: 'keyword required' }); 
+    let removedCount = 0;
+    for (const [projectId, project] of projectManager.projects.entries()) {
+      const nodes = project.nodes || [];
+      const edges = project.edges || [];
+      const nodesToRemove = nodes.filter(n => {
+        const label = n.data?.labelText || n.data?.label || '';
+        const description = n.data?.description || '';
+        return label.includes(keyword) || description.includes(keyword);
+      }
+      );
+      if (nodesToRemove.length > 0) {
+        const nodeIdsToRemove = new Set(nodesToRemove.map(n => n.id));
+        project.nodes = nodes.filter(n => !nodeIdsToRemove.has(n.id));
+        project.edges = edges.filter(e => !nodeIdsToRemove.has(e.source) && !nodeIdsToRemove.has(e.target));
+        removedCount += nodesToRemove.length;
+        console.log(`[RemoveNodeByKeyword] Removed ${nodesToRemove.length} nodes from project ${projectId} matching keyword '${keyword}'`);
+      }
+    }
+    res.json({ success: true, removedCount });
+  } catch (err) { 
+    console.error('[RemoveNodeByKeyword] Error:', err);
+    res.status(500).json({ success: false, error: String(err) }); 
+  }
+
+});
+
 
 app.get('/cloneworkflow/:workflowId', (req, res) => {
     console.log('****************************************************************')
@@ -2814,6 +2852,43 @@ app.get('/cloneworkflow/:workflowId', (req, res) => {
       error: 'Workflow not found or failed to clone' 
     });
     res.json({ success: true, workflow: newWorkflow });
+  } catch (err) { res.status(500).json({ error: String(err) }); }
+});
+
+app.get('/getworkflow/:workflowId', (req, res) => {
+  console.log('****************************************************************')
+  console.log('*********************** GET WORKFLOW ************************');
+  console.log('workflowId =', req.params.workflowId);
+  console.log('****************************************************************')
+  try {
+    const { workflowId } = req.params;
+    if (!workflowId) return res.status(400).json({ error: 'workflowId required' });
+    const workflow = projectManager.getWorkflowData(workflowId);
+
+    const simpleNodes = (workflow.nodes || []).map(n => ({
+      id: n.id,
+      name: n.data?.labelText || n.data?.label || '(no name)',
+      nodeLabel: n.data?.nodeLabel || '(no label)',
+      description: 'describe what this node does:'+ n.data?.description || '(no description)',
+      input: n.data?.functionInput ?? null
+    }));
+
+    const simpleEdges = (workflow.edges || []).map(e => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      label: e.label,
+      expression: e.expression
+    }));
+
+    let workflowStructure = {
+        workflow: workflowId || null,
+        nodes: simpleNodes,
+        edges: simpleEdges,
+      }
+
+    if (!workflow) return res.status(404).json({ error: 'Workflow not found' });
+    res.json({ success: true, workflow, workflowStructure });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
@@ -3385,7 +3460,7 @@ app.post('/updatenode', (req, res) => {
   console.log('Request body:', req.body);
   console.log('****************************************************************');
   try {
-    const { id: nodeId, projectId, name, label, description, labelText, nodeLabel, fnString, functionInput } = req.body || {};
+    const { id: nodeId, projectId, name, label, description, labelText, nodeLabel, fnString, functionInput, tag, nodeTag } = req.body || {};
     
     if (!nodeId) return res.status(400).json({ success: false, error: 'nodeId (id) required' });
 
@@ -3398,6 +3473,12 @@ app.post('/updatenode', (req, res) => {
     if (description !== undefined) updates.description = description;
     if (fnString !== undefined) updates.fnString = fnString;
     if (functionInput !== undefined) updates.functionInput = functionInput;
+    if (tag !== undefined) updates.tag = tag;
+    if (nodeTag !== undefined) updates.tag = nodeTag;
+
+    console.log(`[/updatenode] Processing update - nodeId=${nodeId}, projectId=${projectId}`);
+    console.log(`[/updatenode] Received tag="${tag}" nodeTag="${nodeTag}"`);
+    console.log(`[/updatenode] Updates to apply:`, updates);
 
     // If projectId not provided, search all projects for the nodeId
     let projId = projectId;

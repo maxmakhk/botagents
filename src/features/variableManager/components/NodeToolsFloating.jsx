@@ -120,6 +120,7 @@ export default function NodeToolsFloating({
         workflows: Object.keys(workflowStatusData || {}).length,
         connectedClients: clientsCount,
       });
+
       console.log('%c====== [END DATA] ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
     } catch (err) {
       console.error('❌ Error fetching data:', err);

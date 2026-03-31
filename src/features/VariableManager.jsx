@@ -825,17 +825,41 @@ const VariableManager = ({ onBack }) => {
   // Server runs projects independently, client just watches and receives updates
   useEffect(() => {
     if (!projectIdForRun) return;
-
+    
+    // Only fetch if projectIdForRun is a real workflow ID, not a synthetic fallback like "rule_0"
+    // Real IDs should contain actual workflow identifiers, not just "rule_N" patterns
+    const isSyntheticId = /^rule_\d+$/.test(projectIdForRun);
+    const hasFunctionsList = Array.isArray(functionsList) && functionsList.length > selectedRuleIndex && functionsList[selectedRuleIndex];
+    
+    if (isSyntheticId && !hasFunctionsList) {
+      console.log(`📌 [VariableManager] Waiting for workflow list... (synthetic ID: ${projectIdForRun})`);
+      return;
+    }
+    
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    
     console.log(`📌 [VariableManager] Selected project: ${projectIdForRun} (observer mode)`);
     
+    
+    fetch(`${backendUrl}/getworkflow/${encodeURIComponent(projectIdForRun)}`)
+      .then(r => r.ok ? r.json() : { projectIdForRun, error: `HTTP ${r.status}` })
+      .catch(e => ({ projectIdForRun, error: String(e) }))
+      .then(data => {
+        console.log('%c====== [getworkflow] ======', 'background:#454EDE; color:#FFFD55; padding:2px 6px; border-radius:4px;');
+        if (data.error) {
+          console.warn('getworkflow error:', data.error);
+        } else {
+          console.log('getworkflow response:', data);
+        }
+      });
+
     // Set projectId in useRunDemo to begin watching this project
     if (typeof setProjectId === 'function') {
       setProjectId(projectIdForRun);
     }
 
     // Also query backend for existing run status
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    (async () => {
+   (async () => {
       try {
         const res = await fetch(`${backendUrl}/api/run/status?projectId=${encodeURIComponent(projectIdForRun)}`);
         if (!res.ok) return;
@@ -2869,6 +2893,7 @@ const VariableManager = ({ onBack }) => {
         actions: Array.isArray(n.data?.actions) ? n.data.actions : [],
         data: {
           nodeLabel: n.data?.nodeLabel || '',
+          tag: n.data?.tag || '',
           fnString: n.data?.fnString || '',
           functionInput: n.data?.functionInput !== undefined ? n.data.functionInput : (n.functionInput !== undefined ? n.functionInput : undefined)
         }

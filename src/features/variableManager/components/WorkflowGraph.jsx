@@ -131,6 +131,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
   const [nodeName, setNodeName] = useState('');
   const [nodeLabel, setNodeLabel] = useState('');
   const [nodeDescription, setNodeDescription] = useState('');
+  const [nodeTag, setNodeTag] = useState('');
   // ===== 结束新增 =====
 
   const handleClick = (ev) => {
@@ -141,9 +142,12 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     const currentInput = (node && (node.data?.functionInput || '')) || '';
     setFunctionInput(typeof currentInput === 'string' ? currentInput : JSON.stringify(currentInput, null, 2));
     // ===== 新增：获取节点基本信息 =====
+    const loadedTag = node?.data?.tag || node?.data?.nodeTag || '';
     setNodeName(node?.data?.labelText || node?.data?.label || '');
     setNodeLabel(node?.data?.nodeLabel || '');
     setNodeDescription(node?.data?.description || '');
+    setNodeTag(loadedTag);
+    console.log(`[EditFnButton] handleClick - nodeId=${onNodeId}, loaded tag="${loadedTag}", node.data:`, node?.data);
     // ===== 结束新增 =====
     setOpen(true);
   };
@@ -184,6 +188,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     setNodeName('');
     setNodeLabel('');
     setNodeDescription('');
+    setNodeTag('');
     // ===== 结束新增 =====
   };
 
@@ -242,14 +247,17 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
         ...(node.data || {}), 
         labelText: nodeName,          // 节点名称
         nodeLabel: nodeLabel,         // 节点标签
+        tag: nodeTag,                 // 节点tag
         description: nodeDescription, // 节点描述
         fnString: text,               // 函数代码
         functionInput: parsedInput    // 函数输入
       };
+      console.log(`[EditFnButton] handleSave - nodeId=${onNodeId}, saving tag="${nodeTag}", newData:`, newData);
       // ===== 结束修改 =====
       const updates = { data: newData };
       if (typeof updateNodeData === 'function') {
         updateNodeData(onNodeId, updates);
+        console.log(`[EditFnButton] handleSave - called updateNodeData with updates:`, updates);
       }
     } catch (e) { console.error('EditFnButton save error:', e); }
     setOpen(false);
@@ -258,6 +266,7 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
     setNodeName('');
     setNodeLabel('');
     setNodeDescription('');
+    setNodeTag('');
     // ===== 结束新增 =====
   };
 
@@ -295,6 +304,17 @@ const EditFnButton = ({ onNodeId, rfNodes = [], updateNodeData = () => {}, apis 
                   value={nodeLabel}
                   onChange={(e) => setNodeLabel(e.target.value)}
                   placeholder="Short label (shown in workflow)"
+                  style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
+                />
+              </div>
+
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:'0.8rem', color:'#9ca3af', marginBottom:4}}>Node Tag (optional)</div>
+                <input
+                  type="text"
+                  value={nodeTag}
+                  onChange={(e) => setNodeTag(e.target.value)}
+                  placeholder="Short tag (shown in workflow)"
                   style={{width:'100%', padding:8, borderRadius:6, border:'1px solid #334155', background:'#021827', color:'#e5e7eb', boxSizing: 'border-box'}}
                 />
               </div>
