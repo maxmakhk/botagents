@@ -2830,6 +2830,231 @@ console.log('****************************************************************')
 
 });
 
+app.post('/combineworkflows', (req, res) => {
+  /*
+  test version, print out nodes and edges list first
+  let mainWorkflow = req.body.mainWorkflow[] || {nodes:[], edges:[]};
+  let templateWorkflow = req.body.mainWorkflowB[] || {nodes:[], edges:[]};
+
+    */
+   console.log('****************************************************************')
+   console.log('*********************** COMBINE WORKFLOWS ************************');
+   console.log('mainWorkflow =', req.body.mainWorkflow);
+   console.log('templateWorkflow =', req.body.templateWorkflow);
+   console.log('****************************************************************')
+  try {
+
+    let mainWorkflow = req.body.mainWorkflow;
+    let templateWorkflow = req.body.mainWorkflowB ;
+
+    //main
+    console.log('--- Main Workflow ---', mainWorkflow.length);
+    let newWorkflows = [];
+    for(let nodeSet of mainWorkflow || []) {
+      let subWorkflow = {
+        id: nodeSet.id,
+        nodes: [],
+        edges: []
+      };
+      for(let node of nodeSet.nodes || []) {
+        console.log(`id=${node.id} nodelabel=${node.nodelabel} refWorkflowId=${node.refWorkflowId || ''} refNodeId=${node.refNodeId || ''}`);
+        //i want to search the reference node here in node memory, by workflow id and node id, i got the reference, console log (RefNode Found)
+        if (node.refWorkflowId && node.refNodeId) {
+
+          const refWorkflow = projectManager.getWorkflowData(node.refWorkflowId) || projectManager.getProject(node.refWorkflowId);
+          const refNode = refWorkflow?.nodes?.find(n => String(n.id) === String(node.refNodeId));
+          if (refNode) {
+            console.log('RefNode Found:', refNode.id);
+            subWorkflow.nodes.push(refNode);
+          } else {
+            console.log(`RefNode Not Found for workflowId=${node.refWorkflowId} nodeId=${node.refNodeId}`);
+          }
+        }
+
+      }
+      for(let edge of nodeSet.edges || []) {
+        subWorkflow.edges.push(edge);
+        console.log(`id=${edge.id} source=${edge.source} target=${edge.target} label=${edge.label || ''} expression=${edge.expression || ''}`);
+      }
+      newWorkflows.push(subWorkflow);
+    }
+
+    //template
+    console.log('--- Template Workflow ---');
+    for(let nodeSet of templateWorkflow || []) {
+      for(let node of nodeSet.nodes || []) {
+        console.log(`id=${node.id} nodelabel=${node.data?.nodelabel} refWorkflowId=${node.data?.refWorkflowId || ''} RefNodeId=${node.data?.refNodeId || ''}`);
+      }
+      for(let edge of nodeSet.edges || []) {
+        console.log(`id=${edge.id} source=${edge.source} target=${edge.target} label=${edge.label || ''} expression=${edge.expression || ''} refWorkflowId=${edge.data?.refWorkflowId || ''} RefEdgeId=${edge.data?.refEdgeId || ''}`);
+      }
+    }
+
+    res.json({ success: true, newWorkflows});
+  } catch (err) {
+    console.error('[CombineWorkflows] Error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  } 
+
+  
+
+});
+
+
+app.post('/clonenode', (req, res) => {
+  /*
+  {
+  fromNodeId
+  fromWorkflowId
+  toWorkflowId
+  newNodeId
+  newNodeName <-- optional, if not provided, will replace the original node's name
+  functionInput <-- optional, if not provided, will replace the original node's functionInput
+  functionString <-- optional, if not provided, will replace the original node's functionString
+  }
+  */
+  console.log('****************************************************************')
+  console.log('*********************** CLONE NODE ************************');
+  console.log('fromNodeId =', req.body.fromNodeId);
+  console.log('fromWorkflowId =', req.body.fromWorkflowId);
+  console.log('toWorkflowId =', req.body.toWorkflowId);
+  console.log('newNodeId =', req.body.newNodeId);
+  console.log('newNodeName =', req.body.newNodeName);
+  console.log('functionInput =', req.body.functionInput);
+  console.log('functionString =', req.body.functionString);
+  console.log('****************************************************************') 
+  try {
+    const { fromNodeId, fromWorkflowId, toWorkflowId, newNodeId, newNodeName, functionInput, functionString } = req.body || {};
+    if (!fromNodeId || !fromWorkflowId || !toWorkflowId || !newNodeId) return res.status(400).json({ error: 'fromNodeId, fromWorkflowId, toWorkflowId and newNodeId required' });
+    const newNode = projectManager.cloneNode(fromWorkflowId, fromNodeId, toWorkflowId, newNodeId, newNodeName, functionInput, functionString);
+    if (!newNode) return res.status(404).json({ error: 'Node or workflow not found, or failed to clone' });
+    res.json({ success: true, newNode });
+  } catch (err) {
+    console.error('[CloneNode] Error:', err);
+    res.status(500).json({ error: String(err) });
+  }
+
+});
+
+app.post('/cloneedge', (req, res) => {
+  /*
+  {
+  fromEdgeId
+  fromWorkflowId
+  toWorkflowId
+  newEdgeId
+  newEdgeName <-- optional, if not provided, will replace the original edge's name
+  functionInput <-- optional, if not provided, will replace the original edge's functionInput
+  functionString <-- optional, if not provided, will replace the original node's functionString
+  }
+  */
+  console.log('****************************************************************')
+  console.log('*********************** CLONE EDGE ************************');
+  console.log('fromEdgeId =', req.body.fromEdgeId);
+  console.log('fromWorkflowId =', req.body.fromWorkflowId);
+  console.log('toWorkflowId =', req.body.toWorkflowId);
+  console.log('newEdgeId =', req.body.newEdgeId);
+  console.log('newEdgeName =', req.body.newEdgeName);
+  console.log('functionInput =', req.body.functionInput);
+  console.log('functionString =', req.body.functionString);
+  console.log('****************************************************************')
+  try {
+    const { fromEdgeId, fromWorkflowId, toWorkflowId, newEdgeId, newEdgeName, functionInput, functionString } = req.body || {};
+    if (!fromEdgeId || !fromWorkflowId || !toWorkflowId || !newEdgeId) return res.status(400).json({ error: 'fromEdgeId, fromWorkflowId, toWorkflowId and newEdgeId required' });
+    const newEdge = projectManager.cloneEdge(fromWorkflowId, fromEdgeId, toWorkflowId, newEdgeId, newEdgeName, functionInput, functionString);
+    if (!newEdge) return res.status(404).json({ error: 'Edge or workflow not found, or failed to clone' });
+    res.json({ success: true, newEdge });
+  } catch (err) {
+    console.error('[CloneEdge] Error:', err);
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// GET endpoint for cloning a node from URL path parameters
+// Usage: /clonenode/:fromworkflowId/:fromnodeId/:toworkflowId/:tonodeId
+// Optional query params: ?newNodeName=xxx&functionInput=xxx&functionString=xxx
+app.get('/clonenode/:fromworkflowId/:fromnodeId/:toworkflowId/:tonodeId', (req, res) => {
+  console.log('****************************************************************')
+  console.log('*********************** CLONE NODE (GET) ************************');
+  console.log('fromWorkflowId =', req.params.fromworkflowId);
+  console.log('fromNodeId =', req.params.fromnodeId);
+  console.log('toWorkflowId =', req.params.toworkflowId);
+  console.log('newNodeId =', req.params.tonodeId);
+  console.log('newNodeName =', req.query.newNodeName);
+  console.log('functionInput =', req.query.functionInput);
+  console.log('functionString =', req.query.functionString);
+  console.log('****************************************************************')
+  try {
+    const { fromworkflowId, fromnodeId, toworkflowId, tonodeId } = req.params;
+    const { newNodeName, functionInput, functionString } = req.query;
+    
+    if (!fromworkflowId || !fromnodeId || !toworkflowId || !tonodeId) {
+      return res.status(400).json({ error: 'fromworkflowId, fromnodeId, toworkflowId and tonodeId required' });
+    }
+    
+    const newNode = projectManager.cloneNode(
+      fromworkflowId, 
+      fromnodeId, 
+      toworkflowId, 
+      tonodeId, 
+      newNodeName, 
+      functionInput, 
+      functionString
+    );
+    
+    if (!newNode) {
+      return res.status(404).json({ error: 'Node or workflow not found, or failed to clone' });
+    }
+    
+    res.json({ success: true, newNode });
+  } catch (err) {
+    console.error('[CloneNode GET] Error:', err);
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// GET endpoint for cloning an edge from URL path parameters
+// Usage: /cloneedge/:fromworkflowId/:fromedgeId/:toworkflowId/:toedgeId
+// Optional query params: ?newEdgeName=xxx&functionInput=xxx&functionString=xxx
+app.get('/cloneedge/:fromworkflowId/:fromedgeId/:toworkflowId/:toedgeId', (req, res) => {
+  console.log('****************************************************************')
+  console.log('*********************** CLONE EDGE (GET) ************************');
+  console.log('fromWorkflowId =', req.params.fromworkflowId);
+  console.log('fromEdgeId =', req.params.fromedgeId);
+  console.log('toWorkflowId =', req.params.toworkflowId);
+  console.log('newEdgeId =', req.params.toedgeId);
+  console.log('newEdgeName =', req.query.newEdgeName);
+  console.log('functionInput =', req.query.functionInput);
+  console.log('functionString =', req.query.functionString);
+  console.log('****************************************************************')
+  try {
+    const { fromworkflowId, fromedgeId, toworkflowId, toedgeId } = req.params;
+    const { newEdgeName, functionInput, functionString } = req.query;
+    
+    if (!fromworkflowId || !fromedgeId || !toworkflowId || !toedgeId) {
+      return res.status(400).json({ error: 'fromworkflowId, fromedgeId, toworkflowId and toedgeId required' });
+    }
+    
+    const newEdge = projectManager.cloneEdge(
+      fromworkflowId, 
+      fromedgeId, 
+      toworkflowId, 
+      toedgeId, 
+      newEdgeName, 
+      functionInput, 
+      functionString
+    );
+    
+    if (!newEdge) {
+      return res.status(404).json({ error: 'Edge or workflow not found, or failed to clone' });
+    }
+    
+    res.json({ success: true, newEdge });
+  } catch (err) {
+    console.error('[CloneEdge GET] Error:', err);
+    res.status(500).json({ error: String(err) });
+  }
+});
 
 app.get('/cloneworkflow/:workflowId', (req, res) => {
     console.log('****************************************************************')
@@ -2867,6 +3092,7 @@ app.get('/getworkflow/:workflowId', (req, res) => {
 
     const simpleNodes = (workflow.nodes || []).map(n => ({
       id: n.id,
+      refId: n.id,
       name: n.data?.labelText || n.data?.label || '(no name)',
       nodeLabel: n.data?.nodeLabel || '(no label)',
       description: 'describe what this node does:'+ n.data?.description || '(no description)',
@@ -2875,6 +3101,7 @@ app.get('/getworkflow/:workflowId', (req, res) => {
 
     const simpleEdges = (workflow.edges || []).map(e => ({
       id: e.id,
+      refId: e.id,
       source: e.source,
       target: e.target,
       label: e.label,

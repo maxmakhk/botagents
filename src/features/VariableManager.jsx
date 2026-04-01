@@ -97,6 +97,8 @@ const VariableManager = ({ onBack }) => {
     setEditingGroupId,
     groupTesting,
     setGroupTesting,
+    groupTestResults,
+    setGroupTestResults,
     saveRuleGroup,
     deleteRuleGroup,
     createRuleId,
@@ -839,7 +841,6 @@ const VariableManager = ({ onBack }) => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
     
     console.log(`📌 [VariableManager] Selected project: ${projectIdForRun} (observer mode)`);
-    
     
     fetch(`${backendUrl}/getworkflow/${encodeURIComponent(projectIdForRun)}`)
       .then(r => r.ok ? r.json() : { projectIdForRun, error: `HTTP ${r.status}` })

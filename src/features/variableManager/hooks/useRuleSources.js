@@ -48,6 +48,7 @@ export default function useRuleSources(db) {
   const [newGroupContent, setNewGroupContent] = useState('');
   const [editingGroupId, setEditingGroupId] = useState(null);
   const [groupTesting, setGroupTesting] = useState(false);
+  const [groupTestResults, setGroupTestResults] = useState(null);
 
   // Utilities
   const createRuleId = useCallback(() => `rule_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, []);
@@ -285,6 +286,8 @@ export default function useRuleSources(db) {
     setEditingGroupId,
     groupTesting,
     setGroupTesting,
+    groupTestResults,
+    setGroupTestResults,
     saveRuleGroup,
     deleteRuleGroup,
     loadRuleGroups,

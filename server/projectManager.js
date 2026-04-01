@@ -1484,6 +1484,161 @@ class ProjectManager {
 
     return { success: true, queued: false, nodeId };
   }
+
+  /**
+   * Clone a node from one workflow to another
+   * @param {string} fromWorkflowId - Source workflow ID
+   * @param {string} fromNodeId - Source node ID to clone from
+   * @param {string} toWorkflowId - Target workflow ID
+   * @param {string} newNodeId - New node ID for the cloned node
+   * @param {string} newNodeName - Optional override for node name/label
+   * @param {any} functionInput - Optional override for function input
+   * @param {string} functionString - Optional override for function string
+   * @returns {object} The cloned node or null if failed
+   */
+  cloneNode(fromWorkflowId, fromNodeId, toWorkflowId, newNodeId, newNodeName, functionInput, functionString) {
+    // Get source workflow
+    const fromProject = this.projects.get(fromWorkflowId);
+    if (!fromProject) {
+      console.error(`[ProjectManager] cloneNode: Source workflow ${fromWorkflowId} not found`);
+      return null;
+    }
+
+    // Find source node
+    const sourceNode = (fromProject.nodes || []).find(n => String(n.id) === String(fromNodeId));
+    if (!sourceNode) {
+      console.error(`[ProjectManager] cloneNode: Source node ${fromNodeId} not found in workflow ${fromWorkflowId}`);
+      return null;
+    }
+
+    // Load or create target workflow
+    let toProject = this.projects.get(toWorkflowId);
+    if (!toProject) {
+      this.loadProject(toWorkflowId, [], [], [], 1000);
+      toProject = this.projects.get(toWorkflowId);
+    }
+
+    // Deep clone the source node
+    const clonedNode = JSON.parse(JSON.stringify(sourceNode));
+    
+    // Set new ID
+    clonedNode.id = newNodeId;
+
+    // Apply optional overrides
+    if (newNodeName) {
+      if (clonedNode.data) {
+        clonedNode.data.labelText = newNodeName;
+        clonedNode.data.label = newNodeName;
+      }
+    }
+
+    if (functionInput !== undefined) {
+      if (clonedNode.data) {
+        clonedNode.data.functionInput = functionInput;
+      }
+    }
+
+    if (functionString !== undefined) {
+      if (clonedNode.data) {
+        clonedNode.data.fnString = functionString;
+      }
+    }
+
+    // Add to target workflow
+    toProject.nodes = Array.isArray(toProject.nodes) ? toProject.nodes : [];
+    
+    // Check for duplicate ID and replace if exists
+    const existingIndex = toProject.nodes.findIndex(n => String(n.id) === String(newNodeId));
+    if (existingIndex >= 0) {
+      toProject.nodes[existingIndex] = clonedNode;
+    } else {
+      toProject.nodes.push(clonedNode);
+    }
+
+    // Persist changes
+    this.scheduleSave();
+
+    // Notify watchers
+    this.sendNodes(toWorkflowId);
+
+    console.log(`[ProjectManager] cloneNode: Cloned node ${fromNodeId} from ${fromWorkflowId} to ${newNodeId} in ${toWorkflowId}`);
+    return clonedNode;
+  }
+
+  /**
+   * Clone an edge from one workflow to another
+   * @param {string} fromWorkflowId - Source workflow ID
+   * @param {string} fromEdgeId - Source edge ID to clone from
+   * @param {string} toWorkflowId - Target workflow ID
+   * @param {string} newEdgeId - New edge ID for the cloned edge
+   * @param {string} newEdgeName - Optional override for edge name/label
+   * @param {any} functionInput - Optional override for function input
+   * @param {string} functionString - Optional override for function string
+   * @returns {object} The cloned edge or null if failed
+   */
+  cloneEdge(fromWorkflowId, fromEdgeId, toWorkflowId, newEdgeId, newEdgeName, functionInput, functionString) {
+    // Get source workflow
+    const fromProject = this.projects.get(fromWorkflowId);
+    if (!fromProject) {
+      console.error(`[ProjectManager] cloneEdge: Source workflow ${fromWorkflowId} not found`);
+      return null;
+    }
+
+    // Find source edge
+    const sourceEdge = (fromProject.edges || []).find(e => String(e.id) === String(fromEdgeId));
+    if (!sourceEdge) {
+      console.error(`[ProjectManager] cloneEdge: Source edge ${fromEdgeId} not found in workflow ${fromWorkflowId}`);
+      return null;
+    }
+
+    // Load or create target workflow
+    let toProject = this.projects.get(toWorkflowId);
+    if (!toProject) {
+      this.loadProject(toWorkflowId, [], [], [], 1000);
+      toProject = this.projects.get(toWorkflowId);
+    }
+
+    // Deep clone the source edge
+    const clonedEdge = JSON.parse(JSON.stringify(sourceEdge));
+    
+    // Set new ID
+    clonedEdge.id = newEdgeId;
+
+    // Apply optional overrides
+    if (newEdgeName) {
+      clonedEdge.label = newEdgeName;
+    }
+
+    if (functionInput !== undefined) {
+      if (!clonedEdge.data) clonedEdge.data = {};
+      clonedEdge.data.functionInput = functionInput;
+    }
+
+    if (functionString !== undefined) {
+      if (!clonedEdge.data) clonedEdge.data = {};
+      clonedEdge.data.fnString = functionString;
+    }
+
+    // Add to target workflow
+    toProject.edges = Array.isArray(toProject.edges) ? toProject.edges : [];
+    
+    // Check for duplicate ID and replace if exists
+    const existingIndex = toProject.edges.findIndex(e => String(e.id) === String(newEdgeId));
+    if (existingIndex >= 0) {
+      toProject.edges[existingIndex] = clonedEdge;
+    } else {
+      toProject.edges.push(clonedEdge);
+    }
+
+    // Persist changes
+    this.scheduleSave();
+
+    // Notify watchers with lightweight edge event
+    this.broadcastToProject(toWorkflowId, 'sendEdge', { projectId: toWorkflowId, edge: clonedEdge });
+
+    console.log(`[ProjectManager] cloneEdge: Cloned edge ${fromEdgeId} from ${fromWorkflowId} to ${newEdgeId} in ${toWorkflowId}`);
+    return clonedEdge;
+  }
 }
 
 export default new ProjectManager();
